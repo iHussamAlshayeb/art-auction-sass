@@ -1,16 +1,25 @@
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+import authRoutes from './api/auth.routes.js';
+import userRoutes from './api/user.routes.js';
+import artworkRoutes from './api/artwork.routes.js';
+import auctionRoutes from './api/auction.routes.js';
 
-// Create the Express app
+
 const app = express();
 
-// Middlewares
-app.use(cors()); // Enable CORS for all routes
-app.use(express.json()); // To parse JSON bodies
+app.use(cors());
+app.use(express.json());
+
+// API Routes
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/artworks', artworkRoutes);
+app.use('/api/v1/auctions', auctionRoutes);
 
 // Simple test route
 app.get('/', (req, res) => {
   res.status(200).json({ message: 'Welcome to the Art Auction API! 🚀' });
 });
 
-module.exports = app;
+export default app;
