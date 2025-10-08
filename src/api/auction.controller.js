@@ -128,37 +128,24 @@ export const getAuctionById = async (req, res) => {
 
 
 export const placeBid = async (req, res) => {
-  const { id: auctionId } = req.params; // ID المزاد من الرابط
-  const { amount } = req.body; // مبلغ المزايدة من الجسم
-  const bidderId = req.user.id; // هوية المزايد من الـ token
+  const { id: auctionId } = req.params;
+  const { amount } = req.body;
+  const bidderId = req.user.id;
 
   if (!amount) {
     return res.status(400).json({ message: 'Bid amount is required.' });
   }
 
   try {
-    const newBid = await prisma.$transaction(async (tx) => {
-      // الخطوة 1: جلب المزاد الحالي للتأكد من حالته
+    const transactionResult = await prisma.$transaction(async (tx) => {
       const auction = await tx.auction.findUnique({
         where: { id: auctionId },
       });
 
-      // التحقق من وجود المزاد
-      if (!auction) {
-        throw new Error('Auction not found.');
-      }
-      
-      // التحقق من أن المزاد لم ينتهِ بعد
-      if (new Date() > auction.endTime) {
-        throw new Error('This auction has already ended.');
-      }
-      
-      // التحقق من أن المزايدة الجديدة أعلى من السعر الحالي
-      if (amount <= auction.currentPrice) {
-        throw new Error('Your bid must be higher than the current price.');
-      }
+      if (!auction) throw new Error('Auction not found.');
+      if (new Date() > auction.endTime) throw new Error('This auction has already ended.');
+      if (amount <= auction.currentPrice) throw new Error('Your bid must be higher than the current price.');
 
-      // الخطوة 2: تحديث المزاد بالسعر الجديد وهوية أعلى مزايد
       const updatedAuction = await tx.auction.update({
         where: { id: auctionId },
         data: {
@@ -167,7 +154,6 @@ export const placeBid = async (req, res) => {
         },
       });
 
-      // الخطوة 3: تسجيل المزايدة الجديدة في جدول المزايدات (Bids)
       const bid = await tx.bid.create({
         data: {
           amount: parseFloat(amount),
@@ -175,14 +161,26 @@ export const placeBid = async (req, res) => {
           bidderId: bidderId,
         },
       });
-
-      return bid;
+      
+      // إرجاع البيانات اللازمة للبث
+      return { bid, updatedAuction };
     });
 
-    res.status(201).json({ message: 'Bid placed successfully!', bid: newBid });
+    // ## الخطوة الجديدة: بث التحديث عبر Socket.IO ##
+    const io = req.app.get('io'); // الحصول على كائن io
+    const roomName = `auction-${auctionId}`; // اسم الغرفة يجب أن يكون فريدًا
+    
+    // إرسال حدث اسمه 'priceUpdate' إلى كل الموجودين في الغرفة
+    io.to(roomName).emit('priceUpdate', {
+      auctionId: auctionId,
+      newPrice: transactionResult.updatedAuction.currentPrice,
+      bidderId: bidderId,
+    });
+    console.log(`Emitted priceUpdate to room ${roomName}`);
+    
+    res.status(201).json({ message: 'Bid placed successfully!', bid: transactionResult.bid });
 
   } catch (error) {
-    // إرجاع رسائل خطأ واضحة بناءً على نوع الخطأ
     if (error.message.includes('Auction not found')) {
       return res.status(404).json({ message: error.message });
     }
