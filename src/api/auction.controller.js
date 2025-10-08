@@ -130,21 +130,25 @@ export const getAuctionById = async (req, res) => {
 export const placeBid = async (req, res) => {
   const { id: auctionId } = req.params;
   const { amount } = req.body;
-  const bidderId = req.user.id;
-
-  if (!amount) {
-    return res.status(400).json({ message: 'Bid amount is required.' });
-  }
+  const bidderId = req.user.id; // المزايد الجديد
 
   try {
     const transactionResult = await prisma.$transaction(async (tx) => {
       const auction = await tx.auction.findUnique({
-        where: { id: auctionId },
+        where: { id: auctionId }, include: {
+          artwork: { // تضمين معلومات العمل الفني
+            select: {
+              title: true, // تحديد العنوان فقط
+            },
+          },
+        },
       });
 
       if (!auction) throw new Error('Auction not found.');
       if (new Date() > auction.endTime) throw new Error('This auction has already ended.');
       if (amount <= auction.currentPrice) throw new Error('Your bid must be higher than the current price.');
+      
+      const previousHighestBidderId = auction.highestBidderId; // نحتفظ بهوية المزايد القديم
 
       const updatedAuction = await tx.auction.update({
         where: { id: auctionId },
@@ -162,32 +166,44 @@ export const placeBid = async (req, res) => {
         },
       });
       
-      // إرجاع البيانات اللازمة للبث
-      return { bid, updatedAuction };
+      return { bid, updatedAuction, previousHighestBidderId, artworkTitle: auction.artwork.title };
     });
 
-    // ## الخطوة الجديدة: بث التحديث عبر Socket.IO ##
-    const io = req.app.get('io'); // الحصول على كائن io
-    const roomName = `auction-${auctionId}`; // اسم الغرفة يجب أن يكون فريدًا
+    const io = req.app.get('io');
+    const userSocketMap = req.app.get('userSocketMap');
+    const roomName = `auction-${auctionId}`;
     
-    // إرسال حدث اسمه 'priceUpdate' إلى كل الموجودين في الغرفة
+    // 1. بث السعر الجديد للجميع في الغرفة (كما كان)
     io.to(roomName).emit('priceUpdate', {
       auctionId: auctionId,
       newPrice: transactionResult.updatedAuction.currentPrice,
-      bidderId: bidderId,
+      bidderName: req.user.name, // يمكننا إضافة اسم المزايد الجديد
     });
     console.log(`Emitted priceUpdate to room ${roomName}`);
+    
+    // 2. إرسال إشعار خاص للمزايد القديم (إذا كان موجودًا ومتصلاً)
+    const { previousHighestBidderId } = transactionResult;
+    if (previousHighestBidderId && previousHighestBidderId !== bidderId) {
+      const oldBidderSocketId = userSocketMap.get(previousHighestBidderId);
+      if (oldBidderSocketId) {
+        io.to(oldBidderSocketId).emit('outbid', {
+          auctionId: auctionId,
+          message: `لقد تمت المزايدة بسعر أعلى منك في مزاد "${artworkTitle}"!`
+        });
+        console.log(`Sent 'outbid' notification to user ${previousHighestBidderId}`);
+      }
+    }
     
     res.status(201).json({ message: 'Bid placed successfully!', bid: transactionResult.bid });
 
   } catch (error) {
+    // ... معالجة الأخطاء كما هي
     if (error.message.includes('Auction not found')) {
       return res.status(404).json({ message: error.message });
     }
     if (error.message.includes('auction has already ended') || error.message.includes('must be higher')) {
       return res.status(400).json({ message: error.message });
     }
-    
     res.status(500).json({ message: 'Failed to place bid', error: error.message });
   }
 };

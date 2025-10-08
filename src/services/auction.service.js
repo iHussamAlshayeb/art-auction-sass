@@ -2,41 +2,51 @@ import PrismaClientPkg from '@prisma/client';
 const { PrismaClient } = PrismaClientPkg;
 const prisma = new PrismaClient();
 
-export const processFinishedAuctions = async () => {
+// تعديل الدالة لتستقبل io و userSocketMap
+export const processFinishedAuctions = async (io, userSocketMap) => {
   console.log('Running job: Checking for finished auctions...');
 
-  // الخطوة 1: العثور على كل الأعمال الفنية التي في مزاد حاليًا
   const artworksInAuction = await prisma.artwork.findMany({
     where: {
       status: 'IN_AUCTION',
+      auction: {
+        endTime: {
+          lt: new Date(), // البحث عن المزادات التي انتهى وقتها
+        },
+      },
     },
     include: {
-      auction: true, // جلب المزاد المرتبط بها
+      auction: true,
     },
   });
 
-  // الخطوة 2: المرور على كل عمل فني والتحقق من مزاده
   for (const artwork of artworksInAuction) {
-    // التأكد من وجود مزاد وأن وقته قد انتهى
-    if (artwork.auction && new Date() > artwork.auction.endTime) {
+    let finalStatus;
+    const winnerId = artwork.auction.highestBidderId;
 
-      let finalStatus;
+    if (winnerId) {
+      finalStatus = 'SOLD';
+      console.log(`Auction for artwork "${artwork.title}" has ended. Winner found. Status set to SOLD.`);
 
-      // إذا كان هناك فائز (أعلى مزايد)، تكون الحالة "مُباع"
-      if (artwork.auction.highestBidderId) {
-        finalStatus = 'SOLD';
-        console.log(`Auction for artwork "${artwork.title}" has ended. Winner found. Status set to SOLD.`);
-      } else {
-        // إذا لم يكن هناك مزايد، تكون الحالة "منتهي"
-        finalStatus = 'ENDED';
-        console.log(`Auction for artwork "${artwork.title}" has ended. No bids placed. Status set to ENDED.`);
+      // ## الخطوة الجديدة: إرسال إشعار للفائز ##
+      const winnerSocketId = userSocketMap.get(winnerId);
+      if (winnerSocketId) {
+        io.to(winnerSocketId).emit('auctionWon', {
+          message: `🎉 تهانينا! لقد فزت بمزاد "${artwork.title}"`,
+          auctionId: artwork.auction.id,
+          finalPrice: artwork.auction.currentPrice,
+        });
+        console.log(`Sent 'auctionWon' notification to user ${winnerId}`);
       }
 
-      // الخطوة 3: تحديث حالة العمل الفني
-      await prisma.artwork.update({
-        where: { id: artwork.id },
-        data: { status: finalStatus },
-      });
+    } else {
+      finalStatus = 'ENDED';
+      console.log(`Auction for artwork "${artwork.title}" has ended. No bids placed. Status set to ENDED.`);
     }
+
+    await prisma.artwork.update({
+      where: { id: artwork.id },
+      data: { status: finalStatus },
+    });
   }
 };
