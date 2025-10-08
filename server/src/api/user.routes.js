@@ -10,5 +10,7 @@ router.get('/profile', protect, getMyProfile);
 // Add the new route for fetching a student's own artworks
 router.get('/me/artworks', protect, getMyArtworks);
 
+router.get('/me/bids', protect, getMyActiveBids);
+router.get('/me/wins', protect, getMyWonArtworks);
 
 export default router;
