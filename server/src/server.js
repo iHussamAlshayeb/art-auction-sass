@@ -14,15 +14,15 @@ const httpServer = createServer(app);
 // ربط Socket.IO بخادم http
 // ربط Socket.IO بخادم http
 const io = new Server(httpServer, {
+  pingInterval: 20000, // إرسال ping كل 20 ثانية
+  pingTimeout: 30000,  // اعتبار الاتصال منقطعًا بعد 30 ثانية من عدم الرد
   cors: {
-    // تحديد المصادر المسموح لها بالاتصال بشكل صريح
     origin: [
-      "http://localhost:5173", // للسماح بالاتصال من بيئة التطوير المحلية
-      // أضف هنا رابط الواجهة الأمامية بعد نشرها لاحقًا
-      // "https://your-frontend-domain.com"
+      "http://localhost:5173",
+      // أضف هنا رابط الواجهة الأمامية بعد نشرها
     ],
-    methods: ["GET", "POST"],
-  },
+    methods: ["GET", "POST"]
+  }
 });
 
 // وضع io في كائن app ليكون متاحًا في المتحكمات (Controllers)
