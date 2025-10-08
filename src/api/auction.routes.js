@@ -1,6 +1,6 @@
 import express from 'express';
 // استيراد الدوال الجديدة
-import { createAuction, getAllAuctions, getAuctionById, placeBid, createCheckoutSession } from './auction.controller.js';
+import { createAuction, getAllAuctions, getAuctionById, placeBid, createMoyasarPayment } from './auction.controller.js';
 import { protect, checkRole } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -22,6 +22,6 @@ router.get('/:id', getAuctionById);
 router.post('/:id/bids', protect, checkRole(['BUYER']), placeBid);
 
 
-router.post('/:id/checkout', protect, createCheckoutSession);
+router.post('/:id/checkout', protect, createMoyasarPayment);
 
 export default router;

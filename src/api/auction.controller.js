@@ -1,7 +1,7 @@
 import PrismaClientPkg from '@prisma/client';
 const { PrismaClient } = PrismaClientPkg;
 const prisma = new PrismaClient();
-import stripe from 'stripe'; // استيراد Stripe
+import axios from 'axios'; // استيراد axios
 
 
 export const createAuction = async (req, res) => {
@@ -195,62 +195,45 @@ export const placeBid = async (req, res) => {
 };
 
 // دالة لإنشاء جلسة دفع للفائز
-export const createCheckoutSession = async (req, res) => {
+export const createMoyasarPayment = async (req, res) => {
   const { id: auctionId } = req.params;
-  const userId = req.user.id; // هوية المستخدم من الـ token
+  const userId = req.user.id;
+  const moyasarApiKey = process.env.MOYASAR_SECRET_KEY;
 
   try {
-    // الخطوة 1: جلب المزاد والتحقق من الشروط
     const auction = await prisma.auction.findUnique({
       where: { id: auctionId },
-      include: { artwork: true }, // جلب معلومات العمل الفني
+      include: { artwork: true },
     });
 
-    // التحقق من أن المزاد موجود وأن المستخدم هو الفائز
     if (!auction || auction.highestBidderId !== userId) {
       return res.status(403).json({ message: 'Forbidden: You are not the winner of this auction.' });
     }
 
-    // التحقق من أن المزاد قد انتهى فعلاً
-    if (new Date() < auction.endTime) {
-      return res.status(400).json({ message: 'This auction has not ended yet.' });
-    }
-    
-    // التحقق من أن حالة العمل "مُباع" (للتأكد أن المهمة الخلفية قد عملت)
     if (auction.artwork.status !== 'SOLD') {
-        return res.status(400).json({ message: 'Payment cannot be processed for this artwork.'});
+      return res.status(400).json({ message: 'Payment is not yet available for this auction.' });
     }
 
-    // الخطوة 2: تهيئة Stripe وإنشاء جلسة الدفع
-    const stripeClient = new stripe(process.env.STRIPE_SECRET_KEY);
-
-    const session = await stripeClient.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'payment',
-      line_items: [{
-        price_data: {
-          currency: 'sar', // يمكنك تغيير العملة حسب الحاجة
-          product_data: {
-            name: auction.artwork.title,
-            description: auction.artwork.description,
-          },
-          unit_amount: Math.round(auction.currentPrice * 100), // يجب أن يكون المبلغ بأصغر وحدة (هللة)
-        },
-        quantity: 1,
-      }],
-      // روابط لإعادة توجيه المستخدم بعد إتمام الدفع أو إلغائه
-      success_url: `http://your-frontend-website.com/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `http://your-frontend-website.com/payment/cancel`,
-      // معلومات إضافية لربط جلسة الدفع بالمزاد في نظامنا
-      metadata: {
-        auctionId: auction.id,
-        artworkId: auction.artworkId,
+    // ## تعديل: سنقوم بإنشاء "فاتورة" بدلاً من "دفعة" ##
+    const response = await axios.post('https://api.moyasar.com/v1/invoices', {
+      amount: Math.round(auction.currentPrice * 100),
+      currency: 'SAR',
+      description: `Invoice for artwork: ${auction.artwork.title}`,
+      callback_url: `http://your-frontend-website.com/payment/callback?auction_id=${auction.id}`,
+      // يمكنك إضافة metadata هنا إذا احتجت
+    }, {
+      auth: {
+        username: moyasarApiKey,
+        password: ''
       }
     });
 
-    res.status(200).json({ url: session.url });
+    // رابط صفحة الدفع للفاتورة موجود في 'url' مباشرة
+    const paymentUrl = response.data.url;
+    res.status(200).json({ url: paymentUrl });
 
   } catch (error) {
-    res.status(500).json({ message: 'Failed to create checkout session', error: error.message });
+    console.error("Moyasar API Error:", error.response ? error.response.data : error.message);
+    res.status(500).json({ message: 'Failed to create Moyasar payment', error: error.response ? error.response.data : error.message });
   }
 };
