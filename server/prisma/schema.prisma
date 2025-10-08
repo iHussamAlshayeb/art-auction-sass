@@ -14,8 +14,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-
 // ENUMS: To define a set of allowed values for a field
 enum Role {
   STUDENT

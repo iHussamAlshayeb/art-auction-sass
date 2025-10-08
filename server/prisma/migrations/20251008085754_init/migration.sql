@@ -17,7 +17,7 @@ CREATE TABLE "User" (
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
+-- CreateTabl
 CREATE TABLE "Artwork" (
     "id" TEXT NOT NULL,
     "title" TEXT NOT NULL,
