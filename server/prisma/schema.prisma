@@ -1,12 +1,6 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
-  provider = "prisma-client-js"
-  engineType    = "library"
+  provider   = "prisma-client-js"
+  engineType = "library"
 }
 
 datasource db {
@@ -14,7 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ENUMS: To define a set of allowed values for a field
 enum Role {
   STUDENT
   BUYER
@@ -28,8 +21,6 @@ enum Status {
   ENDED
 }
 
-// MODELS: Represent the tables in your database
-
 model User {
   id              String    @id @default(cuid())
   email           String    @unique
@@ -38,38 +29,39 @@ model User {
   role            Role      @default(STUDENT)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-
-  artworks        Artwork[] // A user can have many artworks
-  bids            Bid[]     // A user can place many bids
-  winningAuctions Auction[] // A user can win many auctions
+  artworks        Artwork[]
+  bids            Bid[]
+  winningAuctions Auction[] @relation("WinningBids")
+  payments        Payment[]
 }
 
 model Artwork {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   title       String
   description String
   imageUrl    String
   studentId   String
-  status      Status  @default(DRAFT)
+  status      Status   @default(DRAFT)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-
-  student User     @relation(fields: [studentId], references: [id])
-  auction Auction? // An artwork can have one auction
+  student     User     @relation(fields: [studentId], references: [id])
+  auction     Auction?
 }
 
 model Auction {
   id              String   @id @default(cuid())
-  artworkId       String   @unique // Each artwork can only be in one auction
+  artworkId       String   @unique
   startTime       DateTime
   endTime         DateTime
   startPrice      Float
   currentPrice    Float
   highestBidderId String?
-
   artwork         Artwork  @relation(fields: [artworkId], references: [id])
-  highestBidder   User?    @relation(fields: [highestBidderId], references: [id])
-  bids            Bid[]    // An auction can have many bids
+  highestBidder   User?    @relation("WinningBids", fields: [highestBidderId], references: [id])
+  bids            Bid[]
+  
+  // ## الجزء المفقود الأول: العلاقة مع جدول الدفعات ##
+  payment         Payment?
 }
 
 model Bid {
@@ -78,7 +70,20 @@ model Bid {
   bidderId  String
   amount    Float
   createdAt DateTime @default(now())
+  auction   Auction  @relation(fields: [auctionId], references: [id])
+  bidder    User     @relation(fields: [bidderId], references: [id])
+}
 
-  auction Auction @relation(fields: [auctionId], references: [id])
-  bidder  User    @relation(fields: [bidderId], references: [id])
+// ## الجزء المفقود الثاني: موديل الدفعات بالكامل ##
+model Payment {
+  id             String   @id @default(cuid())
+  amount         Float
+  currency       String
+  status         String
+  gatewayPaymentId String   @unique
+  auctionId      String   @unique
+  userId         String
+  createdAt      DateTime @default(now())
+  auction        Auction  @relation(fields: [auctionId], references: [id])
+  user           User     @relation(fields: [userId], references: [id])
 }
