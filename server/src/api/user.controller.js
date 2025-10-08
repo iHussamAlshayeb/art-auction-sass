@@ -62,7 +62,7 @@ export const getMyWonArtworks = async (req, res) => {
       },
       include: { 
         artwork: true,
-        payment: true,
+        // payment: true,
       },
       orderBy: { endTime: 'desc' },
     });
