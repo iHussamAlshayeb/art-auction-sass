@@ -62,12 +62,13 @@ export const getMyWonArtworks = async (req, res) => {
       },
       include: { 
         artwork: true,
-        payment: true, // جلب معلومات الدفع للتأكد إذا تم الدفع أم لا
+        payment: true,
       },
       orderBy: { endTime: 'desc' },
     });
     res.status(200).json({ wonAuctions });
   } catch (error) {
+    console.error("Error fetching won artworks:", error);
     res.status(500).json({ message: 'Failed to fetch won artworks', error: error.message });
   }
 };
