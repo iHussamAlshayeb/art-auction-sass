@@ -12,9 +12,15 @@ const PORT = process.env.PORT || 3000;
 const httpServer = createServer(app);
 
 // ربط Socket.IO بخادم http
+// ربط Socket.IO بخادم http
 const io = new Server(httpServer, {
   cors: {
-    origin: "*", // في بيئة الإنتاج، يجب تحديد رابط الواجهة الأمامية
+    // تحديد المصادر المسموح لها بالاتصال بشكل صريح
+    origin: [
+      "http://localhost:5173", // للسماح بالاتصال من بيئة التطوير المحلية
+      // أضف هنا رابط الواجهة الأمامية بعد نشرها لاحقًا
+      // "https://your-frontend-domain.com"
+    ],
     methods: ["GET", "POST"],
   },
 });
