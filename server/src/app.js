@@ -4,7 +4,7 @@ import authRoutes from './api/auth.routes.js';
 import userRoutes from './api/user.routes.js';
 import artworkRoutes from './api/artwork.routes.js';
 import auctionRoutes from './api/auction.routes.js';
-
+import uploadRoutes from './api/upload.routes.js';
 
 const app = express();
 
@@ -16,6 +16,8 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/artworks', artworkRoutes);
 app.use('/api/v1/auctions', auctionRoutes);
+app.use('/api/v1/upload', uploadRoutes);
+
 
 // Simple test route
 app.get('/', (req, res) => {
