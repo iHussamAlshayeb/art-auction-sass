@@ -7,15 +7,15 @@ function LogoutButton() {
 
   const handleLogout = () => {
     logout();
-    navigate('/'); // Redirect to homepage after logout
+    navigate('/'); // توجيه المستخدم إلى الصفحة الرئيسية بعد تسجيل الخروج
   };
 
   return (
     <button 
       onClick={handleLogout} 
-      className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded transition-colors"
+      className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full shadow-md transition-all"
     >
-      Logout
+      تسجيل الخروج
     </button>
   );
 }

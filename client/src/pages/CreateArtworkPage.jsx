@@ -23,7 +23,7 @@ function CreateArtworkPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!imageFile) {
-      setError('Please select an image file to upload.');
+      setError('الرجاء اختيار ملف صورة لرفعه.');
       return;
     }
     setError(null);
@@ -31,55 +31,61 @@ function CreateArtworkPage() {
     setUploading(true);
 
     try {
-      // 1. Upload the image first
+      // 1. ارفع الصورة أولاً
       const uploadResponse = await uploadImage(imageFile);
       const finalImageUrl = uploadResponse.data.imageUrl;
 
-      // 2. Use the returned URL to create the artwork
+      // 2. استخدم الرابط لإنشاء العمل الفني
       await createArtwork({ ...formData, imageUrl: finalImageUrl });
       
-      setSuccess('Artwork added successfully! Redirecting to your dashboard...');
+      setSuccess('تمت إضافة العمل بنجاح! جاري توجيهك...');
       setTimeout(() => navigate('/dashboard'), 2000);
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add artwork.');
+      setError(err.response?.data?.message || 'فشلت إضافة العمل الفني.');
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-lg space-y-8 bg-white p-10 rounded-xl shadow-lg">
+    <div className="pt-28 pb-20 px-6 sm:px-10 bg-gradient-to-b from-orange-50 via-white to-orange-50 min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-lg space-y-8 bg-white/90 backdrop-blur-sm p-8 sm:p-10 rounded-3xl shadow-lg border border-orange-100">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            Add a New Artwork
+          <h2 className="text-center text-4xl font-extrabold tracking-tight text-orange-600">
+            إضافة عمل فني جديد
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
-            Upload your masterpiece for the world to see
+            ارفع تحفتك الفنية ليراها العالم
           </p>
         </div>
         
         {success ? (
-          <p className="text-center text-green-600">{success}</p>
+          <p className="text-center text-lg text-green-600">{success}</p>
         ) : (
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-4 rounded-md">
-              <input
-                name="title" type="text" required
-                className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                placeholder="Artwork Title"
-                onChange={handleChange}
-              />
-              <textarea
-                name="description" required rows="4"
-                className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                placeholder="Artwork Description"
-                onChange={handleChange}
-              />
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-600">عنوان العمل الفني</label>
+                <input
+                  name="title" type="text" required
+                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="مثال: غروب الصحراء"
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">وصف العمل الفني</label>
+                <textarea
+                  name="description" required rows="4"
+                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="صف عملك الفني..."
+                  onChange={handleChange}
+                />
+              </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  Artwork Image
+                  صورة العمل الفني
                 </label>
                 <input 
                   type="file" 
@@ -90,8 +96,8 @@ function CreateArtworkPage() {
                     file:mr-4 file:py-2 file:px-4
                     file:rounded-full file:border-0
                     file:text-sm file:font-semibold
-                    file:bg-indigo-50 file:text-indigo-700
-                    hover:file:bg-indigo-100"
+                    file:bg-orange-50 file:text-orange-700
+                    hover:file:bg-orange-100"
                 />
               </div>
             </div>
@@ -102,9 +108,9 @@ function CreateArtworkPage() {
               <button
                 type="submit"
                 disabled={uploading}
-                className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-3 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:bg-gray-400"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-5 rounded-xl shadow-sm transition-all duration-200 disabled:bg-gray-400"
               >
-                {uploading ? 'Uploading...' : 'Submit Artwork'}
+                {uploading ? 'جاري الرفع...' : 'إرسال العمل الفني'}
               </button>
             </div>
           </form>
