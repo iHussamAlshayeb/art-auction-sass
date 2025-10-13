@@ -90,7 +90,7 @@ function HomePage() {
                 <img
                   src={auction.artwork.imageUrl}
                   alt={auction.artwork.title}
-                  className="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-60 object-fill transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent group-hover:from-black/10 transition-all duration-500"></div>
               </div>
