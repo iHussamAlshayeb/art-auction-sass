@@ -22,7 +22,7 @@ function App() {
       <header className="bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-50">
         <nav className="container mx-auto p-4 flex justify-between items-center">
           {/* الشعار */}
-
+          
           <Link
             to="/">
             <img src="/logo.svg" alt="Logo" className="h-20 w-20" />
@@ -30,30 +30,30 @@ function App() {
 
           {/* الروابط */}
           <div className="flex items-center gap-4">
-            {user && (
+              {user && (
               <>
                 {/* الرابط الجديد: يظهر فقط إذا كان المستخدم ADMIN */}
                 {user.role === 'ADMIN' && (
-                  <Link to="/admin" className="font-bold text-red-500 hover:text-red-700">لوحة التحكم</Link>
+                   <Link to="/admin" className="font-bold text-red-500 hover:text-red-700">لوحة التحكم</Link>
                 )}
-                <Link to="/dashboard">الملف الشخصي</Link>
+                <Link to="/dashboard">ملفي الشخصي</Link>
                 <LogoutButton />
               </>
             )} : (
-            <>
-              <Link
-                to="/login"
-                className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
-              >
-                تسجيل الدخول
-              </Link>
-              <Link
-                to="/register"
-                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full shadow-md transition-all"
-              >
-                إنشاء حساب
-              </Link>
-            </>
+              <>
+                <Link
+                  to="/login"
+                  className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
+                >
+                  تسجيل الدخول
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full shadow-md transition-all"
+                >
+                  إنشاء حساب
+                </Link>
+              </>
             )}
           </div>
         </nav>
@@ -70,14 +70,6 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute roles={['ADMIN']}>
-                <AdminDashboardPage />
               </ProtectedRoute>
             }
           />
