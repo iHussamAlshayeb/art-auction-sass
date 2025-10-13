@@ -61,7 +61,7 @@ function App() {
         </nav>
       </header>
 
-      <main className="container mx-auto p-4 md:p-8">
+      <main className="container mx-auto p-4 md:p-8 pt-24">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/auctions/:id" element={<AuctionDetailPage />} />
