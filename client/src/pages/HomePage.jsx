@@ -121,7 +121,7 @@ function HomePage() {
                 <div className="mt-auto pt-4 flex justify-between items-center">
                   <AuctionCardTimer endTime={auction.endTime} />
                   <span className="bg-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm">
-                    زايد الآن
+                    المزايدة الآن
                   </span>
                 </div>
               </div>
