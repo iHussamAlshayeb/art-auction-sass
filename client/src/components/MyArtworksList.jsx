@@ -31,7 +31,7 @@ function MyArtworksList() {
       } catch (error) {
         alert(error.response?.data?.message || 'Failed to cancel auction.');
       }
-    }
+    }};
 
 
     useEffect(() => {
