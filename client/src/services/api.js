@@ -86,3 +86,8 @@ export const fetchAuctionBids = (id) => {
 export const cancelAuction = (auctionId) => {
   return apiClient.delete(`/auctions/${auctionId}`);
 };
+
+
+export const getMyProfile = () => apiClient.get('/users/me');
+export const updateMyProfile = (profileData) => apiClient.put('/users/me', profileData);
+export const updateMyPassword = (passwordData) => apiClient.put('/users/me/password', passwordData);

@@ -4,6 +4,9 @@ import {
   getMyArtworks,
   getMyActiveBids,
   getMyWonArtworks,
+  getMyProfileData,
+  updateMyProfile,
+  updateMyPassword,
 } from "./user.controller.js";
 import { protect } from "../middleware/auth.middleware.js"; // Import the middleware
 
@@ -19,4 +22,7 @@ router.get("/me/artworks", protect, getMyArtworks);
 router.get("/me/bids", protect, getMyActiveBids);
 router.get("/me/wins", protect, getMyWonArtworks);
 
+router.get('/me', protect, getMyProfileData);
+router.put('/me', protect, updateMyProfile);
+router.put('/me/password', protect, updateMyPassword);
 export default router;
