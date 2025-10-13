@@ -42,7 +42,7 @@ function HomePage() {
     getAuctions(); // Re-fetch the auctions with the new search term
   };
 
-   return (
+  return (
     // لم نعد بحاجة لـ <main> هنا لأن <App> يوفرها
     <div>
       {/* قسم الفلاتر والبحث داخل بطاقة خاصة به */}
@@ -50,7 +50,7 @@ function HomePage() {
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Find Your Masterpiece</h2>
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <form onSubmit={handleSearch} className="flex-grow w-full sm:w-auto">
-            <input 
+            <input
               type="text"
               placeholder="Search by artwork title..."
               value={searchTerm}
@@ -58,9 +58,9 @@ function HomePage() {
               className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
             />
           </form>
-          <select 
-            value={sortBy} 
-            onChange={(e) => setSortBy(e.target.value)} 
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
             className="w-full sm:w-auto p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
           >
             <option value="newest">Newest First</option>
@@ -80,13 +80,13 @@ function HomePage() {
           <Link key={auction.id} to={`/auctions/${auction.id}`}>
             <div className="bg-white rounded-lg shadow-md overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 group">
               <div className="relative">
-                <img src={auction.artwork.imageUrl} alt={auction.artwork.title} className="w-full h-56 object-cover" />
-                <div className="absolute inset-0 bg-black bg-opacity-20 group-hover:bg-opacity-10 transition-all duration-300"></div>
+                <img src={auction.artwork.imageUrl} alt={auction.artwork.title} className="w-full h-56 object-cover"/>
+                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300"></div>
               </div>
               <div className="p-4">
                 <h3 className="text-lg font-bold text-gray-800 truncate">{auction.artwork.title}</h3>
                 <p className="text-sm text-gray-600 mb-3">by {auction.artwork.student.name}</p>
-                
+
                 <div className="mt-4 border-t pt-3">
                   <p className="text-xs text-gray-500">Current Price</p>
                   <p className="text-xl font-bold text-indigo-600">{auction.currentPrice} SAR</p>
@@ -96,7 +96,7 @@ function HomePage() {
           </Link>
         ))}
       </div>
-      
+
       {!loading && auctions.length === 0 && !error && (
         <div className="text-center text-gray-500 mt-16">
           <p className="text-2xl">No auctions found.</p>

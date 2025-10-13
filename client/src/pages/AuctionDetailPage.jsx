@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
-import { fetchAuctionById } from '../services/api';
+import { fetchAuctionById, fetchAuctionBids } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import BiddingForm from '../components/BiddingForm';
 import AuctionTimer from '../components/AuctionTimer';
-
+import BidHistory from '../components/BidHistory';
 
 
 const SOCKET_URL = import.meta.env.VITE_API_BASE_URL;
@@ -15,11 +15,34 @@ function AuctionDetailPage() {
   const { user, token } = useAuth();
   const [auction, setAuction] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [bids, setBids] = useState([]); 
 
-  useEffect(() => {
+const getBids = async (auctionId) => {
+    try {
+      const response = await fetchAuctionBids(auctionId);
+      setBids(response.data.bids);
+    } catch (error) {
+      console.error("Failed to fetch bids", error);
+    }
+  };
+
+useEffect(() => {
     fetchAuctionById(id)
       .then(response => setAuction(response.data.auction))
       .finally(() => setLoading(false));
+
+      const fetchInitialData = async () => {
+      try {
+        const auctionRes = await fetchAuctionById(id);
+        setAuction(auctionRes.data.auction);
+        await getBids(id);
+      } catch (error) {
+        console.error("Failed to load auction page", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInitialData();
 
     const socket = io(SOCKET_URL, {
       auth: { token },
@@ -35,6 +58,7 @@ function AuctionDetailPage() {
         ...prevAuction,
         currentPrice: data.newPrice,
       }));
+      getBids(id);
     });
     
     socket.on('outbid', (data) => {
@@ -79,7 +103,7 @@ function AuctionDetailPage() {
           </div>
 
           <AuctionTimer endTime={auction.endTime} />
-          
+            <BidHistory bids={bids} />
           {/* Bidding Form */}
           {user && user.role === 'BUYER' ? (
             <BiddingForm auctionId={id} currentPrice={auction.currentPrice} />
