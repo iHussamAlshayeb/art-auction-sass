@@ -1,7 +1,7 @@
-import { Routes, Route, Link, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Link, } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
-// استيراد المكونات والصفحات
+
 import HomePage from './pages/HomePage';
 import RegisterPage from './pages/RegisterPage';
 import LoginPage from './pages/LoginPage';
@@ -10,30 +10,16 @@ import CreateArtworkPage from './pages/CreateArtworkPage';
 import AuctionDetailPage from './pages/AuctionDetailPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import LogoutButton from './components/LogoutButton';
+import SsoHandler from './components/SsoHandler';
 // import './App.css';
 
 function App() {
-  const { user, login } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    // البحث عن 'token' في متغيرات الرابط
-    const params = new URLSearchParams(location.search);
-    const token = params.get('sso_token');
-
-    if (token) {
-      // إذا وجدنا توكن، قم بتسجيل دخول المستخدم
-      login(token);
-      // قم بإزالة التوكن من الرابط لتنظيفه
-      navigate(location.pathname, { replace: true });
-    }
-  }, [location, login, navigate]);
- 
+  const { user } = useAuth();
 
   return (
 
     <div className="bg-gray-100 min-h-screen">
+      <SsoHandler />
       <header className="bg-gray-800 text-white shadow-md">
         <nav className="container mx-auto p-4 flex justify-between items-center">
           <Link to="/" className="text-2xl font-bold hover:text-indigo-400 transition-colors">
