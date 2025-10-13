@@ -18,7 +18,58 @@ function AuctionDetailPage() {
   const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ... (كل منطق جلب البيانات و useEffect يبقى كما هو)
+   const getBids = async (auctionId) => {
+    try {
+      const response = await fetchAuctionBids(auctionId);
+      setBids(response.data.bids);
+    } catch (error) {
+      console.error("Failed to fetch bids", error);
+    }
+  };
+
+  useEffect(() => {
+    // دالة لجلب البيانات الأولية (المزاد والمزايدات)
+    const fetchInitialData = async () => {
+      try {
+        const auctionRes = await fetchAuctionById(id);
+        setAuction(auctionRes.data.auction);
+        await getBids(id);
+      } catch (error) {
+        console.error("Failed to load auction page", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInitialData();
+
+    // إعداد اتصال Socket.IO
+    const socket = io(SOCKET_URL, {
+      auth: { token },
+      transports: ['polling'],
+    });
+
+    socket.on('connect', () => {
+      socket.emit('joinAuctionRoom', id);
+    });
+
+    // الاستماع لتحديثات السعر وتحديث سجل المزايدات
+    socket.on('priceUpdate', (data) => {
+      setAuction(prevAuction => ({
+        ...prevAuction,
+        currentPrice: data.newPrice,
+      }));
+      getBids(id);
+    });
+    
+    // الاستماع للإشعارات
+    socket.on('outbid', (data) => {
+      alert(data.message); // يمكنك استبدال هذا بنظام إشعارات أفضل لاحقًا
+    });
+
+    // تنظيف الاتصال عند مغادرة الصفحة
+    return () => socket.disconnect();
+  }, [id, token]);
+
 
   if (loading) {
     return (
