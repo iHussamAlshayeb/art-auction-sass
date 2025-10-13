@@ -233,7 +233,7 @@ export const createMoyasarPayment = async (req, res) => {
       amount: Math.round(auction.currentPrice * 100),
       currency: 'SAR',
       description: `Invoice for artwork: ${auction.artwork.title}`,
-      callback_url: `http://your-frontend-website.com/payment/callback?auction_id=${auction.id}`,
+      callback_url: `http://fanan3.com/payment/callback?auction_id=${auction.id}`,
       // يمكنك إضافة metadata هنا إذا احتجت
     }, {
       auth: {
