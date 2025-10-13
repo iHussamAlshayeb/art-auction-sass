@@ -21,12 +21,10 @@ function App() {
       <header className="bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-50">
         <nav className="container mx-auto p-4 flex justify-between items-center">
           {/* الشعار */}
-          <img src="/logo.svg" alt="Logo" className="h-20 w-20" />
+          
           <Link
-            to="/"
-            className="text-2xl font-extrabold text-orange-600 hover:text-orange-700 transition-colors tracking-wide"
-          >
-            Art Auction
+            to="/">
+            <img src="/logo.svg" alt="Logo" className="h-20 w-20" />
           </Link>
 
           {/* الروابط */}
