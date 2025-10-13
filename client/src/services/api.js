@@ -94,3 +94,6 @@ export const updateMyPassword = (passwordData) => apiClient.put('/users/me/passw
 
 export const getAdminStats = () => apiClient.get('/admin/stats');
 export const getAllUsers = () => apiClient.get('/admin/users');
+
+export const updateUserRole = (userId, role) => apiClient.put(`/admin/users/${userId}/role`, { role });
+export const deleteUser = (userId) => apiClient.delete(`/admin/users/${userId}`);
