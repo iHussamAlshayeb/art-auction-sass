@@ -14,12 +14,13 @@ const httpServer = createServer(app);
 // ربط Socket.IO بخادم http
 // ربط Socket.IO بخادم http
 const io = new Server(httpServer, {
-  pingInterval: 20000, // إرسال ping كل 20 ثانية
-  pingTimeout: 30000,  // اعتبار الاتصال منقطعًا بعد 30 ثانية من عدم الرد
+  pingInterval: 20000,
+  pingTimeout: 30000,
   cors: {
     origin: [
-      "http://localhost:5173",
-      // أضف هنا رابط الواجهة الأمامية بعد نشرها
+      "http://localhost:5173",       // For local development
+      "https://app.fanan3.com",        // Your live frontend app ✅
+      "https://www.fanan3.com"         // Your WordPress site
     ],
     methods: ["GET", "POST"]
   }
