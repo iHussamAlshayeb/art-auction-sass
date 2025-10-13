@@ -2,8 +2,6 @@ import Modal from 'react-modal';
 import { useState } from 'react';
 import { createAuction } from '../services/api';
 
-// يجب استدعاء هذا السطر مرة واحدة في تطبيقك (يفضل في App.jsx)
-// بما أنه موجود هنا، لا مشكلة
 Modal.setAppElement('#root');
 
 function StartAuctionModal({ isOpen, onRequestClose, artwork, onAuctionCreated }) {
@@ -15,17 +13,15 @@ function StartAuctionModal({ isOpen, onRequestClose, artwork, onAuctionCreated }
     e.preventDefault();
     setError(null);
     try {
-      // تحويل التاريخ والوقت المحلي إلى صيغة ISO القياسية (UTC)
       const isoEndTime = new Date(endTime).toISOString();
-      
       await createAuction({
         artworkId: artwork.id,
         startPrice: parseFloat(startPrice),
         endTime: isoEndTime,
       });
-      onAuctionCreated(); // لتحديث القائمة بعد النجاح
+      onAuctionCreated();
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to start auction.');
+      setError(err.response?.data?.message || 'فشل في بدء المزاد.');
     }
   };
 
@@ -34,52 +30,50 @@ function StartAuctionModal({ isOpen, onRequestClose, artwork, onAuctionCreated }
       isOpen={isOpen} 
       onRequestClose={onRequestClose} 
       contentLabel="Start Auction"
-      // فئات Tailwind لتنسيق النافذة
-      className="absolute top-1/2 left-1/2 right-auto bottom-auto -mr-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white p-8 rounded-xl shadow-lg"
+      className="absolute top-1/2 left-1/2 right-auto bottom-auto -mr-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-lg border border-orange-100"
       overlayClassName="fixed inset-0 bg-black bg-opacity-75"
     >
       <h2 className="text-2xl font-bold text-gray-900 mb-4">
-        Start Auction for "{artwork.title}"
+        بدء المزاد لـ "{artwork.title}"
       </h2>
       <form className="space-y-6" onSubmit={handleSubmit}>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Starting Price (SAR)</label>
+          <label className="block text-sm font-medium text-gray-700">السعر المبدئي (ريال)</label>
           <input 
             type="number" 
-            placeholder="e.g., 150.00" 
+            placeholder="مثال: 150.00" 
             value={startPrice}
             onChange={(e) => setStartPrice(e.target.value)}
             required 
-            className="mt-1 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700">Auction End Time</label>
+          <label className="block text-sm font-medium text-gray-700">وقت انتهاء المزاد</label>
           <input 
             type="datetime-local" 
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
             required 
-            className="mt-1 relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
           />
         </div>
 
         {error && <p className="text-sm text-red-600">{error}</p>}
         
-        {/* أزرار التحكم */}
         <div className="flex items-center gap-4 pt-4">
           <button 
             type="submit"
-            className="flex-1 justify-center rounded-md border border-transparent bg-indigo-600 py-3 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="flex-1 justify-center rounded-xl border border-transparent bg-orange-500 py-3 px-4 text-sm font-medium text-white hover:bg-orange-600 shadow-sm transition-all"
           >
-            Create Auction
+            إنشاء المزاد
           </button>
           <button 
             type="button" 
             onClick={onRequestClose}
-            className="flex-1 justify-center rounded-md border border-gray-300 bg-white py-3 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="flex-1 justify-center rounded-xl border border-gray-300 bg-white py-3 px-4 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all"
           >
-            Cancel
+            إلغاء
           </button>
         </div>
       </form>
