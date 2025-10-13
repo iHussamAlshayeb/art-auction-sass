@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { fetchAuctionById, fetchAuctionBids } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import BiddingForm from '../components/BiddingForm';
 import AuctionTimer from '../components/AuctionTimer';
 import BidHistory from '../components/BidHistory';
+import CountdownTimer from '../components/CountdownTimer';
 
 
 const SOCKET_URL = import.meta.env.VITE_API_BASE_URL;
@@ -102,8 +103,11 @@ useEffect(() => {
             Auction ends: {new Date(auction.endTime).toLocaleString()}
           </div>
 
-          <AuctionTimer endTime={auction.endTime} />
-            <BidHistory bids={bids} />
+          {/* <AuctionTimer endTime={auction.endTime} /> */}
+          <div>
+            <h4 className="text-center text-gray-500 text-sm mb-2">Auction Ends In</h4>
+            <CountdownTimer endTime={auction.endTime} />
+          </div>
           {/* Bidding Form */}
           {user && user.role === 'BUYER' ? (
             <BiddingForm auctionId={id} currentPrice={auction.currentPrice} />
@@ -112,6 +116,8 @@ useEffect(() => {
               <p>Please <Link to="/login" className="font-bold text-indigo-600">log in</Link> as a buyer to place a bid.</p>
             </div>
           )}
+
+            <BidHistory bids={bids} />
         </div>
       </div>
     </div>
