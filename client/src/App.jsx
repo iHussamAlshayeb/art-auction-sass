@@ -35,7 +35,7 @@ function App() {
                 {user.role === 'ADMIN' && (
                    <Link to="/admin" className="font-bold text-red-500 hover:text-red-700 transition-colors">لوحة الإدارة</Link>
                 )}
-                <Link to="/dashboard" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">لوحة التحكم</Link>
+                <Link to="/dashboard" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">الملف الشخصي</Link>
                 <LogoutButton />
               </>
             ) : (
