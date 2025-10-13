@@ -91,3 +91,6 @@ export const cancelAuction = (auctionId) => {
 export const getMyProfile = () => apiClient.get('/users/me');
 export const updateMyProfile = (profileData) => apiClient.put('/users/me', profileData);
 export const updateMyPassword = (passwordData) => apiClient.put('/users/me/password', passwordData);
+
+export const getAdminStats = () => apiClient.get('/admin/stats');
+export const getAllUsers = () => apiClient.get('/admin/users');
