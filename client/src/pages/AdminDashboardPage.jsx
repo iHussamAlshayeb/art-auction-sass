@@ -3,138 +3,137 @@ import { getAdminStats, getAllUsers, updateUserRole, deleteUser } from '../servi
 import { useAuth } from '../context/AuthContext';
 
 function AdminDashboardPage() {
-    const { user: adminUser } = useAuth(); // إعادة تسمية لتجنب التضارب
-    const [stats, setStats] = useState(null);
-    const [users, setUsers] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const { user: adminUser } = useAuth(); // إعادة تسمية لتجنب التضارب
+  const [stats, setStats] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-    // دالة لجلب كل البيانات يمكننا استدعاؤها لإعادة التحديث
-    const fetchData = async () => {
-        try {
-            setLoading(true);
-            const [statsRes, usersRes] = await Promise.all([getAdminStats(), getAllUsers()]);
-            setStats(statsRes.data);
-            setUsers(usersRes.data.users);
-        } catch (error) {
-            console.error("Failed to load admin data", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchData();
-    }, []);
-
-    const handleDeleteUser = async (userId) => {
-        console.log(`Attempting to delete user with ID: ${userId}`);
-        // if (window.confirm('...')) { // <-- قم بتعليق هذا السطر مؤقتًا
-        try {
-            await deleteUser(userId);
-            fetchData();
-        } catch (error) {
-            alert(error.response?.data?.message || 'فشل في حذف المستخدم.');
-        }
-        // } // <-- وقم بتعليق هذا السطر
-    };
-
-    
-    const handleRoleChange = async (userId, newRole) => {
-        try {
-            await updateUserRole(userId, newRole);
-            fetchData(); // إعادة تحميل البيانات بعد التغيير
-        } catch (error) {
-            alert('فشل في تغيير دور المستخدم.');
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center min-h-[60vh]">
-                <p className="text-lg text-gray-500">جاري تحميل لوحة الإدارة...</p>
-            </div>
-        );
+  // دالة لجلب كل البيانات يمكننا استدعاؤها لإعادة التحديث
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [statsRes, usersRes] = await Promise.all([getAdminStats(), getAllUsers()]);
+      setStats(statsRes.data);
+      setUsers(usersRes.data.users);
+    } catch (error) {
+      console.error("Failed to load admin data", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleDeleteUser = async (userId) => {
+    if (window.confirm('هل أنت متأكد من أنك تريد حذف هذا المستخدم نهائيًا؟')) {
+      try {
+        await deleteUser(userId);
+        fetchData(); // إعادة تحميل البيانات بعد الحذف
+      } catch (error) {
+        alert('فشل في حذف المستخدم.');
+      }
+    }
+  };
+
+  const handleRoleChange = async (userId, newRole) => {
+     try {
+        await updateUserRole(userId, newRole);
+        fetchData(); // إعادة تحميل البيانات بعد التغيير
+      } catch (error) {
+        alert('فشل في تغيير دور المستخدم.');
+      }
+  };
+
+  if (loading) {
     return (
-        <div className="space-y-10">
-            {/* قسم الإحصائيات */}
-            {stats && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-orange-100 text-center">
-                        <p className="text-gray-600">إجمالي المستخدمين</p>
-                        <p className="text-4xl font-extrabold text-orange-600 mt-2">{stats.users}</p>
-                    </div>
-                    <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-orange-100 text-center">
-                        <p className="text-gray-600">المزادات النشطة</p>
-                        <p className="text-4xl font-extrabold text-orange-600 mt-2">{stats.activeAuctions}</p>
-                    </div>
-                    <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-orange-100 text-center">
-                        <p className="text-gray-600">إجمالي الإيرادات</p>
-                        <p className="text-4xl font-extrabold text-orange-600 mt-2">{stats.totalRevenue.toFixed(2)} ريال</p>
-                    </div>
-                </div>
-            )}
-
-            {/* قسم إدارة المستخدمين */}
-            <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-lg border border-orange-100">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">إدارة المستخدمين</h2>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white text-left">
-                        <thead className="bg-orange-50/50">
-                            <tr>
-                                <th className="py-3 px-4 text-sm font-semibold text-gray-600">الاسم</th>
-                                <th className="py-3 px-4 text-sm font-semibold text-gray-600">البريد الإلكتروني</th>
-                                <th className="py-3 px-4 text-sm font-semibold text-gray-600">الدور</th>
-                                <th className="py-3 px-4 text-sm font-semibold text-gray-600">تاريخ الانضمام</th>
-                                <th className="py-3 px-4 text-sm font-semibold text-gray-600">الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {users.map(user => (
-                                <tr key={user.id} className="hover:bg-orange-50/30 border-b border-orange-100">
-                                    <td className="py-3 px-4">{user.name}</td>
-                                    <td className="py-3 px-4">{user.email}</td>
-                                    <td className="py-3 px-4">
-                                        <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${user.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
-                                                user.role === 'STUDENT' ? 'bg-green-100 text-green-800' :
-                                                    'bg-blue-100 text-blue-800'
-                                            }`}>
-                                            {user.role}
-                                        </span>
-                                    </td>
-                                    <td className="py-3 px-4 text-sm text-gray-500">{new Date(user.createdAt).toLocaleDateString('ar-SA')}</td>
-                                    <td className="py-3 px-4">
-                                        {user.id !== adminUser.id ? (
-                                            <div className="flex items-center gap-2">
-                                                <select
-                                                    value={user.role}
-                                                    onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                                    className="text-xs p-1.5 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
-                                                >
-                                                    <option value="BUYER">BUYER</option>
-                                                    <option value="STUDENT">STUDENT</option>
-                                                    <option value="ADMIN">ADMIN</option>
-                                                </select>
-                                                <button
-                                                    onClick={() => handleDeleteUser(user.id)}
-                                                    className="text-red-600 hover:text-red-900 text-xs font-semibold"
-                                                >
-                                                    حذف
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <span className="text-xs text-gray-400">لا يمكن التعديل</span>
-                                        )}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div className="flex justify-center items-center min-h-[60vh]">
+            <p className="text-lg text-gray-500">جاري تحميل لوحة الإدارة...</p>
         </div>
     );
+  }
+
+  return (
+    <div className="space-y-10">
+      {/* قسم الإحصائيات */}
+      {stats && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-orange-100 text-center">
+            <p className="text-gray-600">إجمالي المستخدمين</p>
+            <p className="text-4xl font-extrabold text-orange-600 mt-2">{stats.users}</p>
+          </div>
+          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-orange-100 text-center">
+            <p className="text-gray-600">المزادات النشطة</p>
+            <p className="text-4xl font-extrabold text-orange-600 mt-2">{stats.activeAuctions}</p>
+          </div>
+          <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-orange-100 text-center">
+            <p className="text-gray-600">إجمالي الإيرادات</p>
+            <p className="text-4xl font-extrabold text-orange-600 mt-2">{stats.totalRevenue.toFixed(2)} ريال</p>
+          </div>
+        </div>
+      )}
+
+      {/* قسم إدارة المستخدمين */}
+      <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-lg border border-orange-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">إدارة المستخدمين</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white text-left">
+            <thead className="bg-orange-50/50">
+              <tr>
+                <th className="py-3 px-4 text-sm font-semibold text-gray-600">الاسم</th>
+                <th className="py-3 px-4 text-sm font-semibold text-gray-600">البريد الإلكتروني</th>
+                <th className="py-3 px-4 text-sm font-semibold text-gray-600">الدور</th>
+                <th className="py-3 px-4 text-sm font-semibold text-gray-600">تاريخ الانضمام</th>
+                <th className="py-3 px-4 text-sm font-semibold text-gray-600">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map(user => (
+                <tr key={user.id} className="hover:bg-orange-50/30 border-b border-orange-100">
+                  <td className="py-3 px-4">{user.name}</td>
+                  <td className="py-3 px-4">{user.email}</td>
+                  <td className="py-3 px-4">
+                    <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
+                      user.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
+                      user.role === 'STUDENT' ? 'bg-green-100 text-green-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-500">{new Date(user.createdAt).toLocaleDateString('ar-SA')}</td>
+                  <td className="py-3 px-4">
+                    {user.id !== adminUser.id ? (
+                      <div className="flex items-center gap-2">
+                        <select 
+                          value={user.role} 
+                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                          className="text-xs p-1.5 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
+                        >
+                          <option value="BUYER">BUYER</option>
+                          <option value="STUDENT">STUDENT</option>
+                          <option value="ADMIN">ADMIN</option>
+                        </select>
+                        <button 
+                          onClick={() => handleDeleteUser(user.id)}
+                          className="text-red-600 hover:text-red-900 text-xs font-semibold"
+                        >
+                          حذف
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-gray-400">لا يمكن التعديل</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default AdminDashboardPage;
