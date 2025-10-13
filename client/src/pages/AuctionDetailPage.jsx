@@ -1,127 +1,109 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { io } from 'socket.io-client';
-import { fetchAuctionById, fetchAuctionBids } from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import BiddingForm from '../components/BiddingForm';
-import AuctionTimer from '../components/AuctionTimer';
-import BidHistory from '../components/BidHistory';
-import CountdownTimer from '../components/CountdownTimer';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { registerUser } from '../services/api';
 
+function RegisterPage() {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'BUYER',
+  });
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
+  const navigate = useNavigate();
 
-const SOCKET_URL = import.meta.env.VITE_API_BASE_URL;
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-function AuctionDetailPage() {
-  const { id } = useParams();
-  const { user, token } = useAuth();
-  const [auction, setAuction] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [bids, setBids] = useState([]); 
-
-const getBids = async (auctionId) => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setSuccess(null);
     try {
-      const response = await fetchAuctionBids(auctionId);
-      setBids(response.data.bids);
-    } catch (error) {
-      console.error("Failed to fetch bids", error);
+      await registerUser(formData);
+      setSuccess('تم إنشاء الحساب بنجاح! سيتم توجيهك لصفحة تسجيل الدخول...');
+      setTimeout(() => navigate('/login'), 2000);
+    } catch (err) {
+      setError(err.response?.data?.message || 'فشل التسجيل.');
     }
   };
 
-useEffect(() => {
-    fetchAuctionById(id)
-      .then(response => setAuction(response.data.auction))
-      .finally(() => setLoading(false));
-
-      const fetchInitialData = async () => {
-      try {
-        const auctionRes = await fetchAuctionById(id);
-        setAuction(auctionRes.data.auction);
-        await getBids(id);
-      } catch (error) {
-        console.error("Failed to load auction page", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchInitialData();
-
-    const socket = io(SOCKET_URL, {
-      auth: { token },
-      transports: ['polling'],
-    });
-
-    socket.on('connect', () => {
-      socket.emit('joinAuctionRoom', id);
-    });
-
-    socket.on('priceUpdate', (data) => {
-      setAuction(prevAuction => ({
-        ...prevAuction,
-        currentPrice: data.newPrice,
-      }));
-      getBids(id);
-    });
-    
-    socket.on('outbid', (data) => {
-      alert(data.message);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [id, token]);
-
-  if (loading) return <p className="text-center p-10">Loading auction details...</p>;
-  if (!auction) return <p className="text-center p-10">Auction not found.</p>;
-
   return (
-    <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-      {/* Left Column: Image */}
-      <div className="w-full">
-        <img 
-          src={auction.artwork.imageUrl} 
-          alt={auction.artwork.title} 
-          className="w-full h-auto object-cover rounded-lg shadow-xl" 
-        />
-      </div>
-
-      {/* Right Column: Details */}
-      <div className="flex flex-col space-y-6">
+    <div className="pt-28 pb-20 px-6 sm:px-10 bg-gradient-to-b from-orange-50 via-white to-orange-50 min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-lg space-y-8 bg-white/90 backdrop-blur-sm p-8 sm:p-10 rounded-3xl shadow-lg border border-orange-100">
         <div>
-          <h1 className="text-4xl lg:text-5xl font-bold text-gray-900">{auction.artwork.title}</h1>
-          <p className="text-lg text-gray-600 mt-2">by {auction.artwork.student.name}</p>
+          <h2 className="text-center text-4xl font-extrabold tracking-tight text-orange-600">
+            إنشاء حساب جديد
+          </h2>
         </div>
 
-        <p className="text-gray-700 leading-relaxed">{auction.artwork.description}</p>
-        
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex justify-between items-center">
-            <span className="text-gray-500 text-lg">Current Price</span>
-            <span className="text-4xl font-bold text-indigo-600">{auction.currentPrice.toFixed(2)} SAR</span>
-          </div>
-          <div className="mt-4 text-center text-sm text-gray-500">
-            Auction ends: {new Date(auction.endTime).toLocaleString()}
-          </div>
-
-          {/* <AuctionTimer endTime={auction.endTime} /> */}
-          <div>
-            <h4 className="text-center text-gray-500 text-sm mb-2">Auction Ends In</h4>
-            <CountdownTimer endTime={auction.endTime} />
-          </div>
-          {/* Bidding Form */}
-          {user && user.role === 'BUYER' ? (
-            <BiddingForm auctionId={id} currentPrice={auction.currentPrice} />
-          ) : (
-            <div className="mt-6 text-center text-gray-600 bg-gray-100 p-4 rounded-md">
-              <p>Please <Link to="/login" className="font-bold text-indigo-600">log in</Link> as a buyer to place a bid.</p>
+        {success ? (
+          <p className="text-center text-lg text-green-600">{success}</p>
+        ) : (
+          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-600">الاسم الكامل</label>
+                <input
+                  name="name" type="text" required
+                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="اسمك الكامل" value={formData.name} onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">البريد الإلكتروني</label>
+                <input
+                  name="email" type="email" required
+                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="email@example.com" value={formData.email} onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">كلمة المرور</label>
+                <input
+                  name="password" type="password" required
+                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="••••••••" value={formData.password} onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">أرغب في التسجيل كـ</label>
+                <select 
+                  name="role" value={formData.role} onChange={handleChange}
+                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                >
+                  <option value="BUYER">مشتري (أرغب في شراء الأعمال)</option>
+                  <option value="STUDENT">طالب (أرغب في بيع أعمالي)</option>
+                </select>
+              </div>
             </div>
-          )}
 
-            <BidHistory bids={bids} />
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            <div>
+              <button
+                type="submit"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-5 rounded-xl shadow-sm transition-all duration-200"
+              >
+                إنشاء الحساب
+              </button>
+            </div>
+          </form>
+        )}
+        
+        <div className="text-sm text-center text-gray-600">
+          <p>
+            لديك حساب بالفعل؟{' '}
+            <Link to="/login" className="font-semibold text-orange-600 hover:text-orange-500">
+              سجل دخولك من هنا
+            </Link>
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-export default AuctionDetailPage;
+export default RegisterPage;
