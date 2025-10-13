@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchAllAuctions } from '../services/api';
 import { Link } from 'react-router-dom';
-
+import AuctionTimer from '../components/AuctionTimer'; // <-- استيراد المكون الجديد
 function HomePage() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,29 +82,51 @@ function HomePage() {
       {error && <p className="text-center text-red-500 font-semibold">{error}</p>}
 
       {/* الشبكة */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2">
+       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2">
         {!loading && auctions.map((auction) => (
           <Link key={auction.id} to={`/auctions/${auction.id}`}>
+            {/* --== بداية الكرت المُعاد تصميمه ==-- */}
             <div className="bg-white rounded-3xl overflow-hidden border border-orange-100 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
+              
+              {/* الصورة */}
               <div className="relative">
                 <img
                   src={auction.artwork.imageUrl}
                   alt={auction.artwork.title}
-                  className="w-full h-60 object-fill transition-transform duration-500 group-hover:scale-105"
+                  className="w-full h-60 object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent group-hover:from-black/10 transition-all duration-500"></div>
               </div>
-              <div className="p-5">
-                <h3 className="text-lg font-bold text-gray-800 truncate mb-1">
+
+              {/* المحتوى */}
+              <div className="p-5 flex flex-col h-full">
+                {/* الصف العلوي: الصف الدراسي والسعر */}
+                <div className="flex justify-between items-center mb-2">
+                  <span className="bg-orange-100 text-orange-600 text-xs font-semibold px-3 py-1 rounded-full">
+                    {/* بيانات الصف الدراسي تضاف هنا مستقبلاً */}
+                    طالب
+                  </span>
+                  <span className="text-lg font-bold text-orange-500">{auction.currentPrice} ر.س</span>
+                </div>
+
+                {/* العنوان والفنان */}
+                <h3 className="text-xl font-bold text-gray-800 truncate mb-1">
                   {auction.artwork.title}
                 </h3>
-                <p className="text-sm text-gray-500 mb-3">بواسطة {auction.artwork.student.name}</p>
-                <div className="mt-3 border-t border-gray-100 pt-3">
-                  <p className="text-xs text-gray-500">السعر الحالي</p>
-                  <p className="text-2xl font-extrabold text-orange-600">{auction.currentPrice} ر.س</p>
+                <p className="text-sm text-gray-500">
+                  بواسطة {auction.artwork.student.name}
+                  {/* بيانات المدرسة تضاف هنا مستقبلاً */}
+                </p>
+
+                {/* الصف السفلي: الوقت المتبقي والزر */}
+                <div className="mt-auto pt-4 flex justify-between items-center">
+                  <AuctionTimer endTime={auction.endTime} />
+                  <span className="bg-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm">
+                    زايد الآن
+                  </span>
                 </div>
               </div>
             </div>
+            {/* --== نهاية الكرت المُعاد تصميمه ==-- */}
           </Link>
         ))}
       </div>
