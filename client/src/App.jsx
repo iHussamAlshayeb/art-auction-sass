@@ -3,8 +3,8 @@ import { useAuth } from "./context/AuthContext";
 
 // استيراد الصفحات والمكونات
 import HomePage from "./pages/HomePage";
-import RegisterPage from "./pages-ar/RegisterPage";
-import LoginPage from "./pages-ar/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import CreateArtworkPage from "./pages/CreateArtworkPage";
 import AuctionDetailPage from "./pages/AuctionDetailPage";
