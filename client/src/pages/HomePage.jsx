@@ -38,16 +38,22 @@ function HomePage() {
   };
 
   return (
-    <div className="pt-28 pb-12 px-4 sm:px-8 bg-gradient-to-b from-orange-50 via-white to-white min-h-screen">
+    <div className="pt-28 pb-20 px-6 sm:px-10 bg-gradient-to-b from-orange-50 via-white to-orange-50 min-h-screen">
       {/* رأس الصفحة */}
-      <div className="text-center mb-10">
-        <h1 className="text-4xl font-extrabold text-orange-600 mb-3">المزادات الفنية</h1>
-        <p className="text-gray-600 text-lg">استكشف أعمال الطلاب الموهوبين وشارك في دعم الفن الراقي</p>
+      <div className="text-center mb-12">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-orange-600 mb-4 tracking-tight drop-shadow-sm">
+          المزادات الفنية
+        </h1>
+        <p className="text-gray-600 text-lg md:text-xl">
+          استكشف أعمال الطلاب الموهوبين وشارك في دعم الفن الراقي
+        </p>
       </div>
 
-      {/* قسم البحث والفلاتر */}
-      <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-md mb-10 max-w-4xl mx-auto border border-orange-100">
-        <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">ابحث عن عملك الفني المفضل</h2>
+      {/* البحث والفلاتر */}
+      <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-lg mb-14 max-w-5xl mx-auto border border-orange-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-5 text-center">
+          ابحث عن عملك الفني المفضل
+        </h2>
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <form onSubmit={handleSearch} className="flex-grow w-full sm:w-auto">
             <input
@@ -55,13 +61,13 @@ function HomePage() {
               placeholder="ابحث بعنوان العمل الفني..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-3 border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 transition bg-white"
+              className="w-full p-3.5 border border-orange-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition bg-white shadow-sm"
             />
           </form>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full sm:w-auto p-3 border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 transition bg-white"
+            className="w-full sm:w-auto p-3.5 border border-orange-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition bg-white shadow-sm"
           >
             <option value="newest">الأحدث أولاً</option>
             <option value="ending_soon">ستنتهي قريبًا</option>
@@ -71,32 +77,31 @@ function HomePage() {
         </div>
       </div>
 
-      {/* حالات التحميل والخطأ */}
+      {/* حالات */}
       {loading && <p className="text-center text-gray-500 text-lg">جارٍ تحميل المزادات...</p>}
       {error && <p className="text-center text-red-500 font-semibold">{error}</p>}
 
       {/* الشبكة */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2">
         {!loading && auctions.map((auction) => (
           <Link key={auction.id} to={`/auctions/${auction.id}`}>
-            <div className="bg-white rounded-2xl shadow-md overflow-hidden transform hover:-translate-y-2 hover:shadow-lg transition-transform duration-300 group border border-orange-100">
+            <div className="bg-white rounded-3xl overflow-hidden border border-orange-100 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
               <div className="relative">
                 <img
                   src={auction.artwork.imageUrl}
                   alt={auction.artwork.title}
-                  className="w-full h-56 object-cover"
+                  className="w-full h-60 object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-all duration-300"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent group-hover:from-black/10 transition-all duration-500"></div>
               </div>
-              <div className="p-4">
-                <h3 className="text-lg font-bold text-gray-800 truncate">
+              <div className="p-5">
+                <h3 className="text-lg font-bold text-gray-800 truncate mb-1">
                   {auction.artwork.title}
                 </h3>
-                <p className="text-sm text-gray-600 mb-3">بواسطة {auction.artwork.student.name}</p>
-
-                <div className="mt-4 border-t pt-3">
+                <p className="text-sm text-gray-500 mb-3">بواسطة {auction.artwork.student.name}</p>
+                <div className="mt-3 border-t border-gray-100 pt-3">
                   <p className="text-xs text-gray-500">السعر الحالي</p>
-                  <p className="text-xl font-bold text-orange-600">{auction.currentPrice} ر.س</p>
+                  <p className="text-2xl font-extrabold text-orange-600">{auction.currentPrice} ر.س</p>
                 </div>
               </div>
             </div>
@@ -104,8 +109,9 @@ function HomePage() {
         ))}
       </div>
 
+      {/* لا توجد نتائج */}
       {!loading && auctions.length === 0 && !error && (
-        <div className="text-center text-gray-500 mt-16">
+        <div className="text-center text-gray-500 mt-20">
           <p className="text-2xl font-semibold">لم يتم العثور على مزادات.</p>
           <p>حاول تعديل البحث أو عد لاحقًا!</p>
         </div>
