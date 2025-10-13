@@ -10,28 +10,28 @@ function BiddingForm({ auctionId, currentPrice }) {
     setError(null);
     try {
       await placeBid(auctionId, parseFloat(amount));
-      setAmount(''); // Clear input on successful bid
+      setAmount('');
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to place bid.');
+      setError(err.response?.data?.message || 'فشلت المزايدة.');
     }
   };
 
   return (
-    <div className="mt-6">
+    <div className="pt-4 border-t border-orange-100">
       <form className="flex" onSubmit={handleSubmit}>
         <input 
           type="number" 
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          placeholder={`Your bid ( > ${currentPrice} SAR)`}
+          placeholder={`عرضك (أعلى من ${currentPrice} ريال)`}
           required 
-          className="w-full appearance-none rounded-l-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+          className="w-full appearance-none rounded-l-lg border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm"
         />
         <button 
           type="submit"
-          className="rounded-r-md border border-transparent bg-indigo-600 py-3 px-6 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          className="rounded-r-lg border border-transparent bg-orange-500 py-3 px-6 text-sm font-medium text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2"
         >
-          Place Bid
+          زايد
         </button>
       </form>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
