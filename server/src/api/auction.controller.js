@@ -251,3 +251,27 @@ export const createMoyasarPayment = async (req, res) => {
     res.status(500).json({ message: 'Failed to create Moyasar payment', error: error.response ? error.response.data : error.message });
   }
 };
+
+
+export const getAuctionBids = async (req, res) => {
+  const { id: auctionId } = req.params;
+
+  try {
+    const bids = await prisma.bid.findMany({
+      where: { auctionId },
+      orderBy: {
+        createdAt: 'desc', // ترتيب المزايدات من الأحدث للأقدم
+      },
+      include: {
+        bidder: { // تضمين معلومات المزايد
+          select: {
+            name: true, // جلب الاسم فقط لحماية الخصوصية
+          },
+        },
+      },
+    });
+    res.status(200).json({ bids });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch bids', error: error.message });
+  }
+};

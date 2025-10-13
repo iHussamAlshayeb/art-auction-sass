@@ -1,6 +1,6 @@
 import express from 'express';
 // استيراد الدوال الجديدة
-import { createAuction, getAllAuctions, getAuctionById, placeBid, createMoyasarPayment } from './auction.controller.js';
+import { createAuction, getAllAuctions, getAuctionById, placeBid, createMoyasarPayment, getAuctionBids } from './auction.controller.js';
 import { protect, checkRole } from '../middleware/auth.middleware.js';
 
 const router = express.Router();
@@ -18,6 +18,8 @@ router.get('/:id', getAuctionById);
 router.post('/', protect, checkRole(['STUDENT']), createAuction);
 router.get('/', getAllAuctions);
 router.get('/:id', getAuctionById);
+
+router.get('/:id/bids', getAuctionBids);
 
 router.post('/:id/bids', protect, checkRole(['BUYER']), placeBid);
 
