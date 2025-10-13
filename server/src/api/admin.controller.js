@@ -2,7 +2,7 @@ import PrismaClientPkg from '@prisma/client';
 const { PrismaClient } = PrismaClientPkg;
 const prisma = new PrismaClient();
 
-// دالة لجلب إحصائيات عامة
+// دالة لجلب إحصائيات المنصة
 export const getStats = async (req, res) => {
   try {
     const userCount = await prisma.user.count();
@@ -14,7 +14,7 @@ export const getStats = async (req, res) => {
         amount: true,
       },
       where: {
-        status: 'paid', // أو 'succeeded' حسب ما حفظناه
+        status: 'paid', // أو 'succeeded' حسب ما تم حفظه
       },
     });
 
@@ -32,7 +32,7 @@ export const getStats = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      select: { // تحديد الحقول لمنع إرسال كلمة المرور
+      select: { // تحديد حقول معينة لتجنب إرسال كلمة المرور
         id: true,
         name: true,
         email: true,

@@ -9,8 +9,7 @@ function AdminDashboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const statsRes = await getAdminStats();
-        const usersRes = await getAllUsers();
+        const [statsRes, usersRes] = await Promise.all([getAdminStats(), getAllUsers()]);
         setStats(statsRes.data);
         setUsers(usersRes.data.users);
       } catch (error) {
@@ -22,41 +21,56 @@ function AdminDashboardPage() {
     fetchData();
   }, []);
 
-  if (loading) return <p>Loading admin dashboard...</p>;
+  if (loading) {
+    return <p className="text-center p-10">جاري تحميل لوحة تحكم المسؤول...</p>;
+  }
 
   return (
     <div className="space-y-8">
-      <h1 className="text-4xl font-bold text-gray-800">Admin Dashboard</h1>
-
+      <h1 className="text-4xl font-bold text-gray-800">لوحة تحكم المسؤول</h1>
+      
       {/* قسم الإحصائيات */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow-md"><p className="text-gray-600">Total Users</p><p className="text-3xl font-bold">{stats.users}</p></div>
-          <div className="bg-white p-6 rounded-lg shadow-md"><p className="text-gray-600">Active Auctions</p><p className="text-3xl font-bold">{stats.activeAuctions}</p></div>
-          <div className="bg-white p-6 rounded-lg shadow-md"><p className="text-gray-600">Total Revenue</p><p className="text-3xl font-bold">{stats.totalRevenue} SAR</p></div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <p className="text-gray-600">إجمالي المستخدمين</p>
+            <p className="text-3xl font-bold">{stats.users}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <p className="text-gray-600">المزادات النشطة</p>
+            <p className="text-3xl font-bold">{stats.activeAuctions}</p>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <p className="text-gray-600">إجمالي الإيرادات</p>
+            <p className="text-3xl font-bold">{stats.totalRevenue.toFixed(2)} ريال</p>
+          </div>
         </div>
       )}
 
-      {/* قسم المستخدمين */}
+      {/* جدول المستخدمين */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-4">User Management</h2>
+        <h2 className="text-2xl font-bold mb-4">إدارة المستخدمين</h2>
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-white">
-            <thead>
+          <table className="min-w-full bg-white text-left">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="py-2 px-4 border-b">Name</th>
-                <th className="py-2 px-4 border-b">Email</th>
-                <th className="py-2 px-4 border-b">Role</th>
-                <th className="py-2 px-4 border-b">Joined</th>
+                <th className="py-3 px-4 border-b">الاسم</th>
+                <th className="py-3 px-4 border-b">البريد الإلكتروني</th>
+                <th className="py-3 px-4 border-b">الدور</th>
+                <th className="py-3 px-4 border-b">تاريخ الانضمام</th>
               </tr>
             </thead>
             <tbody>
               {users.map(user => (
-                <tr key={user.id}>
-                  <td className="py-2 px-4 border-b">{user.name}</td>
-                  <td className="py-2 px-4 border-b">{user.email}</td>
-                  <td className="py-2 px-4 border-b">{user.role}</td>
-                  <td className="py-2 px-4 border-b">{new Date(user.createdAt).toLocaleDateString()}</td>
+                <tr key={user.id} className="hover:bg-gray-50">
+                  <td className="py-3 px-4 border-b">{user.name}</td>
+                  <td className="py-3 px-4 border-b">{user.email}</td>
+                  <td className="py-3 px-4 border-b">
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${user.role === 'ADMIN' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'}`}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 border-b">{new Date(user.createdAt).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
