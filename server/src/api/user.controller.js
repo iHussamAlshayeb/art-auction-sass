@@ -1,11 +1,11 @@
-import PrismaClientPkg from '@prisma/client';
+import PrismaClientPkg from "@prisma/client";
 const { PrismaClient } = PrismaClientPkg;
 const prisma = new PrismaClient();
 
 // This is the getMyProfile function we already have
 export const getMyProfile = (req, res) => {
   res.status(200).json({
-    message: 'Profile fetched successfully',
+    message: "Profile fetched successfully",
     user: req.user,
   });
 };
@@ -16,16 +16,15 @@ export const getMyArtworks = async (req, res) => {
 
   try {
     const artworks = await prisma.artwork.findMany({
-      where: {
-        studentId: studentId,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      where: { studentId: studentId },
+      orderBy: { createdAt: "desc" },
+      include: { auction: { select: { id: true } } },
     });
     res.status(200).json({ artworks });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch your artworks', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch your artworks", error: error.message });
   }
 };
 
@@ -41,11 +40,13 @@ export const getMyActiveBids = async (req, res) => {
         },
       },
       include: { artwork: true },
-      orderBy: { endTime: 'asc' },
+      orderBy: { endTime: "asc" },
     });
     res.status(200).json({ auctions });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch active bids', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch active bids", error: error.message });
   }
 };
 
@@ -57,18 +58,20 @@ export const getMyWonArtworks = async (req, res) => {
       where: {
         highestBidderId: userId,
         artwork: {
-          status: 'SOLD',
+          status: "SOLD",
         },
       },
-      include: { 
+      include: {
         artwork: true,
         payment: true,
       },
-      orderBy: { endTime: 'desc' },
+      orderBy: { endTime: "desc" },
     });
     res.status(200).json({ wonAuctions });
   } catch (error) {
     console.error("Error fetching won artworks:", error);
-    res.status(500).json({ message: 'Failed to fetch won artworks', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch won artworks", error: error.message });
   }
 };

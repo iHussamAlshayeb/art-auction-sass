@@ -82,3 +82,7 @@ export const uploadImage = (file) => {
 export const fetchAuctionBids = (id) => {
   return apiClient.get(`/auctions/${id}/bids`);
 };
+
+export const cancelAuction = (auctionId) => {
+  return apiClient.delete(`/auctions/${auctionId}`);
+};

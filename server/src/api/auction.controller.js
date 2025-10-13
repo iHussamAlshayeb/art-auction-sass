@@ -275,3 +275,64 @@ export const getAuctionBids = async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch bids', error: error.message });
   }
 };
+
+
+export const cancelAuction = async (req, res) => {
+  const { id: auctionId } = req.params;
+  const userId = req.user.id; // هوية الطالب من الـ token
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // الخطوة 1: العثور على المزاد وتضمين العمل الفني للتحقق من الملكية
+      const auction = await tx.auction.findUnique({
+        where: { id: auctionId },
+        include: { artwork: true },
+      });
+
+      if (!auction) {
+        throw new Error('Auction not found.');
+      }
+
+      // الخطوة 2: التحقق من أن المستخدم هو مالك العمل الفني
+      if (auction.artwork.studentId !== userId) {
+        throw new Error('Forbidden: You can only cancel your own auctions.');
+      }
+
+      // الخطوة 3 (الأهم): التحقق من عدم وجود أي مزايدات
+      const bidCount = await tx.bid.count({
+        where: { auctionId: auctionId },
+      });
+
+      if (bidCount > 0) {
+        throw new Error('Cannot cancel an auction that already has bids.');
+      }
+
+      // الخطوة 4: تحديث حالة العمل الفني إلى "مسودة"
+      await tx.artwork.update({
+        where: { id: auction.artworkId },
+        data: { status: 'DRAFT' },
+      });
+
+      // الخطوة 5: حذف المزاد بالكامل
+      await tx.auction.delete({
+        where: { id: auctionId },
+      });
+
+      return { success: true };
+    });
+
+    res.status(200).json({ message: 'Auction cancelled successfully.' });
+
+  } catch (error) {
+    if (error.message.includes('Forbidden')) {
+      return res.status(403).json({ message: error.message });
+    }
+    if (error.message.includes('not found')) {
+      return res.status(404).json({ message: error.message });
+    }
+    if (error.message.includes('has bids')) {
+      return res.status(400).json({ message: error.message });
+    }
+    res.status(500).json({ message: 'Failed to cancel auction', error: error.message });
+  }
+};
