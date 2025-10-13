@@ -19,68 +19,59 @@ function LoginPage() {
     try {
       const response = await loginUser(formData);
       login(response.data.token);
-      navigate('/dashboard'); // Redirect to dashboard after login
+      navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed.');
+      setError(err.response?.data?.message || 'فشل تسجيل الدخول.');
     }
   };
 
   return (
-    <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 bg-white p-10 rounded-xl shadow-lg">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            Sign in to your account
-          </h2>
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-50 px-4">
+      <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-orange-100 p-10 space-y-8">
+        <div className="text-center">
+          <h2 className="text-4xl font-extrabold text-orange-600 mb-3">تسجيل الدخول</h2>
+          <p className="text-gray-600">أدخل بيانات حسابك للمتابعة</p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <input
-                id="email-address"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                className="relative block w-full appearance-none rounded-none rounded-t-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                placeholder="Email address"
-                value={formData.email}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                className="relative block w-full appearance-none rounded-none rounded-b-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-              />
-            </div>
+
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <div className="space-y-4">
+            <input
+              name="email"
+              type="email"
+              required
+              placeholder="البريد الإلكتروني"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full p-3 rounded-xl border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:outline-none"
+            />
+            <input
+              name="password"
+              type="password"
+              required
+              placeholder="كلمة المرور"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full p-3 rounded-xl border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:outline-none"
+            />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
 
-          <div>
-            <button
-              type="submit"
-              className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-3 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-              Sign in
-            </button>
-          </div>
+          <button
+            type="submit"
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md transition-all duration-200"
+          >
+            تسجيل الدخول
+          </button>
         </form>
-        <div className="text-sm text-center">
-            <p>
-                Don't have an account?{' '}
-                <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500">
-                    Register here
-                </Link>
-            </p>
+
+        <div className="text-center text-gray-600 text-sm">
+          <p>
+            ليس لديك حساب؟{' '}
+            <Link to="/register" className="text-orange-600 hover:underline font-medium">
+              إنشاء حساب جديد
+            </Link>
+          </p>
         </div>
       </div>
     </div>
