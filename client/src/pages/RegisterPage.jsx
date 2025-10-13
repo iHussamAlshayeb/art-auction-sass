@@ -23,50 +23,61 @@ function RegisterPage() {
     setSuccess(null);
     try {
       await registerUser(formData);
-      setSuccess('Account created successfully! Redirecting to login...');
+      setSuccess('تم إنشاء الحساب بنجاح! سيتم توجيهك لصفحة تسجيل الدخول...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed.');
+      setError(err.response?.data?.message || 'فشل التسجيل.');
     }
   };
 
   return (
-    <div className="flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-md space-y-8 bg-white p-10 rounded-xl shadow-lg">
+    <div className="pt-28 pb-20 px-6 sm:px-10 bg-gradient-to-b from-orange-50 via-white to-orange-50 min-h-screen flex items-center justify-center">
+      <div className="w-full max-w-lg space-y-8 bg-white/90 backdrop-blur-sm p-8 sm:p-10 rounded-3xl shadow-lg border border-orange-100">
         <div>
-          <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-gray-900">
-            Create a new account
+          <h2 className="text-center text-4xl font-extrabold tracking-tight text-orange-600">
+            إنشاء حساب جديد
           </h2>
         </div>
 
-        {/* Show success message or the form */}
         {success ? (
-          <p className="text-center text-green-600">{success}</p>
+          <p className="text-center text-lg text-green-600">{success}</p>
         ) : (
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="space-y-4 rounded-md shadow-sm">
-              <input
-                name="name" type="text" required
-                className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                placeholder="Full Name" value={formData.name} onChange={handleChange}
-              />
-              <input
-                name="email" type="email" required
-                className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                placeholder="Email address" value={formData.email} onChange={handleChange}
-              />
-              <input
-                name="password" type="password" required
-                className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-                placeholder="Password" value={formData.password} onChange={handleChange}
-              />
-              <select 
-                name="role" value={formData.role} onChange={handleChange}
-                className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-3 text-gray-900 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
-              >
-                <option value="BUYER">I want to Buy Art (Buyer)</option>
-                <option value="STUDENT">I want to Sell Art (Student)</option>
-              </select>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-600">الاسم الكامل</label>
+                <input
+                  name="name" type="text" required
+                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="اسمك الكامل" value={formData.name} onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">البريد الإلكتروني</label>
+                <input
+                  name="email" type="email" required
+                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="email@example.com" value={formData.email} onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">كلمة المرور</label>
+                <input
+                  name="password" type="password" required
+                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  placeholder="••••••••" value={formData.password} onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-600">أرغب في التسجيل كـ</label>
+                <select 
+                  name="role" value={formData.role} onChange={handleChange}
+                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                >
+                  <option value="BUYER">مشتري (أرغب في شراء الأعمال)</option>
+                  <option value="STUDENT">طالب (أرغب في بيع أعمالي)</option>
+                </select>
+              </div>
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
@@ -74,19 +85,19 @@ function RegisterPage() {
             <div>
               <button
                 type="submit"
-                className="group relative flex w-full justify-center rounded-md border border-transparent bg-indigo-600 py-3 px-4 text-sm font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-5 rounded-xl shadow-sm transition-all duration-200"
               >
-                Create Account
+                إنشاء الحساب
               </button>
             </div>
           </form>
         )}
         
-        <div className="text-sm text-center">
+        <div className="text-sm text-center text-gray-600">
           <p>
-            Already have an account?{' '}
-            <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Sign in
+            لديك حساب بالفعل؟{' '}
+            <Link to="/login" className="font-semibold text-orange-600 hover:text-orange-500">
+              سجل دخولك من هنا
             </Link>
           </p>
         </div>
