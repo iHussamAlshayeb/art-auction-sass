@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchAllAuctions } from '../services/api';
 import { Link } from 'react-router-dom';
-import AuctionTimer from '../components/AuctionTimer'; // <-- استيراد المكون الجديد
+import AuctionCardTimer from '../components/AuctionCardTimer'; // <-- استيراد المكون الجديد
 function HomePage() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -119,7 +119,7 @@ function HomePage() {
 
                 {/* الصف السفلي: الوقت المتبقي والزر */}
                 <div className="mt-auto pt-4 flex justify-between items-center">
-                  <AuctionTimer endTime={auction.endTime} />
+                  <AuctionCardTimer endTime={auction.endTime} />
                   <span className="bg-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm">
                     زايد الآن
                   </span>
