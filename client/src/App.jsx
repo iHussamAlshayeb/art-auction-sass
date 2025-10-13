@@ -17,11 +17,10 @@ function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // ## التأثير الجديد يبدأ هنا ##
   useEffect(() => {
     // البحث عن 'token' في متغيرات الرابط
     const params = new URLSearchParams(location.search);
-    const token = params.get('token');
+    const token = params.get('sso_token');
 
     if (token) {
       // إذا وجدنا توكن، قم بتسجيل دخول المستخدم
@@ -30,7 +29,7 @@ function App() {
       navigate(location.pathname, { replace: true });
     }
   }, [location, login, navigate]);
-  // ## التأثير الجديد ينتهي هنا ##
+ 
 
   return (
 
