@@ -5,14 +5,13 @@ import { Toaster } from 'react-hot-toast';
 
 // استيراد الصفحات والمكونات
 import HomePage from "./pages/HomePage";
-import RegisterPage from "./pages/RegisterPage";
-import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages-ar/RegisterPage";
+import LoginPage from "./pages-ar/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import CreateArtworkPage from "./pages/CreateArtworkPage";
 import AuctionDetailPage from "./pages/AuctionDetailPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LogoutButton from "./components/LogoutButton";
-import SsoHandler from "./components/SsoHandler";
 import AdminDashboardPage from './pages/AdminDashboardPage';
 
 function App() {
@@ -22,9 +21,14 @@ function App() {
     <div className="bg-orange-50 min-h-screen">
       <Toaster
         position="top-center"
-        reverseOrder={false}
+        toastOptions={{
+          duration: 5000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+        }}
       />
-      <SsoHandler />
       <header className="bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-50">
         <nav className="container mx-auto p-4 flex justify-between items-center h-24">
           {/* الشعار (أصبح رابطًا) */}
