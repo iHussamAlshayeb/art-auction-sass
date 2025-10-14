@@ -83,12 +83,15 @@ export const getMyProfileData = async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: {
-        // تحديد الحقول التي نريد إرجاعها فقط (لحماية كلمة المرور)
+        // --== الحل هنا: طلب كل الحقول الجديدة ==--
         id: true,
         email: true,
         name: true,
         role: true,
         createdAt: true,
+        schoolName: true,
+        gradeLevel: true,
+        bio: true,
       },
     });
     res.status(200).json({ user });
