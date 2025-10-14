@@ -32,7 +32,7 @@ function AdminDashboardPage() {
         await deleteUser(userId);
         fetchData(); // إعادة تحميل البيانات بعد الحذف
       } catch (error) {
-        alert('فشل في حذف المستخدم.');
+        alert(error.response?.data?.message || 'فشل في حذف المستخدم.');
       }
     }
   };

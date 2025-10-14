@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Database Service (PostgreSQL)
+  database:
+    image: postgres:15-alpine
+    container_name: art_auction_db
+    restart: always
+    environment:
+      POSTGRES_USER: your_db_user
+      POSTGRES_PASSWORD: your_db_password
+      POSTGRES_DB: art_auction
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # Backend Service (Node.js)
+  backend:
+    build:
+      context: ./backend # Path to your backend project
+      dockerfile: Dockerfile
+    container_name: art_auction_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - database
+    environment:
+      # Use the service name 'database' as the host
+      DATABASE_URL: "postgresql://art_auction_db_user:TEkX1UsefeRqsdjqFsiKMcuSkmbmlRxD@dpg-d3j6gnt6ubrc73a35cvg-a.oregon-postgres.render.com/art_auction_db"
+      JWT_SECRET: "THIS_IS_A_VERY_LONG_AND_RANDOM_SECRET_KEY_12345"
+      MOYASAR_SECRET_KEY: "sk_test_P9e9Aw47cQrjAqxzw2SPdZsXLAhySFMSaZbsr1Nm"
+      CLOUDINARY_API_KEY: "994882536574279"
+      CLOUDINARY_API_SECRET: "iD4HxqM_I5Z_H6P_R6OC96cLFic"
+      CLOUDINARY_CLOUD_NAME: "dguzwf5zd"
+      
+    # This command runs migrations on startup, then starts the server
+    command: sh -c "npx prisma migrate deploy && npm start"
+
+  # Frontend Service (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend # Path to your frontend project
+      dockerfile: Dockerfile
+    container_name: art_auction_frontend
+    restart: always
+    ports:
+      - "5173:80" # Map localhost:5173 to the container's port 80
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

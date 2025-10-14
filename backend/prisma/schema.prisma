@@ -44,7 +44,7 @@ model Artwork {
   status      Status   @default(DRAFT)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  student     User     @relation(fields: [studentId], references: [id])
+  student     User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
   auction     Auction?
 }
 
@@ -55,12 +55,12 @@ model Auction {
   endTime         DateTime
   startPrice      Float
   currentPrice    Float
-  highestBidderId String?
+  highestBidderId String?  
   artwork         Artwork  @relation(fields: [artworkId], references: [id])
-  highestBidder   User?    @relation("WinningBids", fields: [highestBidderId], references: [id])
+  highestBidder   User?    @relation("WinningBids", fields: [highestBidderId], references: [id], onDelete: SetNull)
   bids            Bid[]
   
-  // ## الجزء المفقود الأول: العلاقة مع جدول الدفعات ##
+
   payment         Payment?
 }
 
@@ -70,8 +70,8 @@ model Bid {
   bidderId  String
   amount    Float
   createdAt DateTime @default(now())
-  auction   Auction  @relation(fields: [auctionId], references: [id])
-  bidder    User     @relation(fields: [bidderId], references: [id])
+  auction   Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  bidder    User     @relation(fields: [bidderId], references: [id], onDelete: Cascade)
 }
 
 // ## الجزء المفقود الثاني: موديل الدفعات بالكامل ##
@@ -84,6 +84,6 @@ model Payment {
   auctionId      String   @unique
   userId         String
   createdAt      DateTime @default(now())
-  auction        Auction  @relation(fields: [auctionId], references: [id])
-  user           User     @relation(fields: [userId], references: [id])
+  auction        Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
