@@ -104,7 +104,18 @@ export async function getAllAuctions(req, res) {
       orderBy: orderByClause,
       include: {
         artwork: {
-          include: { student: { select: { name: true, studentId: true } } },
+          select: {
+            id: true,
+            title: true,
+            imageUrl: true,
+            status: true,
+            studentId: true,
+            student: {
+              select: {
+                name: true,
+              },
+            },
+          },
         },
       },
     });
