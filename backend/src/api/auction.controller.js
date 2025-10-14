@@ -1,16 +1,17 @@
-import PrismaClientPkg from '@prisma/client';
+import PrismaClientPkg from "@prisma/client";
 const { PrismaClient } = PrismaClientPkg;
 const prisma = new PrismaClient();
-import axios from 'axios'; // استيراد axios
+import axios from "axios"; // استيراد axios
 
-
-export const createAuction = async (req, res) => {
+export async function createAuction(req, res) {
   const { artworkId, startPrice, endTime } = req.body;
   const studentId = req.user.id; // هوية الطالب المسجل دخوله
 
   // التحقق من المدخلات
   if (!artworkId || !startPrice || !endTime) {
-    return res.status(400).json({ message: 'Artwork ID, start price, and end time are required.' });
+    return res
+      .status(400)
+      .json({ message: "Artwork ID, start price, and end time are required." });
   }
 
   try {
@@ -20,15 +21,20 @@ export const createAuction = async (req, res) => {
     });
 
     if (!artwork) {
-      return res.status(404).json({ message: 'Artwork not found.' });
+      return res.status(404).json({ message: "Artwork not found." });
     }
 
     if (artwork.studentId !== studentId) {
-      return res.status(403).json({ message: 'Forbidden: You can only create auctions for your own artwork.' });
+      return res.status(403).json({
+        message:
+          "Forbidden: You can only create auctions for your own artwork.",
+      });
     }
 
-    if (artwork.status !== 'DRAFT') {
-      return res.status(400).json({ message: 'This artwork is already in an auction or has been sold.' });
+    if (artwork.status !== "DRAFT") {
+      return res.status(400).json({
+        message: "This artwork is already in an auction or has been sold.",
+      });
     }
 
     // الخطوة 2: استخدام معاملة (transaction) لضمان تنفيذ العمليتين معًا
@@ -47,24 +53,30 @@ export const createAuction = async (req, res) => {
       // 2b: تحديث حالة العمل الفني إلى "في مزاد"
       await tx.artwork.update({
         where: { id: artworkId },
-        data: { status: 'IN_AUCTION' },
+        data: { status: "IN_AUCTION" },
       });
 
       return auction;
     });
 
-    res.status(201).json({ message: 'Auction created successfully', auction: newAuction });
+    res
+      .status(201)
+      .json({ message: "Auction created successfully", auction: newAuction });
   } catch (error) {
     // خطأ في حال كان هناك مزاد قائم بالفعل على هذا العمل الفني
-    if (error.code === 'P2002') {
-       return res.status(409).json({ message: 'An auction for this artwork already exists.' });
+    if (error.code === "P2002") {
+      return res
+        .status(409)
+        .json({ message: "An auction for this artwork already exists." });
     }
-    res.status(500).json({ message: 'Failed to create auction', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to create auction", error: error.message });
   }
-};
+}
 
 // دالة لجلب كل المزادات النشطة
-export const getAllAuctions = async (req, res) => {
+export async function getAllAuctions(req, res) {
   try {
     const auctions = await prisma.auction.findMany({
       where: {
@@ -74,7 +86,7 @@ export const getAllAuctions = async (req, res) => {
         },
       },
       orderBy: {
-        startTime: 'desc', // عرض أحدث المزادات أولاً
+        startTime: "desc", // عرض أحدث المزادات أولاً
       },
       include: {
         // تضمين معلومات العمل الفني وصاحبه
@@ -91,12 +103,14 @@ export const getAllAuctions = async (req, res) => {
     });
     res.status(200).json({ auctions });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch auctions', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch auctions", error: error.message });
   }
-};
+}
 
 // دالة لجلب مزاد واحد عبر الـ ID الخاص به
-export const getAuctionById = async (req, res) => {
+export async function getAuctionById(req, res) {
   const { id } = req.params; // الحصول على الـ ID من الرابط
 
   try {
@@ -116,18 +130,19 @@ export const getAuctionById = async (req, res) => {
     });
 
     if (!auction) {
-      return res.status(404).json({ message: 'Auction not found' });
+      return res.status(404).json({ message: "Auction not found" });
     }
 
     res.status(200).json({ auction });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch auction details', error: error.message });
+    res.status(500).json({
+      message: "Failed to fetch auction details",
+      error: error.message,
+    });
   }
-};
+}
 
-
-
-export const placeBid = async (req, res) => {
+export async function placeBid(req, res) {
   const { id: auctionId } = req.params;
   const { amount } = req.body;
   const bidderId = req.user.id; // المزايد الجديد
@@ -135,8 +150,10 @@ export const placeBid = async (req, res) => {
   try {
     const transactionResult = await prisma.$transaction(async (tx) => {
       const auction = await tx.auction.findUnique({
-        where: { id: auctionId }, include: {
-          artwork: { // تضمين معلومات العمل الفني
+        where: { id: auctionId },
+        include: {
+          artwork: {
+            // تضمين معلومات العمل الفني
             select: {
               title: true, // تحديد العنوان فقط
             },
@@ -144,10 +161,12 @@ export const placeBid = async (req, res) => {
         },
       });
 
-      if (!auction) throw new Error('Auction not found.');
-      if (new Date() > auction.endTime) throw new Error('This auction has already ended.');
-      if (amount <= auction.currentPrice) throw new Error('Your bid must be higher than the current price.');
-      
+      if (!auction) throw new Error("Auction not found.");
+      if (new Date() > auction.endTime)
+        throw new Error("This auction has already ended.");
+      if (amount <= auction.currentPrice)
+        throw new Error("Your bid must be higher than the current price.");
+
       const previousHighestBidderId = auction.highestBidderId; // نحتفظ بهوية المزايد القديم
 
       const updatedAuction = await tx.auction.update({
@@ -165,51 +184,65 @@ export const placeBid = async (req, res) => {
           bidderId: bidderId,
         },
       });
-      
-      return { bid, updatedAuction, previousHighestBidderId, artworkTitle: auction.artwork.title };
+
+      return {
+        bid,
+        updatedAuction,
+        previousHighestBidderId,
+        artworkTitle: auction.artwork.title,
+      };
     });
 
-    const io = req.app.get('io');
-    const userSocketMap = req.app.get('userSocketMap');
+    const io = req.app.get("io");
+    const userSocketMap = req.app.get("userSocketMap");
     const roomName = `auction-${auctionId}`;
-    
+
     // 1. بث السعر الجديد للجميع في الغرفة (كما كان)
-    io.to(roomName).emit('priceUpdate', {
+    io.to(roomName).emit("priceUpdate", {
       auctionId: auctionId,
       newPrice: transactionResult.updatedAuction.currentPrice,
       bidderName: req.user.name, // يمكننا إضافة اسم المزايد الجديد
     });
     console.log(`Emitted priceUpdate to room ${roomName}`);
-    
+
     // 2. إرسال إشعار خاص للمزايد القديم (إذا كان موجودًا ومتصلاً)
     const { previousHighestBidderId } = transactionResult;
     if (previousHighestBidderId && previousHighestBidderId !== bidderId) {
       const oldBidderSocketId = userSocketMap.get(previousHighestBidderId);
       if (oldBidderSocketId) {
-        io.to(oldBidderSocketId).emit('outbid', {
+        io.to(oldBidderSocketId).emit("outbid", {
           auctionId: auctionId,
-          message: `لقد تمت المزايدة بسعر أعلى منك في مزاد "${artworkTitle}"!`
+          message: `لقد تمت المزايدة بسعر أعلى منك في مزاد "${artworkTitle}"!`,
         });
-        console.log(`Sent 'outbid' notification to user ${previousHighestBidderId}`);
+        console.log(
+          `Sent 'outbid' notification to user ${previousHighestBidderId}`
+        );
       }
     }
-    
-    res.status(201).json({ message: 'Bid placed successfully!', bid: transactionResult.bid });
 
+    res.status(201).json({
+      message: "Bid placed successfully!",
+      bid: transactionResult.bid,
+    });
   } catch (error) {
     // ... معالجة الأخطاء كما هي
-    if (error.message.includes('Auction not found')) {
+    if (error.message.includes("Auction not found")) {
       return res.status(404).json({ message: error.message });
     }
-    if (error.message.includes('auction has already ended') || error.message.includes('must be higher')) {
+    if (
+      error.message.includes("auction has already ended") ||
+      error.message.includes("must be higher")
+    ) {
       return res.status(400).json({ message: error.message });
     }
-    res.status(500).json({ message: 'Failed to place bid', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to place bid", error: error.message });
   }
-};
+}
 
 // دالة لإنشاء جلسة دفع للفائز
-export const createMoyasarPayment = async (req, res) => {
+export async function createMoyasarPayment(req, res) {
   const { id: auctionId } = req.params;
   const userId = req.user.id;
   const moyasarApiKey = process.env.MOYASAR_SECRET_KEY;
@@ -221,49 +254,62 @@ export const createMoyasarPayment = async (req, res) => {
     });
 
     if (!auction || auction.highestBidderId !== userId) {
-      return res.status(403).json({ message: 'Forbidden: You are not the winner of this auction.' });
+      return res.status(403).json({
+        message: "Forbidden: You are not the winner of this auction.",
+      });
     }
 
-    if (auction.artwork.status !== 'SOLD') {
-      return res.status(400).json({ message: 'Payment is not yet available for this auction.' });
+    if (auction.artwork.status !== "SOLD") {
+      return res
+        .status(400)
+        .json({ message: "Payment is not yet available for this auction." });
     }
 
     // ## تعديل: سنقوم بإنشاء "فاتورة" بدلاً من "دفعة" ##
-    const response = await axios.post('https://api.moyasar.com/v1/invoices', {
-      amount: Math.round(auction.currentPrice * 100),
-      currency: 'SAR',
-      description: `Invoice for artwork: ${auction.artwork.title}`,
-      callback_url: `http://fanan3.com/payment/callback?auction_id=${auction.id}`,
-      // يمكنك إضافة metadata هنا إذا احتجت
-    }, {
-      auth: {
-        username: moyasarApiKey,
-        password: ''
+    const response = await axios.post(
+      "https://api.moyasar.com/v1/invoices",
+      {
+        amount: Math.round(auction.currentPrice * 100),
+        currency: "SAR",
+        description: `Invoice for artwork: ${auction.artwork.title}`,
+        callback_url: `http://fanan3.com/payment/callback?auction_id=${auction.id}`,
+        // يمكنك إضافة metadata هنا إذا احتجت
+      },
+      {
+        auth: {
+          username: moyasarApiKey,
+          password: "",
+        },
       }
-    });
+    );
 
     // رابط صفحة الدفع للفاتورة موجود في 'url' مباشرة
     const paymentUrl = response.data.url;
     res.status(200).json({ url: paymentUrl });
-
   } catch (error) {
-    console.error("Moyasar API Error:", error.response ? error.response.data : error.message);
-    res.status(500).json({ message: 'Failed to create Moyasar payment', error: error.response ? error.response.data : error.message });
+    console.error(
+      "Moyasar API Error:",
+      error.response ? error.response.data : error.message
+    );
+    res.status(500).json({
+      message: "Failed to create Moyasar payment",
+      error: error.response ? error.response.data : error.message,
+    });
   }
-};
+}
 
-
-export const getAuctionBids = async (req, res) => {
+export async function getAuctionBids(req, res) {
   const { id: auctionId } = req.params;
 
   try {
     const bids = await prisma.bid.findMany({
       where: { auctionId },
       orderBy: {
-        createdAt: 'desc', // ترتيب المزايدات من الأحدث للأقدم
+        createdAt: "desc", // ترتيب المزايدات من الأحدث للأقدم
       },
       include: {
-        bidder: { // تضمين معلومات المزايد
+        bidder: {
+          // تضمين معلومات المزايد
           select: {
             name: true, // جلب الاسم فقط لحماية الخصوصية
           },
@@ -272,12 +318,13 @@ export const getAuctionBids = async (req, res) => {
     });
     res.status(200).json({ bids });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch bids', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch bids", error: error.message });
   }
-};
+}
 
-
-export const cancelAuction = async (req, res) => {
+export async function cancelAuction(req, res) {
   const { id: auctionId } = req.params;
   const userId = req.user.id; // هوية الطالب من الـ token
 
@@ -290,12 +337,12 @@ export const cancelAuction = async (req, res) => {
       });
 
       if (!auction) {
-        throw new Error('Auction not found.');
+        throw new Error("Auction not found.");
       }
 
       // الخطوة 2: التحقق من أن المستخدم هو مالك العمل الفني
       if (auction.artwork.studentId !== userId) {
-        throw new Error('Forbidden: You can only cancel your own auctions.');
+        throw new Error("Forbidden: You can only cancel your own auctions.");
       }
 
       // الخطوة 3 (الأهم): التحقق من عدم وجود أي مزايدات
@@ -304,13 +351,13 @@ export const cancelAuction = async (req, res) => {
       });
 
       if (bidCount > 0) {
-        throw new Error('Cannot cancel an auction that already has bids.');
+        throw new Error("Cannot cancel an auction that already has bids.");
       }
 
       // الخطوة 4: تحديث حالة العمل الفني إلى "مسودة"
       await tx.artwork.update({
         where: { id: auction.artworkId },
-        data: { status: 'DRAFT' },
+        data: { status: "DRAFT" },
       });
 
       // الخطوة 5: حذف المزاد بالكامل
@@ -321,18 +368,19 @@ export const cancelAuction = async (req, res) => {
       return { success: true };
     });
 
-    res.status(200).json({ message: 'Auction cancelled successfully.' });
-
+    res.status(200).json({ message: "Auction cancelled successfully." });
   } catch (error) {
-    if (error.message.includes('Forbidden')) {
+    if (error.message.includes("Forbidden")) {
       return res.status(403).json({ message: error.message });
     }
-    if (error.message.includes('not found')) {
+    if (error.message.includes("not found")) {
       return res.status(404).json({ message: error.message });
     }
-    if (error.message.includes('has bids')) {
+    if (error.message.includes("has bids")) {
       return res.status(400).json({ message: error.message });
     }
-    res.status(500).json({ message: 'Failed to cancel auction', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to cancel auction", error: error.message });
   }
-};
+}
