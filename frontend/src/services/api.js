@@ -104,3 +104,6 @@ export const deleteUser = (userId) =>
 export const getAdminArtworks = () => apiClient.get("/admin/artworks");
 export const deleteArtworkByAdmin = (artworkId) =>
   apiClient.delete(`/admin/artworks/${artworkId}`);
+
+export const getStudentProfile = (studentId) =>
+  apiClient.get(`/students/${studentId}`);

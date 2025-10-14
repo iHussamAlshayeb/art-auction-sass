@@ -121,10 +121,9 @@ function HomePage() {
                 <h3 className="text-xl font-bold text-gray-800 truncate mb-1">
                   {auction.artwork.title}
                 </h3>
-                <p className="text-sm text-gray-500">
+                <Link to={`/students/${auction.artwork.studentId}`} className="text-sm text-gray-500 hover:text-orange-600 transition-colors">
                   بواسطة {auction.artwork.student.name}
-                  {/* بيانات المدرسة تضاف هنا مستقبلاً */}
-                </p>
+                </Link>
 
                 {/* الصف السفلي: الوقت المتبقي والزر */}
                 <div className="mt-auto pt-4 flex justify-between items-center">

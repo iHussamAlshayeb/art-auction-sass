@@ -13,6 +13,7 @@ import AuctionDetailPage from "./pages/AuctionDetailPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LogoutButton from "./components/LogoutButton";
 import AdminDashboardPage from './pages/AdminDashboardPage';
+import StudentProfilePage from './pages/StudentProfilePage';
 
 function App() {
   const { user } = useAuth();
@@ -99,6 +100,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/students/:id" element={<StudentProfilePage />} />
         </Routes>
       </main>
     </div>

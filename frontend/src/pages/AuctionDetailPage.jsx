@@ -109,7 +109,9 @@ function AuctionDetailPage() {
           {/* العنوان والفنان */}
           <div>
             <h1 className="text-3xl lg:text-4xl font-extrabold text-orange-600 tracking-tight">{auction.artwork.title}</h1>
-            <p className="text-lg text-gray-500 mt-1">للفنان: {auction.artwork.student.name}</p>
+            <Link to={`/students/${auction.artwork.studentId}`} className="text-sm text-gray-500 hover:text-orange-600 transition-colors">
+              بواسطة {auction.artwork.student.name}
+            </Link>
           </div>
 
           {/* السعر */}
