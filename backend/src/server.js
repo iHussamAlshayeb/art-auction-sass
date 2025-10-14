@@ -18,12 +18,12 @@ const io = new Server(httpServer, {
   pingTimeout: 30000,
   cors: {
     origin: [
-      "http://localhost:5173",       // For local development
-      "https://app.fanan3.com",        // Your live frontend app ✅
-      "https://www.fanan3.com"         // Your WordPress site
+      "http://localhost:5173", // For local development
+      "https://app.fanan3.com", // Your live frontend app ✅
+      "https://www.fanan3.com", // Your WordPress site
     ],
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+  },
 });
 
 // وضع io في كائن app ليكون متاحًا في المتحكمات (Controllers)
@@ -75,9 +75,12 @@ io.on("connection", (socket) => {
 httpServer.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
   // في server.js
-  cron.schedule("* * * * *", () => {
-    // تمرير الكائنات المطلوبة إلى الدالة
-    processFinishedAuctions(io, userSocketMap);
+  cron.schedule("* * * * *", async () => {
+    try {
+      await processFinishedAuctions(io, userSocketMap);
+    } catch (error) {
+      // سجل الخطأ دون أن يتسبب في تعطل الخادم
+      console.error("An error occurred during the cron job:", error);
+    }
   });
-  console.log("Cron job and Socket.IO are active.");
 });
