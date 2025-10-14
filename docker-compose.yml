@@ -26,7 +26,7 @@ services:
       - database
     environment:
       # Use the service name 'database' as the host
-      DATABASE_URL: "postgresql://art_auction_db_user:TEkX1UsefeRqsdjqFsiKMcuSkmbmlRxD@dpg-d3j6gnt6ubrc73a35cvg-a.oregon-postgres.render.com/art_auction_db"
+      DATABASE_URL: "postgresql://postgresql:3290@database/art_auction"
       JWT_SECRET: "THIS_IS_A_VERY_LONG_AND_RANDOM_SECRET_KEY_12345"
       MOYASAR_SECRET_KEY: "sk_test_P9e9Aw47cQrjAqxzw2SPdZsXLAhySFMSaZbsr1Nm"
       CLOUDINARY_API_KEY: "994882536574279"

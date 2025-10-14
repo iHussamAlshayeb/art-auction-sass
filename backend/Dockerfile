@@ -1,19 +1,18 @@
-# Dockerfile for Backend
+# Dockerfile for Backend (Corrected)
 
 # ---- Stage 1: Build the application ----
 FROM node:18-alpine AS builder
 
 WORKDIR /usr/src/app
 
-# Copy package files and install dependencies
+# Copy package files
 COPY package*.json ./
-RUN npm install
 
-# Copy Prisma schema
+# The Fix: Copy Prisma schema BEFORE running npm install
 COPY prisma ./prisma/
 
-# Generate Prisma Client
-RUN npx prisma generate
+# Now, run install. The postinstall script will find the schema.
+RUN npm install
 
 # Copy the rest of the application code
 COPY . .
@@ -23,16 +22,12 @@ FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
-# Copy dependencies and generated Prisma client from the builder stage
+# Copy built assets from the builder stage
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/prisma ./prisma
 COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
-
-# Copy application code
 COPY . .
 
-# Expose the port the app runs on
 EXPOSE 3000
 
-# The command to run the application
 CMD ["npm", "start"]
