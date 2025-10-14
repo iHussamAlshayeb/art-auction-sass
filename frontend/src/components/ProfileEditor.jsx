@@ -12,7 +12,6 @@ function ProfileEditor({ user, onProfileUpdate }) {
     bio: user.bio || '',
   });
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
