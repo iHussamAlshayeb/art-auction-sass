@@ -6,17 +6,25 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token') || null);
+  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
-    const tokenInStorage = localStorage.getItem('token');
-    if (tokenInStorage) {
-      try {
+    try {
+      const tokenInStorage = localStorage.getItem('token');
+      if (tokenInStorage) {
         const decodedUser = jwtDecode(tokenInStorage);
+        // يمكنك إضافة فحص لصلاحية التوكن هنا إذا أردت
         setUser({ id: decodedUser.userId, role: decodedUser.role });
         setToken(tokenInStorage);
-      } catch (error) {
-        localStorage.removeItem('token');
       }
+    } catch (error) {
+      // التعامل مع التوكن التالف
+      localStorage.removeItem('token');
+      setUser(null);
+      setToken(null);
+    } finally {
+      // 3. أخبر التطبيق بأن عملية التحقق الأولية قد انتهت
+      setIsInitializing(false);
     }
   }, []);
 
@@ -34,7 +42,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isInitializing, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

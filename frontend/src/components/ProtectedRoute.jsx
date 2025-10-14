@@ -2,20 +2,26 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 function ProtectedRoute({ children, roles }) {
-  const { user } = useAuth();
+  const { user, isInitializing } = useAuth(); // <-- 1. احصل على حالة التهيئة
 
+  // 2. إذا كانت عملية التحقق الأولية لم تنتهِ بعد، اعرض شاشة تحميل
+  if (isInitializing) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <p className="text-lg text-gray-500">جاري التحقق من جلسة الدخول...</p>
+      </div>
+    );
+  }
+
+  // 3. الآن بعد انتهاء التحقق، يمكننا اتخاذ القرار بثقة
   if (!user) {
-    // 1. إذا لم يكن المستخدم مسجلاً دخوله، أعد توجيهه لصفحة الدخول
     return <Navigate to="/login" replace />;
   }
 
-  // 2. إذا كانت الصفحة تتطلب دورًا معينًا والمستخدم لا يملكه، أعد توجيهه
   if (roles && !roles.includes(user.role)) {
-    // أعد توجيهه إلى لوحة التحكم الخاصة به، فهو غير مصرح له بالوصول هنا
     return <Navigate to="/dashboard" replace />;
   }
 
-  // 3. إذا كان كل شيء سليمًا، اعرض المحتوى
   return children;
 }
 
