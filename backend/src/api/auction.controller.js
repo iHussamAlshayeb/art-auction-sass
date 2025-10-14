@@ -145,10 +145,15 @@ export async function getAuctionById(req, res) {
 export async function placeBid(req, res) {
   const { id: auctionId } = req.params;
   const { amount } = req.body;
-  const bidderId = req.user.id; // المزايد الجديد
+  const bidderId = req.user.id;
+
+  if (!amount) {
+    return res.status(400).json({ message: "Bid amount is required." });
+  }
 
   try {
     const transactionResult = await prisma.$transaction(async (tx) => {
+      // ## الخطوة 1: جلب المزاد مع تضمين عنوان العمل الفني ##
       const auction = await tx.auction.findUnique({
         where: { id: auctionId },
         include: {
@@ -167,7 +172,7 @@ export async function placeBid(req, res) {
       if (amount <= auction.currentPrice)
         throw new Error("Your bid must be higher than the current price.");
 
-      const previousHighestBidderId = auction.highestBidderId; // نحتفظ بهوية المزايد القديم
+      const previousHighestBidderId = auction.highestBidderId;
 
       const updatedAuction = await tx.auction.update({
         where: { id: auctionId },
@@ -185,6 +190,7 @@ export async function placeBid(req, res) {
         },
       });
 
+      // ## الخطوة 2: إرجاع عنوان العمل الفني من الـ transaction ##
       return {
         bid,
         updatedAuction,
@@ -197,16 +203,15 @@ export async function placeBid(req, res) {
     const userSocketMap = req.app.get("userSocketMap");
     const roomName = `auction-${auctionId}`;
 
-    // 1. بث السعر الجديد للجميع في الغرفة (كما كان)
+    // ... (بث السعر الجديد يبقى كما هو)
     io.to(roomName).emit("priceUpdate", {
       auctionId: auctionId,
       newPrice: transactionResult.updatedAuction.currentPrice,
-      bidderName: req.user.name, // يمكننا إضافة اسم المزايد الجديد
+      bidderName: req.user.name,
     });
-    console.log(`Emitted priceUpdate to room ${roomName}`);
 
-    // 2. إرسال إشعار خاص للمزايد القديم (إذا كان موجودًا ومتصلاً)
-    const { previousHighestBidderId } = transactionResult;
+    // ## الخطوة 3: استخدام المتغير الذي تم إرجاعه ##
+    const { previousHighestBidderId, artworkTitle } = transactionResult;
     if (previousHighestBidderId && previousHighestBidderId !== bidderId) {
       const oldBidderSocketId = userSocketMap.get(previousHighestBidderId);
       if (oldBidderSocketId) {
@@ -225,16 +230,7 @@ export async function placeBid(req, res) {
       bid: transactionResult.bid,
     });
   } catch (error) {
-    // ... معالجة الأخطاء كما هي
-    if (error.message.includes("Auction not found")) {
-      return res.status(404).json({ message: error.message });
-    }
-    if (
-      error.message.includes("auction has already ended") ||
-      error.message.includes("must be higher")
-    ) {
-      return res.status(400).json({ message: error.message });
-    }
+    // إرجاع الخطأ الفعلي إذا حدث
     res
       .status(500)
       .json({ message: "Failed to place bid", error: error.message });
