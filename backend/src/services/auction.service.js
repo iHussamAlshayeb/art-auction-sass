@@ -1,62 +1,62 @@
 import PrismaClientPkg from "@prisma/client";
+import { sendAuctionWonEmail } from "./email.service.js"; // <-- هذا هو السطر المضاف
+
 const { PrismaClient } = PrismaClientPkg;
 const prisma = new PrismaClient();
 
-// تعديل الدالة لتستقبل io و userSocketMap
 export const processFinishedAuctions = async (io, userSocketMap) => {
-  console.log("Running job: Checking for finished auctions...");
+  console.log(`Running job at server time: ${new Date().toISOString()}`);
 
   const artworksInAuction = await prisma.artwork.findMany({
     where: {
       status: "IN_AUCTION",
-      auction: {
-        endTime: {
-          lt: new Date(), // البحث عن المزادات التي انتهى وقتها
-        },
-      },
     },
     include: {
       auction: true,
-      student: { select: { name: true, email: true } },
     },
   });
 
   for (const artwork of artworksInAuction) {
-    let finalStatus;
-    const winnerId = artwork.auction.highestBidderId;
+    if (artwork.auction && new Date() > new Date(artwork.auction.endTime)) {
+      let finalStatus;
+      const winnerId = artwork.auction.highestBidderId;
 
-    if (winnerId) {
-      finalStatus = "SOLD";
-      console.log(
-        `Auction for artwork "${artwork.title}" has ended. Winner found. Status set to SOLD.`
-      );
+      if (winnerId) {
+        finalStatus = "SOLD";
+        console.log(
+          `Auction for artwork "${artwork.title}" (ID: ${artwork.id}) has ended. Winner found. Status changed to SOLD.`
+        );
 
-      const winner = await prisma.user.findUnique({ where: { id: winnerId } });
-      if (winner) {
-        // 2. إرسال الإشعار عبر البريد الإلكتروني
-        await sendAuctionWonEmail(winner, artwork, artwork.auction);
-      }
-
-      // ## الخطوة الجديدة: إرسال إشعار للفائز ##
-      const winnerSocketId = userSocketMap.get(winnerId);
-      if (winnerSocketId) {
-        io.to(winnerSocketId).emit("auctionWon", {
-          message: `🎉 تهانينا! لقد فزت بمزاد "${artwork.title}"`,
-          auctionId: artwork.auction.id,
-          finalPrice: artwork.auction.currentPrice,
+        // جلب بيانات الفائز لإرسال البريد الإلكتروني
+        const winner = await prisma.user.findUnique({
+          where: { id: winnerId },
         });
-        console.log(`Sent 'auctionWon' notification to user ${winnerId}`);
-      }
-    } else {
-      finalStatus = "ENDED";
-      console.log(
-        `Auction for artwork "${artwork.title}" has ended. No bids placed. Status set to ENDED.`
-      );
-    }
+        if (winner && winner.email) {
+          // استدعاء دالة إرسال البريد
+          await sendAuctionWonEmail(winner, artwork, artwork.auction);
+        }
 
-    await prisma.artwork.update({
-      where: { id: artwork.id },
-      data: { status: finalStatus },
-    });
+        // إرسال الإشعار الفوري
+        const winnerSocketId = userSocketMap.get(winnerId);
+        if (winnerSocketId) {
+          io.to(winnerSocketId).emit("auctionWon", {
+            message: `🎉 تهانينا! لقد فزت بمزاد "${artwork.title}"`,
+            auctionId: artwork.auction.id,
+            finalPrice: artwork.auction.currentPrice,
+          });
+          console.log(`Sent 'auctionWon' notification to user ${winnerId}`);
+        }
+      } else {
+        finalStatus = "ENDED";
+        console.log(
+          `Auction for artwork "${artwork.title}" (ID: ${artwork.id}) has ended. No bids placed. Status changed to ENDED.`
+        );
+      }
+
+      await prisma.artwork.update({
+        where: { id: artwork.id },
+        data: { status: finalStatus },
+      });
+    }
   }
 };
