@@ -1,5 +1,12 @@
 import { useState, useEffect } from 'react';
-import { getAdminStats, getAllUsers, updateUserRole, deleteUser } from '../services/api';
+import {
+  getAdminStats,
+  getAllUsers,
+  updateUserRole,
+  deleteUser,
+  getAdminArtworks,
+  deleteArtworkByAdmin
+} from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -7,17 +14,24 @@ function AdminDashboardPage() {
   const { user: adminUser } = useAuth(); // إعادة تسمية لتجنب التضارب
   const [stats, setStats] = useState(null);
   const [users, setUsers] = useState([]);
+  const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // دالة لجلب كل البيانات يمكننا استدعاؤها لإعادة التحديث
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [statsRes, usersRes] = await Promise.all([getAdminStats(), getAllUsers()]);
+      const [statsRes, usersRes, artworksRes] = await Promise.all([
+        getAdminStats(),
+        getAllUsers(),
+        getAdminArtworks()
+      ]);
       setStats(statsRes.data);
       setUsers(usersRes.data.users);
+      setArtworks(artworksRes.data.artworks);
     } catch (error) {
       console.error("Failed to load admin data", error);
+      toast.error("Failed to load admin data.");
     } finally {
       setLoading(false);
     }
@@ -76,6 +90,47 @@ function AdminDashboardPage() {
           </div>
         </div>
       )}
+
+      <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-lg border border-orange-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">إدارة الأعمال الفنية</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white text-left">
+            <thead className="bg-orange-50/50">
+              <tr>
+                <th className="py-3 px-4 text-sm font-semibold text-gray-600">الصورة</th>
+                <th className="py-3 px-4 text-sm font-semibold text-gray-600">العنوان</th>
+                <th className="py-3 px-4 text-sm font-semibold text-gray-600">الفنان (الطالب)</th>
+                <th className="py-3 px-4 text-sm font-semibold text-gray-600">الحالة</th>
+                <th className="py-3 px-4 text-sm font-semibold text-gray-600">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+              {artworks.map(artwork => (
+                <tr key={artwork.id} className="hover:bg-orange-50/30 border-b border-orange-100">
+                  <td className="py-2 px-4">
+                    <img src={artwork.imageUrl} alt={artwork.title} className="h-12 w-12 object-cover rounded-md" />
+                  </td>
+                  <td className="py-2 px-4 font-medium">{artwork.title}</td>
+                  <td className="py-2 px-4 text-sm text-gray-600">{artwork.student.name}</td>
+                  <td className="py-2 px-4">
+                    <span className="px-2.5 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      {artwork.status}
+                    </span>
+                  </td>
+                  <td className="py-2 px-4">
+                    <button
+                      onClick={() => handleDeleteArtwork(artwork.id)}
+                      className="text-red-600 hover:text-red-900 text-xs font-semibold"
+                    >
+                      حذف
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {/* قسم إدارة المستخدمين */}
       <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-lg border border-orange-100">

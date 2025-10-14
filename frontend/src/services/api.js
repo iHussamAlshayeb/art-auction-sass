@@ -84,15 +84,23 @@ export const cancelAuction = (auctionId) => {
 };
 
 export const getMyProfile = () => apiClient.get("/users/me");
+
 export const updateMyProfile = (profileData) =>
   apiClient.put("/users/me", profileData);
+
 export const updateMyPassword = (passwordData) =>
   apiClient.put("/users/me/password", passwordData);
 
 export const getAdminStats = () => apiClient.get("/admin/stats");
+
 export const getAllUsers = () => apiClient.get("/admin/users");
 
 export const updateUserRole = (userId, role) =>
   apiClient.put(`/admin/users/${userId}/role`, { role });
+
 export const deleteUser = (userId) =>
   apiClient.delete(`/admin/users/${userId}`);
+
+export const getAdminArtworks = () => apiClient.get("/admin/artworks");
+export const deleteArtworkByAdmin = (artworkId) =>
+  apiClient.delete(`/admin/artworks/${artworkId}`);

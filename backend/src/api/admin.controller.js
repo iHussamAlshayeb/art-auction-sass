@@ -1,4 +1,4 @@
-import PrismaClientPkg from '@prisma/client';
+import PrismaClientPkg from "@prisma/client";
 const { PrismaClient } = PrismaClientPkg;
 const prisma = new PrismaClient();
 
@@ -14,7 +14,7 @@ export const getStats = async (req, res) => {
         amount: true,
       },
       where: {
-        status: 'paid', // أو 'succeeded' حسب ما تم حفظه
+        status: "paid", // أو 'succeeded' حسب ما تم حفظه
       },
     });
 
@@ -24,7 +24,9 @@ export const getStats = async (req, res) => {
       totalRevenue: totalSales._sum.amount || 0,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch stats', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch stats", error: error.message });
   }
 };
 
@@ -32,7 +34,8 @@ export const getStats = async (req, res) => {
 export const getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
-      select: { // تحديد حقول معينة لتجنب إرسال كلمة المرور
+      select: {
+        // تحديد حقول معينة لتجنب إرسال كلمة المرور
         id: true,
         name: true,
         email: true,
@@ -40,17 +43,16 @@ export const getAllUsers = async (req, res) => {
         createdAt: true,
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
     res.status(200).json({ users });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch users', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch users", error: error.message });
   }
 };
-
-
-
 
 // دالة لتغيير دور المستخدم
 export const updateUserRole = async (req, res) => {
@@ -58,8 +60,8 @@ export const updateUserRole = async (req, res) => {
   const { role } = req.body;
 
   // التحقق من أن الدور المرسل صالح
-  if (!['STUDENT', 'BUYER', 'ADMIN'].includes(role)) {
-    return res.status(400).json({ message: 'Invalid role provided.' });
+  if (!["STUDENT", "BUYER", "ADMIN"].includes(role)) {
+    return res.status(400).json({ message: "Invalid role provided." });
   }
 
   try {
@@ -67,9 +69,11 @@ export const updateUserRole = async (req, res) => {
       where: { id },
       data: { role },
     });
-    res.status(200).json({ message: 'User role updated successfully.' });
+    res.status(200).json({ message: "User role updated successfully." });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to update user role', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to update user role", error: error.message });
   }
 };
 
@@ -84,8 +88,46 @@ export const deleteUser = async (req, res) => {
     await prisma.user.delete({
       where: { id },
     });
-    res.status(200).json({ message: 'User deleted successfully.' });
+    res.status(200).json({ message: "User deleted successfully." });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to delete user', error: error.message });
+    res
+      .status(500)
+      .json({ message: "Failed to delete user", error: error.message });
+  }
+};
+
+export const getAllArtworks = async (req, res) => {
+  try {
+    const artworks = await prisma.artwork.findMany({
+      include: {
+        student: {
+          // تضمين اسم الطالب صاحب العمل
+          select: { name: true },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    res.status(200).json({ artworks });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch artworks", error: error.message });
+  }
+};
+
+// دالة لحذف عمل فني (سيتم حذف المزاد المرتبط به تلقائيًا)
+export const deleteArtwork = async (req, res) => {
+  const { id } = req.params;
+  try {
+    await prisma.artwork.delete({
+      where: { id },
+    });
+    res.status(200).json({ message: "Artwork deleted successfully." });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to delete artwork", error: error.message });
   }
 };
