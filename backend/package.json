@@ -8,7 +8,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "postinstall": "npx prisma migrate deploy && npx prisma generate"
+    "postinstall": "npx prisma generate"
   },
   "repository": {
     "type": "git",
