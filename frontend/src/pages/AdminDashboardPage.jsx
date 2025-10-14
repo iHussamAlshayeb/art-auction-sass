@@ -63,6 +63,18 @@ function AdminDashboardPage() {
     }
   };
 
+  const handleDeleteArtwork = async (artworkId) => {
+    if (window.confirm('هل أنت متأكد من حذف هذا العمل الفني؟ سيتم حذف أي مزاد مرتبط به.')) {
+      try {
+        await deleteArtworkByAdmin(artworkId);
+        toast.success('تم حذف العمل الفني بنجاح!');
+        fetchData(); // إعادة تحميل كل البيانات
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'فشل في حذف العمل الفني.');
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[60vh]">
