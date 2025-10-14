@@ -56,7 +56,7 @@ model Auction {
   startPrice      Float
   currentPrice    Float
   highestBidderId String?  
-  artwork         Artwork  @relation(fields: [artworkId], references: [id])
+  artwork         Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
   highestBidder   User?    @relation("WinningBids", fields: [highestBidderId], references: [id], onDelete: SetNull)
   bids            Bid[]
   
