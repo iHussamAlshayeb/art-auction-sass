@@ -23,13 +23,9 @@ function BiddingForm({ auctionId, currentPrice }) {
   return (
     <div className="pt-6 border-t border-orange-100">
       <form className="flex" onSubmit={handleSubmit}>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="rounded-l-lg border border-transparent bg-orange-500 py-3 px-6 text-sm font-medium text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:bg-gray-400"
-        >
-          {isSubmitting ? '...' : 'مزايدة'}
-        </button>
+        {/* === تم تعديل الترتيب والتصميم هنا === */}
+
+        {/* 1. حقل الإدخال يأتي أولاً (على اليمين) */}
         <input
           type="number"
           value={amount}
@@ -38,6 +34,16 @@ function BiddingForm({ auctionId, currentPrice }) {
           required
           className="w-full appearance-none rounded-r-lg border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm text-right"
         />
+
+        {/* 2. الزر يأتي ثانيًا (على اليسار) */}
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="rounded-l-lg border border-transparent bg-orange-500 py-3 px-6 text-sm font-medium text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:bg-gray-400"
+        >
+          {isSubmitting ? '...' : 'مزايدة'}
+        </button>
+
       </form>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>
