@@ -82,12 +82,12 @@ function HomePage() {
       {error && <p className="text-center text-red-500 font-semibold">{error}</p>}
 
       {/* الشبكة */}
-       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2">
         {!loading && auctions.map((auction) => (
           <Link key={auction.id} to={`/auctions/${auction.id}`}>
             {/* --== بداية الكرت المُعاد تصميمه ==-- */}
             <div className="bg-white rounded-3xl overflow-hidden border border-orange-100 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-              
+
               {/* الصورة */}
               <div className="relative">
                 <img
