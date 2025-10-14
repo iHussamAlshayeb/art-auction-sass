@@ -100,20 +100,22 @@ export const getMyProfileData = async (req, res) => {
 // دالة لتحديث بيانات الملف الشخصي (الاسم والبريد الإلكتروني)
 export const updateMyProfile = async (req, res) => {
   const userId = req.user.id;
-  // استخراج كل البيانات الممكن تحديثها من الطلب
-  const { name, email, profileImageUrl, schoolName, gradeLevel, bio } =
-    req.body;
 
+  // --== الحل هنا: استخراج كل البيانات من الطلب ==--
+  const { name, email, schoolName, gradeLevel, bio } = req.body;
+
+  // التحقق من الحقول الأساسية
   if (!name || !email) {
     return res.status(400).json({ message: "Name and email are required." });
   }
+
   try {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
+      // --== وتمرير كل البيانات إلى قاعدة البيانات ==--
       data: {
         name,
         email,
-        profileImageUrl,
         schoolName,
         gradeLevel,
         bio,
@@ -121,6 +123,12 @@ export const updateMyProfile = async (req, res) => {
     });
     res.status(200).json({ message: "Profile updated successfully" });
   } catch (error) {
+    // التعامل مع الأخطاء المحتملة (مثل البريد الإلكتروني المكرر)
+    if (error.code === "P2002") {
+      return res
+        .status(409)
+        .json({ message: "This email is already in use by another account." });
+    }
     res.status(500).json({ message: "Failed to update profile" });
   }
 };
