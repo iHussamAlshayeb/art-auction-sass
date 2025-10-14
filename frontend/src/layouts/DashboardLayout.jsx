@@ -3,10 +3,10 @@ import DashboardSidebar from '../components/DashboardSidebar';
 
 function DashboardLayout() {
     return (
-        <div className="flex">
+        // استخدام Flexbox لإنشاء تخطيط العمودين
+        <div className="flex min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-50">
             <DashboardSidebar />
             <main className="flex-grow p-6 sm:p-10">
-                {/* هنا سيتم عرض محتوى القسم المختار */}
                 <Outlet />
             </main>
         </div>
