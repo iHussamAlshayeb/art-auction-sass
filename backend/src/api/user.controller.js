@@ -76,14 +76,14 @@ export const getMyWonArtworks = async (req, res) => {
   }
 };
 
-
 // دالة لجلب بيانات الملف الشخصي الكاملة
 export const getMyProfileData = async (req, res) => {
   const userId = req.user.id;
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { // تحديد الحقول التي نريد إرجاعها فقط (لحماية كلمة المرور)
+      select: {
+        // تحديد الحقول التي نريد إرجاعها فقط (لحماية كلمة المرور)
         id: true,
         email: true,
         name: true,
@@ -93,26 +93,35 @@ export const getMyProfileData = async (req, res) => {
     });
     res.status(200).json({ user });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch profile data' });
+    res.status(500).json({ message: "Failed to fetch profile data" });
   }
 };
 
 // دالة لتحديث بيانات الملف الشخصي (الاسم والبريد الإلكتروني)
 export const updateMyProfile = async (req, res) => {
   const userId = req.user.id;
-  const { name, email } = req.body;
+  // استخراج كل البيانات الممكن تحديثها من الطلب
+  const { name, email, profileImageUrl, schoolName, gradeLevel, bio } =
+    req.body;
 
   if (!name || !email) {
-    return res.status(400).json({ message: 'Name and email are required.' });
+    return res.status(400).json({ message: "Name and email are required." });
   }
   try {
     const updatedUser = await prisma.user.update({
       where: { id: userId },
-      data: { name, email },
+      data: {
+        name,
+        email,
+        profileImageUrl,
+        schoolName,
+        gradeLevel,
+        bio,
+      },
     });
-    res.status(200).json({ message: 'Profile updated successfully' });
+    res.status(200).json({ message: "Profile updated successfully" });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to update profile' });
+    res.status(500).json({ message: "Failed to update profile" });
   }
 };
 
@@ -122,14 +131,17 @@ export const updateMyPassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {
-    return res.status(400).json({ message: 'All fields are required.' });
+    return res.status(400).json({ message: "All fields are required." });
   }
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    const isPasswordCorrect = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordCorrect = await bcrypt.compare(
+      currentPassword,
+      user.password
+    );
 
     if (!isPasswordCorrect) {
-      return res.status(401).json({ message: 'Incorrect current password.' });
+      return res.status(401).json({ message: "Incorrect current password." });
     }
 
     const hashedNewPassword = await bcrypt.hash(newPassword, 12);
@@ -139,8 +151,8 @@ export const updateMyPassword = async (req, res) => {
       data: { password: hashedNewPassword },
     });
 
-    res.status(200).json({ message: 'Password updated successfully.' });
+    res.status(200).json({ message: "Password updated successfully." });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to update password' });
+    res.status(500).json({ message: "Failed to update password" });
   }
 };

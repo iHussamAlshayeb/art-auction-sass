@@ -29,6 +29,10 @@ model User {
   role            Role      @default(STUDENT)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
+  profileImageUrl String?
+  schoolName      String?
+  gradeLevel      String?
+  bio             String?   @db.Text // @db.Text
   artworks        Artwork[]
   bids            Bid[]
   winningAuctions Auction[] @relation("WinningBids")
