@@ -14,6 +14,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LogoutButton from "./components/LogoutButton";
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import StudentProfilePage from './pages/StudentProfilePage';
+import DashboardLayout from './layouts/DashboardLayout';
+
 
 function App() {
   const { user } = useAuth();
@@ -101,6 +103,17 @@ function App() {
             }
           />
           <Route path="/students/:id" element={<StudentProfilePage />} />
+          <Route
+            path="/dashboard"
+            element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}
+          >
+            <Route index element={<DashboardPage />} /> {/* الصفحة الرئيسية للوحة التحكم */}
+            <Route path="profile" element={<ProfileEditor />} />
+            <Route path="password" element={<PasswordEditor />} />
+            <Route path="my-artworks" element={<MyArtworksList />} />
+            <Route path="won-auctions" element={<WonArtworks />} />
+            <Route path="active-bids" element={<ActiveBids />} />
+          </Route>
         </Routes>
       </main>
     </div>
