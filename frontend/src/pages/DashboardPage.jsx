@@ -14,10 +14,15 @@ function DashboardPage() {
   const { user } = useAuth(); // للحصول على الدور بسرعة
   const [profile, setProfile] = useState(null); // لتخزين بيانات الملف الشخصي الكاملة
 
+
   useEffect(() => {
     // جلب بيانات الملف الشخصي الكاملة عند تحميل الصفحة
     getMyProfile().then(res => setProfile(res.data.user));
   }, []);
+
+  const handleProfileUpdate = (updatedData) => {
+    setProfile(prevProfile => ({ ...prevProfile, ...updatedData }));
+  };
 
   // عرض رسالة تحميل ريثما تصل البيانات
   if (!profile) {
@@ -82,7 +87,7 @@ function DashboardPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
           <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-lg border border-orange-100">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">تعديل الملف الشخصي</h3>
-            <ProfileEditor user={profile} />
+            <ProfileEditor user={profile} onProfileUpdate={handleProfileUpdate} />
           </div>
           <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-lg border border-orange-100">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">تغيير كلمة المرور</h3>

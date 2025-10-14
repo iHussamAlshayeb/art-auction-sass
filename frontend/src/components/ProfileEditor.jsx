@@ -17,7 +17,11 @@ function ProfileEditor({ user, onProfileUpdate }) {
     try {
       const response = await updateMyProfile(formData);
       toast.success(response.data.message);
-      onProfileUpdate(formData); // تحديث الحالة في الصفحة الأب
+
+      // ## الحل هنا: استدعاء الدالة لتحديث البيانات في الصفحة الرئيسية ##
+      if (onProfileUpdate) {
+        onProfileUpdate(formData);
+      }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Update failed.');
     }
