@@ -101,29 +101,42 @@ export const getMyProfileData = async (req, res) => {
 export const updateMyProfile = async (req, res) => {
   const userId = req.user.id;
 
-  // --== الحل هنا: استخراج كل البيانات من الطلب ==--
+  // ---== بداية سجلات التشخيص ==---
+  console.log("==> Received request to update profile for user:", userId);
+  console.log("    Request Body:", req.body);
+  // ---== نهاية سجلات التشخيص ==---
+
   const { name, email, schoolName, gradeLevel, bio } = req.body;
 
-  // التحقق من الحقول الأساسية
   if (!name || !email) {
     return res.status(400).json({ message: "Name and email are required." });
   }
 
   try {
-    const updatedUser = await prisma.user.update({
+    const dataToUpdate = {
+      name,
+      email,
+      schoolName,
+      gradeLevel,
+      bio,
+    };
+
+    // ---== بداية سجلات التشخيص ==---
+    console.log("    Data being sent to Prisma for update:", dataToUpdate);
+    // ---== نهاية سجلات التشخيص ==---
+
+    await prisma.user.update({
       where: { id: userId },
-      // --== وتمرير كل البيانات إلى قاعدة البيانات ==--
-      data: {
-        name,
-        email,
-        schoolName,
-        gradeLevel,
-        bio,
-      },
+      data: dataToUpdate,
     });
+
+    console.log("    Prisma update successful for user:", userId);
     res.status(200).json({ message: "Profile updated successfully" });
   } catch (error) {
-    // التعامل مع الأخطاء المحتملة (مثل البريد الإلكتروني المكرر)
+    // ---== بداية سجلات التشخيص ==---
+    console.error("!!! ERROR during profile update:", error);
+    // ---== نهاية سجلات التشخيص ==---
+
     if (error.code === "P2002") {
       return res
         .status(409)
