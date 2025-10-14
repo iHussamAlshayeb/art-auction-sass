@@ -15,6 +15,9 @@ export const getStudentPublicProfile = async (req, res) => {
       select: {
         id: true,
         name: true,
+        schoolName: true,
+        gradeLevel: true,
+        bio: true,
         // يمكنك إضافة حقول أخرى مثل "نبذة عني" أو "المدرسة" مستقبلاً
         artworks: {
           // جلب كل الأعمال الفنية المرتبطة به

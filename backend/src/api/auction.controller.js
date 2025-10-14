@@ -113,6 +113,8 @@ export async function getAllAuctions(req, res) {
             student: {
               select: {
                 name: true,
+                schoolName: true,
+                gradeLevel: true,
               },
             },
           },

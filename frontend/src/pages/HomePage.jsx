@@ -110,10 +110,10 @@ function HomePage() {
               <div className="p-5 flex flex-col h-full">
                 {/* الصف العلوي: الصف الدراسي والسعر */}
                 <div className="flex justify-between items-center mb-2">
-                  <span className="bg-orange-100 text-orange-600 text-xs font-semibold px-3 py-1 rounded-full">
-                    {/* بيانات الصف الدراسي تضاف هنا مستقبلاً */}
-                    طالب
-                  </span>
+                  {auction.artwork.student.gradeLevel ? (
+                    <span className="bg-orange-100 text-orange-600 text-xs font-semibold px-3 py-1 rounded-full">
+                      {auction.artwork.student.gradeLevel}
+                    </span>) : <div></div>}
                   <span className="text-lg font-bold text-orange-500">{auction.currentPrice} ر.س</span>
                 </div>
 
