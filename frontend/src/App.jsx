@@ -1,5 +1,7 @@
 import { Routes, Route, Link } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
+import { Toaster } from 'react-hot-toast';
+
 
 // استيراد الصفحات والمكونات
 import HomePage from "./pages/HomePage";
@@ -18,6 +20,10 @@ function App() {
 
   return (
     <div className="bg-orange-50 min-h-screen">
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+      />
       <SsoHandler />
       <header className="bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-50">
         <nav className="container mx-auto p-4 flex justify-between items-center h-24">
@@ -33,7 +39,7 @@ function App() {
               // حالة المستخدم المسجل دخوله
               <>
                 {user.role === 'ADMIN' && (
-                   <Link to="/admin" className="font-bold text-red-500 hover:text-red-700 transition-colors">لوحة الإدارة</Link>
+                  <Link to="/admin" className="font-bold text-red-500 hover:text-red-700 transition-colors">لوحة الإدارة</Link>
                 )}
                 <Link to="/dashboard" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">الملف الشخصي</Link>
                 <LogoutButton />
@@ -81,7 +87,7 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route 
+          <Route
             path="/admin"
             element={
               <ProtectedRoute roles={['ADMIN']}>

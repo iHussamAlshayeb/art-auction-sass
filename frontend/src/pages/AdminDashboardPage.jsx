@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getAdminStats, getAllUsers, updateUserRole, deleteUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 function AdminDashboardPage() {
   const { user: adminUser } = useAuth(); // إعادة تسمية لتجنب التضارب
@@ -30,27 +31,29 @@ function AdminDashboardPage() {
     if (window.confirm('هل أنت متأكد من أنك تريد حذف هذا المستخدم نهائيًا؟')) {
       try {
         await deleteUser(userId);
-        fetchData(); // إعادة تحميل البيانات بعد الحذف
+        toast.success('تم حذف المستخدم بنجاح!');
+        fetchData();
       } catch (error) {
-        alert(error.response?.data?.message || 'فشل في حذف المستخدم.');
+        toast.error(error.response?.data?.message || 'فشل في حذف المستخدم.');
       }
     }
   };
 
   const handleRoleChange = async (userId, newRole) => {
-     try {
-        await updateUserRole(userId, newRole);
-        fetchData(); // إعادة تحميل البيانات بعد التغيير
-      } catch (error) {
-        alert('فشل في تغيير دور المستخدم.');
-      }
+    try {
+      await updateUserRole(userId, newRole);
+      toast.success('تم تحديث دور المستخدم!');
+      fetchData();
+    } catch (error) {
+      toast.error('فشل في تغيير دور المستخدم.');
+    }
   };
 
   if (loading) {
     return (
-        <div className="flex justify-center items-center min-h-[60vh]">
-            <p className="text-lg text-gray-500">جاري تحميل لوحة الإدارة...</p>
-        </div>
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <p className="text-lg text-gray-500">جاري تحميل لوحة الإدارة...</p>
+      </div>
     );
   }
 
@@ -94,11 +97,10 @@ function AdminDashboardPage() {
                   <td className="py-3 px-4">{user.name}</td>
                   <td className="py-3 px-4">{user.email}</td>
                   <td className="py-3 px-4">
-                    <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
-                      user.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
+                    <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${user.role === 'ADMIN' ? 'bg-red-100 text-red-800' :
                       user.role === 'STUDENT' ? 'bg-green-100 text-green-800' :
-                      'bg-blue-100 text-blue-800'
-                    }`}>
+                        'bg-blue-100 text-blue-800'
+                      }`}>
                       {user.role}
                     </span>
                   </td>
@@ -106,8 +108,8 @@ function AdminDashboardPage() {
                   <td className="py-3 px-4">
                     {user.id !== adminUser.id ? (
                       <div className="flex items-center gap-2">
-                        <select 
-                          value={user.role} 
+                        <select
+                          value={user.role}
                           onChange={(e) => handleRoleChange(user.id, e.target.value)}
                           className="text-xs p-1.5 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
                         >
@@ -115,7 +117,7 @@ function AdminDashboardPage() {
                           <option value="STUDENT">STUDENT</option>
                           <option value="ADMIN">ADMIN</option>
                         </select>
-                        <button 
+                        <button
                           onClick={() => handleDeleteUser(user.id)}
                           className="text-red-600 hover:text-red-900 text-xs font-semibold"
                         >
