@@ -14,8 +14,12 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LogoutButton from "./components/LogoutButton";
 import AdminDashboardPage from './pages/AdminDashboardPage';
 import StudentProfilePage from './pages/StudentProfilePage';
-import DashboardLayout from './layouts/DashboardLayout';
-
+import DashboardLayout from './layouts/DashboardLayout'; // استيراد التخطيط الجديد
+import ProfileEditor from './components/ProfileEditor';
+import PasswordEditor from './components/PasswordEditor';
+import MyArtworksList from './components/MyArtworksList';
+import WonArtworks from './components/WonArtworks';
+import ActiveBids from './components/ActiveBids';
 
 function App() {
   const { user } = useAuth();
