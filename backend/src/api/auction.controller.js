@@ -77,31 +77,49 @@ export async function createAuction(req, res) {
 
 // دالة لجلب كل المزادات النشطة
 export async function getAllAuctions(req, res) {
+  const { search, sortBy, page = 1, limit = 12 } = req.query;
+
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+  const skip = (pageNum - 1) * limitNum;
+
   try {
+    const whereClause = { endTime: { gt: new Date() } };
+    if (search) {
+      whereClause.artwork = {
+        title: { contains: search, mode: "insensitive" },
+      };
+    }
+
+    let orderByClause = { startTime: "desc" };
+    if (sortBy === "ending_soon") orderByClause = { endTime: "asc" };
+    else if (sortBy === "price_asc") orderByClause = { currentPrice: "asc" };
+    else if (sortBy === "price_desc") orderByClause = { currentPrice: "desc" };
+
+    // جلب المزادات للصفحة الحالية
     const auctions = await prisma.auction.findMany({
-      where: {
-        // جلب المزادات التي لم تنتهِ بعد
-        endTime: {
-          gt: new Date(),
-        },
-      },
-      orderBy: {
-        startTime: "desc", // عرض أحدث المزادات أولاً
-      },
+      where: whereClause,
+      skip: skip,
+      take: limitNum,
+      orderBy: orderByClause,
       include: {
-        // تضمين معلومات العمل الفني وصاحبه
-        artwork: {
-          include: {
-            student: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
+        artwork: { include: { student: { select: { name: true } } } },
       },
     });
-    res.status(200).json({ auctions });
+
+    // حساب العدد الإجمالي للمزادات لإرساله للمتصفح
+    const totalAuctions = await prisma.auction.count({ where: whereClause });
+    const totalPages = Math.ceil(totalAuctions / limitNum);
+
+    // إرسال البيانات مع معلومات ترقيم الصفحات
+    res.status(200).json({
+      auctions,
+      pagination: {
+        currentPage: pageNum,
+        totalPages: totalPages,
+        totalAuctions: totalAuctions,
+      },
+    });
   } catch (error) {
     res
       .status(500)

@@ -1,40 +1,49 @@
 import { useState, useEffect } from 'react';
 import { fetchAllAuctions } from '../services/api';
 import { Link } from 'react-router-dom';
-import AuctionCardTimer from '../components/AuctionCardTimer'; // <-- استيراد المكون الجديد
+import AuctionCardTimer from '../components/AuctionCardTimer';
+import Pagination from '../components/Pagination';
+
 function HomePage() {
   const [auctions, setAuctions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
 
-  const getAuctions = async () => {
-    try {
-      setLoading(true);
-      const params = { sortBy, search: searchTerm };
-      const response = await fetchAllAuctions(params);
-      setAuctions(response.data.auctions);
-      setError(null);
-    } catch (err) {
-      if (err.code === 'ECONNABORTED') {
-        setError('الخادم يستغرق وقتًا طويلاً في الاستجابة. الرجاء الانتظار قليلًا ثم إعادة المحاولة.');
-      } else {
-        setError('فشل في تحميل المزادات.');
-      }
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const getAuctions = async () => {
+      try {
+        setLoading(true);
+        const params = { sortBy, search: searchTerm, page: currentPage };
+        const response = await fetchAllAuctions(params);
+        setAuctions(response.data.auctions);
+        setPagination(response.data.pagination);
+        setError(null);
+      } catch (err) {
+        if (err.code === 'ECONNABORTED') {
+          setError('الخادم يستغرق وقتًا طويلاً في الاستجابة. الرجاء الانتظار قليلًا ثم إعادة المحاولة.');
+        } else {
+          setError('فشل في تحميل المزادات.');
+        }
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
     getAuctions();
-  }, [sortBy]);
+  }, [sortBy, currentPage, searchTerm]);
 
   const handleSearch = (e) => {
     e.preventDefault();
+    setCurrentPage(1);
     getAuctions();
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
   };
 
   return (
@@ -130,6 +139,15 @@ function HomePage() {
           </Link>
         ))}
       </div>
+
+      {/* عرض مكون ترقيم الصفحات في الأسفل */}
+      {!loading && pagination && (
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={handlePageChange}
+        />
+      )}
 
       {/* لا توجد نتائج */}
       {!loading && auctions.length === 0 && !error && (
