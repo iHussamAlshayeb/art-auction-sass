@@ -45,13 +45,10 @@ function App() {
             <img src="/logo.svg" alt="Fanan Logo" className="h-16" />
           </Link>
 
-          <Link
-            to="/gallary"
-            className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
-          ></Link>
-
           {/* الروابط */}
           <div className="flex items-center gap-6">
+            <Link to="/gallery" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">المعرض</Link>
+            <Link to="/artists" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">الفنانون</Link>
 
             {user ? (
               // حالة المستخدم المسجل دخوله
