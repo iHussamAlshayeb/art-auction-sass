@@ -75,9 +75,7 @@ function AdminDashboardPage() {
     }
   };
 
-  if (loading) {
-    return <Spinner />;
-  }
+  if (loading) return <Spinner />;
 
   return (
     <div className="space-y-10">
