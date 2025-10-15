@@ -21,7 +21,7 @@ import MyArtworksList from './components/MyArtworksList';
 import WonArtworks from './components/WonArtworks';
 import ActiveBids from './components/ActiveBids';
 import FloatingActionButton from './components/FloatingActionButton';
-
+import GalleryPage from './pages/GalleryPage';
 
 function App() {
   const { user } = useAuth();
@@ -84,6 +84,7 @@ function App() {
           <Route path="/auctions/:id" element={<AuctionDetailPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/gallery" element={<GalleryPage />} />
           <Route
             path="/dashboard"
             element={
