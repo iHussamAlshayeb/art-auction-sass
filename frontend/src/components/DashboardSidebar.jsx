@@ -18,6 +18,8 @@ function DashboardSidebar() {
             setIsOpen(false);
         }
     };
+
+
     return (
         <>
             {/* خلفية معتمة تظهر فقط على الجوال عند فتح القائمة */}
@@ -40,15 +42,8 @@ function DashboardSidebar() {
                     </button>
                 </div>
 
-
                 <nav className="space-y-2">
-                    <h3 className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">الرئيسية</h3>
-                    <NavLink to="/dashboard" end className={linkClass}>
-                        <FiGrid />
-                        <span>نظرة عامة</span>
-                    </NavLink>
-
-                    <h3 className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">إدارة الحساب</h3>
+                    {/* ... كل روابط NavLink تبقى كما هي, لكن أضف onClick */}
                     <NavLink to="/dashboard" end className={linkClass} onClick={handleLinkClick}>
                         <FiGrid /> <span>نظرة عامة</span>
                     </NavLink>
