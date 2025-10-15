@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { getMyArtworks, cancelAuction } from '../services/api';
 import StartAuctionModal from './StartAuctionModal';
 import { Link } from 'react-router-dom'; // <-- 1. استيراد Link
+import Spinner from '../components/Spinner';
 
 function MyArtworksList() {
   const [artworks, setArtworks] = useState([]);

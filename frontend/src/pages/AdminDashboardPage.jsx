@@ -9,6 +9,7 @@ import {
 } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import Spinner from '../components/Spinner';
 
 function AdminDashboardPage() {
   const { user: adminUser } = useAuth(); // إعادة تسمية لتجنب التضارب
@@ -76,11 +77,7 @@ function AdminDashboardPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <p className="text-lg text-gray-500">جاري تحميل لوحة الإدارة...</p>
-      </div>
-    );
+    return <Spinner />;
   }
 
   return (
