@@ -1,7 +1,7 @@
 import { Routes, Route, Link } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { Toaster } from 'react-hot-toast';
-
+import { FiMenu, FiX } from 'react-icons/fi';
 
 // استيراد الصفحات والمكونات
 import HomePage from "./pages/HomePage";
@@ -27,11 +27,11 @@ import ArtistsPage from './pages/ArtistsPage';
 
 function App() {
   const { user } = useAuth();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
     <div className="bg-orange-50 min-h-screen">
-      <Toaster
-        position="top-center"
+      <Toaster position="top-center"
         toastOptions={{
           duration: 5000,
           style: {
@@ -48,38 +48,57 @@ function App() {
           </Link>
 
           {/* الروابط */}
-          <div className="flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-6">
             <Link to="/gallery" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">المعرض</Link>
             <Link to="/artists" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">الفنانون</Link>
-
             {user ? (
-              // حالة المستخدم المسجل دخوله
               <>
                 {user.role === 'ADMIN' && (
-                  <Link to="/admin" className="font-bold text-red-500 hover:text-red-700 transition-colors">لوحة الإدارة</Link>
+                  <Link to="/admin" className="font-bold text-red-500 hover:text-red-700">لوحة الإدارة</Link>
                 )}
-                <Link to="/dashboard" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">الملف الشخصي</Link>
+                <Link to="/dashboard" className="text-gray-700 hover:text-orange-600 font-medium">لوحة التحكم</Link>
                 <LogoutButton />
               </>
             ) : (
-              // حالة الزائر
               <>
-                <Link
-                  to="/login"
-                  className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
-                >
-                  تسجيل الدخول
-                </Link>
-                <Link
-                  to="/register"
-                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full shadow-md transition-all"
-                >
+                <Link to="/login" className="text-gray-700 hover:text-orange-600 font-medium">تسجيل الدخول</Link>
+                <Link to="/register" className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full shadow-md transition-all">
                   إنشاء حساب
                 </Link>
               </>
             )}
           </div>
+          <div className="md:hidden">
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
+              {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+            </button>
+          </div>
         </nav>
+
+        {isMenuOpen && (
+          <div className="md:hidden bg-white/95 backdrop-blur-md shadow-lg py-4">
+            <div className="flex flex-col items-center gap-4">
+              <Link to="/gallery" className="text-gray-700 hover:text-orange-600 font-medium" onClick={() => setIsMenuOpen(false)}>المعرض</Link>
+              <Link to="/artists" className="text-gray-700 hover:text-orange-600 font-medium" onClick={() => setIsMenuOpen(false)}>الفنانون</Link>
+              {user ? (
+                <>
+                  {user.role === 'ADMIN' && (
+                    <Link to="/admin" className="font-bold text-red-500 hover:text-red-700" onClick={() => setIsMenuOpen(false)}>لوحة الإدارة</Link>
+                  )}
+                  <Link to="/dashboard" className="text-gray-700 hover:text-orange-600 font-medium" onClick={() => setIsMenuOpen(false)}>لوحة التحكم</Link>
+                  <LogoutButton />
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="text-gray-700 hover:text-orange-600 font-medium" onClick={() => setIsMenuOpen(false)}>تسجيل الدخول</Link>
+                  <Link to="/register" className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full shadow-md w-auto" onClick={() => setIsMenuOpen(false)}>
+                    إنشاء حساب
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       <main className="container mx-auto px-4 pb-8 md:px-8 md:pb-12 pt-32">
