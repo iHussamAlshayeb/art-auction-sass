@@ -101,18 +101,30 @@ export const getMyProfileData = async (req, res) => {
 
 export const updateMyProfile = async (req, res) => {
   const userId = req.user.id;
-  const { name, email, schoolName, gradeLevel, bio } = req.body;
+
+  // الدالة جاهزة لاستقبال كل البيانات، بما في ذلك profileImageUrl
+  const { name, email, profileImageUrl, schoolName, gradeLevel, bio } =
+    req.body;
 
   if (!name || !email) {
     return res
       .status(400)
       .json({ message: "الاسم والبريد الإلكتروني حقول إلزامية." });
   }
+
   try {
+    const dataToUpdate = { name, email, schoolName, gradeLevel, bio };
+
+    // أضف رابط الصورة فقط إذا تم إرساله
+    if (profileImageUrl) {
+      dataToUpdate.profileImageUrl = profileImageUrl;
+    }
+
     await prisma.user.update({
       where: { id: userId },
-      data: { name, email, schoolName, gradeLevel, bio },
+      data: dataToUpdate,
     });
+
     res.status(200).json({ message: "تم تحديث الملف الشخصي بنجاح" });
   } catch (error) {
     if (error.code === "P2002") {
