@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getMyProfile, updateMyProfile } from '../services/api';
 import toast from 'react-hot-toast';
+import Spinner from '../components/Spinner';
 
 function ProfileEditor() {
   const [formData, setFormData] = useState(null); // Initial state is null
@@ -35,7 +36,7 @@ function ProfileEditor() {
 
   // 2. عرض رسالة تحميل ريثما تصل البيانات
   if (loading || !formData) {
-    return <p className="text-gray-500">جاري تحميل الملف الشخصي...</p>;
+    return <Spinner />;
   }
 
   return (
