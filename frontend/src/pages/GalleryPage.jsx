@@ -61,7 +61,7 @@ function GalleryPage() {
                                     بواسطة {artwork.student.name}
                                 </p>
                             </Link>
-                            <ArtworkStatusBadge />
+                            <ArtworkStatusBadge artwork={artwork} />
                         </div>
                     </div>
                 ))}
