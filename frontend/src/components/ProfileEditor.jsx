@@ -72,8 +72,8 @@ function ProfileEditor() {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="flex flex-col items-center space-y-4">
         <img
-          src={imagePreview || 'https://via.placeholder.com/150'} // صورة افتراضية
-          alt="Profile Preview"
+          src={imagePreview || `https://ui-avatars.com/api/?name=${formData.name}&background=f97316&color=fff&size=128`}
+          alt="Profile" // 2. تغيير النص البديل
           className="w-24 h-24 rounded-full object-cover border-4 border-orange-100 shadow-sm"
         />
         <input
