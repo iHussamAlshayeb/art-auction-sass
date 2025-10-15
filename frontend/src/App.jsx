@@ -47,12 +47,7 @@ function App() {
 
           {/* الروابط */}
           <div className="flex items-center gap-6">
-            <>
-              <Link
-                to="/gallary"
-                className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
-              ></Link>
-            </>
+
             {user ? (
               // حالة المستخدم المسجل دخوله
               <>
@@ -65,6 +60,12 @@ function App() {
             ) : (
               // حالة الزائر
               <>
+
+                <Link
+                  to="/gallary"
+                  className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
+                ></Link>
+
                 <Link
                   to="/login"
                   className="text-gray-700 hover:text-orange-600 transition-colors font-medium"
