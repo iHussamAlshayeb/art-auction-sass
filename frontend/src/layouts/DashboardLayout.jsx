@@ -8,7 +8,7 @@ function DashboardLayout() {
 
     return (
         <div className="relative flex min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-50">
-            {/* القائمة الجانبية */}
+            {/* === تم تصحيح هذا السطر === */}
             <DashboardSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
 
             {/* المحتوى الرئيسي */}

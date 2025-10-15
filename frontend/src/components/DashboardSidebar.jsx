@@ -2,7 +2,8 @@ import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FiGrid, FiUser, FiLock, FiBriefcase, FiAward, FiTag, FiX } from 'react-icons/fi';
 
-function DashboardSidebar() {
+// === الحل هنا: استقبال isOpen و setIsOpen كـ props ===
+function DashboardSidebar({ isOpen, setIsOpen }) {
     const { user } = useAuth();
 
     // تنسيق الرابط النشط وغير النشط
@@ -14,11 +15,10 @@ function DashboardSidebar() {
 
     // دالة لإغلاق القائمة عند النقر على رابط (مهم للشاشات الصغيرة)
     const handleLinkClick = () => {
-        if (window.innerWidth < 768) { // 768px is the 'md' breakpoint
+        if (window.innerWidth < 768) { // 768px هو breakpoint 'md'
             setIsOpen(false);
         }
     };
-
 
     return (
         <>
@@ -43,19 +43,24 @@ function DashboardSidebar() {
                 </div>
 
                 <nav className="space-y-2">
-                    {/* ... كل روابط NavLink تبقى كما هي, لكن أضف onClick */}
+                    <h3 className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">الرئيسية</h3>
                     <NavLink to="/dashboard" end className={linkClass} onClick={handleLinkClick}>
                         <FiGrid /> <span>نظرة عامة</span>
                     </NavLink>
+
+                    <h3 className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">إدارة الحساب</h3>
                     <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
                         <FiUser /> <span>تعديل الملف الشخصي</span>
+                    </NavLink>
+                    <NavLink to="/dashboard/password" className={linkClass} onClick={handleLinkClick}>
+                        <FiLock /> <span>تغيير كلمة المرور</span>
                     </NavLink>
 
                     {/* أقسام خاصة بالأدوار */}
                     {user.role === 'STUDENT' && (
                         <>
                             <h3 className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">كطالب</h3>
-                            <NavLink to="/dashboard/my-artworks" className={linkClass}>
+                            <NavLink to="/dashboard/my-artworks" className={linkClass} onClick={handleLinkClick}>
                                 <FiBriefcase />
                                 <span>أعمالي الفنية</span>
                             </NavLink>
@@ -65,11 +70,11 @@ function DashboardSidebar() {
                     {user.role === 'BUYER' && (
                         <>
                             <h3 className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">كمشتري</h3>
-                            <NavLink to="/dashboard/won-auctions" className={linkClass}>
+                            <NavLink to="/dashboard/won-auctions" className={linkClass} onClick={handleLinkClick}>
                                 <FiAward />
                                 <span>مزاداتي الفائزة</span>
                             </NavLink>
-                            <NavLink to="/dashboard/active-bids" className={linkClass}>
+                            <NavLink to="/dashboard/active-bids" className={linkClass} onClick={handleLinkClick}>
                                 <FiTag />
                                 <span>عروضي النشطة</span>
                             </NavLink>
