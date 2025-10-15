@@ -81,7 +81,6 @@ function App() {
       <main className="container mx-auto px-4 pb-8 md:px-8 md:pb-12 pt-32">
 
         <Routes>
-          <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/auctions/:id" element={<AuctionDetailPage />} />
           <Route path="/register" element={<RegisterPage />} />
@@ -122,6 +121,7 @@ function App() {
             <Route path="won-auctions" element={<WonArtworks />} />
             <Route path="active-bids" element={<ActiveBids />} />
           </Route>
+          <Route path="/gallery" element={<GalleryPage />} />
         </Routes>
       </main>
       <FloatingActionButton />
