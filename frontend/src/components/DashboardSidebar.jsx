@@ -60,7 +60,7 @@ function DashboardSidebar() {
                     {user.role === 'STUDENT' && (
                         <>
                             <h3 className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">كطالب</h3>
-                            <NavLink to="/dashboard/my-artworks" className={linkClass} onClick={handleLinkClick}>
+                            <NavLink to="/dashboard/my-artworks" className={linkClass}>
                                 <FiBriefcase />
                                 <span>أعمالي الفنية</span>
                             </NavLink>
@@ -70,11 +70,11 @@ function DashboardSidebar() {
                     {user.role === 'BUYER' && (
                         <>
                             <h3 className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">كمشتري</h3>
-                            <NavLink to="/dashboard/won-auctions" className={linkClass} onClick={handleLinkClick}>
+                            <NavLink to="/dashboard/won-auctions" className={linkClass}>
                                 <FiAward />
                                 <span>مزاداتي الفائزة</span>
                             </NavLink>
-                            <NavLink to="/dashboard/active-bids" className={linkClass} onClick={handleLinkClick}>
+                            <NavLink to="/dashboard/active-bids" className={linkClass}>
                                 <FiTag />
                                 <span>عروضي النشطة</span>
                             </NavLink>
