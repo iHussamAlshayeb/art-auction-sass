@@ -157,8 +157,19 @@ export const updateMyPassword = async (req, res) => {
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: "All fields are required." });
   }
+
   try {
     const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    // --== الحل هنا: التحقق من وجود المستخدم وكلمة المرور ==--
+    if (!user || !user.password) {
+      // إذا لم يكن للمستخدم كلمة مرور، فهذا طلب غير صالح
+      return res
+        .status(401)
+        .json({ message: "This account does not have a password set." });
+    }
+
+    // الآن نحن متأكدون من وجود user.password، يمكننا المقارنة بأمان
     const isPasswordCorrect = await bcrypt.compare(
       currentPassword,
       user.password
@@ -177,6 +188,7 @@ export const updateMyPassword = async (req, res) => {
 
     res.status(200).json({ message: "Password updated successfully." });
   } catch (error) {
+    console.error("Password update error:", error);
     res.status(500).json({ message: "Failed to update password" });
   }
 };
