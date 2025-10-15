@@ -91,6 +91,7 @@ export const getMyProfileData = async (req, res) => {
         schoolName: true,
         gradeLevel: true,
         bio: true,
+        profileImageUrl: true,
       },
     });
     res.status(200).json({ user });
