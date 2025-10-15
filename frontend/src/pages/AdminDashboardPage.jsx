@@ -76,11 +76,7 @@ function AdminDashboardPage() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <p className="text-lg text-gray-500">جاري تحميل لوحة الإدارة...</p>
-      </div>
-    );
+    return <Spinner />;
   }
 
   return (

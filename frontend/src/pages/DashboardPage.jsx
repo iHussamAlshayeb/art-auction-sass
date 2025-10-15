@@ -1,6 +1,8 @@
 import { useAuth } from '../context/AuthContext';
 import { getMyProfile } from '../services/api';
 import { useState, useEffect } from 'react';
+import Spinner from '../components/Spinner';
+
 
 function DashboardPage() {
   const [profile, setProfile] = useState(null);
@@ -10,11 +12,7 @@ function DashboardPage() {
   }, []);
 
   if (!profile) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <p className="text-lg text-gray-500">جاري التحميل...</p>
-      </div>
-    );
+    return <Spinner />;
   }
 
   return (

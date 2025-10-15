@@ -52,7 +52,7 @@ function MyArtworksList() {
     fetchArtworks();
   };
 
-  if (loading) return <p className="text-gray-500">جاري تحميل أعمالك الفنية...</p>;
+  if (loading) return <Spinner />;
   if (error) return <p className="text-red-500">{error}</p>;
 
   return (

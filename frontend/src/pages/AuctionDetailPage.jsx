@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import BiddingForm from '../components/BiddingForm';
 import CountdownTimer from '../components/CountdownTimer';
 import BidHistory from '../components/BidHistory';
+import Spinner from '../components/Spinner';
 
 const SOCKET_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -79,11 +80,7 @@ function AuctionDetailPage() {
 
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <p className="text-lg text-gray-500">جاري تحميل تفاصيل المزاد...</p>
-      </div>
-    );
+    return <Spinner />;
   }
 
   if (!auction) {

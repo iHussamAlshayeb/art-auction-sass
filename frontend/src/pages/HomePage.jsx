@@ -3,6 +3,7 @@ import { fetchAllAuctions } from '../services/api';
 import { Link } from 'react-router-dom';
 import AuctionCardTimer from '../components/AuctionCardTimer';
 import Pagination from '../components/Pagination';
+import Spinner from '../components/Spinner';
 
 function HomePage() {
   const [auctions, setAuctions] = useState([]);
@@ -87,7 +88,7 @@ function HomePage() {
       </div>
 
       {/* حالات */}
-      {loading && <p className="text-center text-gray-500 text-lg">جارٍ تحميل المزادات...</p>}
+      {loading && <Spinner />}
       {error && <p className="text-center text-red-500 font-semibold">{error}</p>}
 
       {/* الشبكة */}
