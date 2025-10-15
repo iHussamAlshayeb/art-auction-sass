@@ -1,15 +1,29 @@
 import { Link } from 'react-router-dom';
 
 function ArtworkStatusBadge({ artwork }) {
+    // فحص وقائي: إذا كانت بيانات العمل الفني غير موجودة، لا تقم بعرض أي شيء
+    if (!artwork || !artwork.status) {
+        return null;
+    }
+
     // بناءً على حالة العمل الفني، اعرض الشارة المناسبة
     switch (artwork.status) {
         case 'IN_AUCTION':
+            // تأكد من وجود المزاد قبل إنشاء الرابط
+            if (artwork.auction) {
+                return (
+                    <Link to={`/auctions/${artwork.auction.id}`} className="mt-4 inline-block">
+                        <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full hover:bg-green-200 transition">
+                            متاح في مزاد
+                        </span>
+                    </Link>
+                );
+            }
+            // إذا كان في مزاد ولكن لا توجد بيانات مزاد، اعرض حالة عامة
             return (
-                <Link to={`/auctions/${artwork.auction.id}`} className="mt-4 inline-block">
-                    <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full hover:bg-green-200 transition">
-                        متاح في مزاد
-                    </span>
-                </Link>
+                <span className="mt-4 inline-block bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">
+                    قيد المعالجة
+                </span>
             );
         case 'SOLD':
             return (
