@@ -3,6 +3,7 @@ import { fetchAllArtworks } from '../services/api';
 import { Link } from 'react-router-dom';
 import Spinner from '../components/Spinner';
 import Pagination from '../components/Pagination';
+import ArtworkStatusBadge from '../components/ArtworkStatusBadge';
 
 function GalleryPage() {
     const [artworks, setArtworks] = useState([]);
@@ -60,17 +61,7 @@ function GalleryPage() {
                                     بواسطة {artwork.student.name}
                                 </p>
                             </Link>
-                            {artwork.auction ? (
-                                <Link to={`/auctions/${artwork.auction.id}`} className="mt-4 inline-block">
-                                    <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full hover:bg-green-200 transition">
-                                        متاح في مزاد
-                                    </span>
-                                </Link>
-                            ) : (
-                                <span className="mt-4 inline-block bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">
-                                    غير متاح للمزايدة
-                                </span>
-                            )}
+                            <ArtworkStatusBadge />
                         </div>
                     </div>
                 ))}
