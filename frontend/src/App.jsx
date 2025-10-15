@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 import { Toaster } from 'react-hot-toast';
@@ -42,12 +43,12 @@ function App() {
       />
       <header className="bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-50">
         <nav className="container mx-auto p-4 flex justify-between items-center h-24">
-          {/* الشعار (أصبح رابطًا) */}
+          {/* الشعار */}
           <Link to="/">
             <img src="/logo.svg" alt="Fanan Logo" className="h-16" />
           </Link>
 
-          {/* الروابط */}
+          {/* روابط الشاشات الكبيرة */}
           <div className="hidden md:flex items-center gap-6">
             <Link to="/gallery" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">المعرض</Link>
             <Link to="/artists" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">الفنانون</Link>
@@ -68,6 +69,8 @@ function App() {
               </>
             )}
           </div>
+
+          {/* زر قائمة الهامبرغر للشاشات الصغيرة */}
           <div className="md:hidden">
             <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
               {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
@@ -75,6 +78,7 @@ function App() {
           </div>
         </nav>
 
+        {/* القائمة المنسدلة للشاشات الصغيرة */}
         {isMenuOpen && (
           <div className="md:hidden bg-white/95 backdrop-blur-md shadow-lg py-4">
             <div className="flex flex-col items-center gap-4">
