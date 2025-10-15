@@ -20,6 +20,8 @@ import PasswordEditor from './components/PasswordEditor';
 import MyArtworksList from './components/MyArtworksList';
 import WonArtworks from './components/WonArtworks';
 import ActiveBids from './components/ActiveBids';
+import FloatingActionButton from './components/FloatingActionButton';
+
 
 function App() {
   const { user } = useAuth();
@@ -120,6 +122,7 @@ function App() {
           </Route>
         </Routes>
       </main>
+      <FloatingActionButton />
     </div>
   );
 }
