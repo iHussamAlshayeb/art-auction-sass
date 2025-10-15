@@ -10,7 +10,7 @@ export const getStudentPublicProfile = async (req, res) => {
     const student = await prisma.user.findUnique({
       where: {
         id: id,
-        role: "STUDENT", // التأكد من أن المستخدم هو طالب
+        role: "STUDENT",
       },
       select: {
         id: true,
@@ -18,15 +18,13 @@ export const getStudentPublicProfile = async (req, res) => {
         schoolName: true,
         gradeLevel: true,
         bio: true,
-        // يمكنك إضافة حقول أخرى مثل "نبذة عني" أو "المدرسة" مستقبلاً
+        profileImageUrl: true,
         artworks: {
-          // جلب كل الأعمال الفنية المرتبطة به
           orderBy: {
             createdAt: "desc",
           },
           include: {
             auction: {
-              // تضمين معلومات المزاد إن وجدت
               select: {
                 id: true,
                 currentPrice: true,
