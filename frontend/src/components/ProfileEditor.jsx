@@ -1,22 +1,24 @@
 import { useState, useEffect } from 'react';
-import { getMyProfile, updateMyProfile, uploadImage } from '../services/api';
+import { getMyProfile, updateMyProfile, uploadImage } from '../services/api.js';
 import toast from 'react-hot-toast';
-import Spinner from '../components/Spinner';
 
 function ProfileEditor() {
-  const [formData, setFormData] = useState(null); // Initial state is null
+  const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
 
-  // 1. جلب البيانات عند تحميل المكون لأول مرة
+  // 1. useEffect لجلب البيانات عند تحميل المكون
   useEffect(() => {
     const fetchProfileData = async () => {
       try {
         const response = await getMyProfile();
         setFormData(response.data.user);
-        setImagePreview(response.data.user.profileImageUrl || '');
+        // عرض الصورة المحفوظة في قاعدة البيانات (إذا كانت موجودة)
+        if (response.data.user.profileImageUrl) {
+          setImagePreview(response.data.user.profileImageUrl);
+        }
       } catch (error) {
         toast.error("فشل في تحميل بيانات الملف الشخصي.");
       } finally {
@@ -26,6 +28,7 @@ function ProfileEditor() {
     fetchProfileData();
   }, []); // [] تعني أن هذا سيعمل مرة واحدة فقط
 
+  // 2. دالة لمعاينة الصورة الجديدة فور اختيارها
   const handleFileChange = (e) => {
     if (e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -35,24 +38,26 @@ function ProfileEditor() {
     }
   };
 
+  // 3. دالة لإرسال كل التحديثات
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUploading(true);
     let finalImageUrl = formData.profileImageUrl;
 
     try {
-      // 1. إذا اختار المستخدم صورة جديدة، قم برفعها أولاً
+      // إذا اختار المستخدم صورة جديدة، قم برفعها أولاً
       if (imageFile) {
         const uploadResponse = await uploadImage(imageFile);
         finalImageUrl = uploadResponse.data.imageUrl;
       }
 
-      // 2. قم بتحديث الملف الشخصي بالبيانات الجديدة ورابط الصورة
+      // قم بتحديث الملف الشخصي بالبيانات الجديدة ورابط الصورة
       const finalData = { ...formData, profileImageUrl: finalImageUrl };
       const response = await updateMyProfile(finalData);
 
       toast.success(response.data.message);
       setFormData(finalData); // تحديث الحالة المحلية بالبيانات الجديدة
+      setImagePreview(finalImageUrl); // تحديث المعاينة بالرابط النهائي
 
     } catch (error) {
       toast.error(error.response?.data?.message || 'فشل التحديث.');
@@ -63,17 +68,17 @@ function ProfileEditor() {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // 2. عرض رسالة تحميل ريثما تصل البيانات
   if (loading || !formData) {
-    return <Spinner />;
+    return <p className="text-gray-500">جاري تحميل الملف الشخصي...</p>;
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* قسم الصورة الشخصية */}
       <div className="flex flex-col items-center space-y-4">
         <img
           src={imagePreview || `https://ui-avatars.com/api/?name=${formData.name}&background=f97316&color=fff&size=128`}
-          alt="Profile" // 2. تغيير النص البديل
+          alt="Profile"
           className="w-24 h-24 rounded-full object-cover border-4 border-orange-100 shadow-sm"
         />
         <input
@@ -90,6 +95,8 @@ function ProfileEditor() {
           تغيير الصورة
         </label>
       </div>
+
+      {/* باقي حقول النموذج */}
       <div>
         <label className="text-sm font-medium text-gray-600">الاسم</label>
         <input name="name" value={formData.name} onChange={handleChange} required className="mt-1 w-full p-2.5 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500" />
@@ -99,7 +106,6 @@ function ProfileEditor() {
         <input type="email" name="email" value={formData.email} onChange={handleChange} required className="mt-1 w-full p-2.5 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500" />
       </div>
 
-      {/* عرض حقول الطالب فقط إذا كان دوره طالبًا */}
       {formData.role === 'STUDENT' && (
         <>
           <div>
@@ -127,4 +133,6 @@ function ProfileEditor() {
     </form>
   );
 }
+
 export default ProfileEditor;
+
