@@ -1,6 +1,7 @@
 import PrismaClientPkg from "@prisma/client";
 const { PrismaClient } = PrismaClientPkg;
 const prisma = new PrismaClient();
+import bcrypt from "bcryptjs";
 
 // This is the getMyProfile function we already have
 export const getMyProfile = (req, res) => {
