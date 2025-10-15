@@ -1,5 +1,9 @@
 import express from "express";
-import { createArtwork, getAllArtworks } from "./artwork.controller.js";
+import {
+  createArtwork,
+  getAllArtworks,
+  getPublicArtworks,
+} from "./artwork.controller.js";
 import { protect, checkRole } from "../middleware/auth.middleware.js"; // Import both middlewares
 
 const router = express.Router();
