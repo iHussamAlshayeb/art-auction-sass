@@ -22,6 +22,8 @@ import WonArtworks from './components/WonArtworks';
 import ActiveBids from './components/ActiveBids';
 import FloatingActionButton from './components/FloatingActionButton';
 import GalleryPage from './pages/GalleryPage';
+import ArtistsPage from './pages/ArtistsPage';
+
 
 function App() {
   const { user } = useAuth();
@@ -124,6 +126,7 @@ function App() {
             <Route path="active-bids" element={<ActiveBids />} />
           </Route>
           <Route path="/gallery" element={<GalleryPage />} />
+          <Route path="/artists" element={<ArtistsPage />} />
         </Routes>
       </main>
       <FloatingActionButton />

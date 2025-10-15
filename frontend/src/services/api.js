@@ -111,3 +111,7 @@ export const getStudentProfile = (studentId) =>
 export const fetchAllArtworks = (page = 1) => {
   return apiClient.get("/artworks/public", { params: { page } });
 };
+
+export const fetchAllStudents = (page = 1) => {
+  return apiClient.get("/students", { params: { page } });
+};

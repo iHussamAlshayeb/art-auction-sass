@@ -3,20 +3,18 @@ const { PrismaClient } = PrismaClientPkg;
 const prisma = new PrismaClient();
 
 export const getAllStudents = async (req, res) => {
-  // 1. الحصول على متغيرات ترقيم الصفحات من الرابط، مع قيم افتراضية
   const { page = 1, limit = 16 } = req.query;
 
   const pageNum = parseInt(page);
   const limitNum = parseInt(limit);
-  const skip = (pageNum - 1) * limitNum; // حساب عدد السجلات التي يجب تخطيها
+  const skip = (pageNum - 1) * limitNum;
 
   try {
-    // 2. جلب قائمة الطلاب للصفحة الحالية
     const students = await prisma.user.findMany({
-      where: { role: "STUDENT" }, // فلترة النتائج لتشمل الطلاب فقط
+      where: { role: "STUDENT" },
       skip: skip,
       take: limitNum,
-      orderBy: { createdAt: "desc" }, // ترتيبهم من الأحدث للأقدم
+      orderBy: { createdAt: "desc" },
       select: {
         id: true,
         name: true,
@@ -24,19 +22,16 @@ export const getAllStudents = async (req, res) => {
         schoolName: true,
         gradeLevel: true,
         _count: {
-          // 3. حساب عدد السجلات المرتبطة بكفاءة
-          select: { artworks: true }, // حساب عدد الأعمال الفنية لكل طالب
+          select: { artworks: true },
         },
       },
     });
 
-    // 4. جلب العدد الإجمالي للطلاب لحساب عدد الصفحات
     const totalStudents = await prisma.user.count({
       where: { role: "STUDENT" },
     });
     const totalPages = Math.ceil(totalStudents / limitNum);
 
-    // 5. إرسال الرد مع قائمة الطلاب ومعلومات ترقيم الصفحات
     res.status(200).json({
       students,
       pagination: {
