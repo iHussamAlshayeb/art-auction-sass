@@ -64,7 +64,7 @@ function BottomNav() {
                     <span className="text-xs">المعرض</span>
                 </NavLink>
                 <NavLink to="/artists" className={linkClass}>
-                    <FiSearch size={22} />
+                    <MdOutlineDesignServices size={22} />
                     <span className="text-xs">الفنانون</span>
                 </NavLink>
                 {user ? (
