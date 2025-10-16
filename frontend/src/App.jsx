@@ -41,42 +41,63 @@ function App() {
           },
         }}
       />
-      <header className="bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-50">
-        <nav className="container mx-auto p-4 flex justify-between items-center h-24">
-          {/* الشعار */}
-          <Link to="/">
-            <img src="/logo.svg" alt="Fanan Logo" className="h-16" />
-          </Link>
+      <header className="bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-40">
+        <div className="container mx-auto p-4 h-24">
 
-          {/* روابط الشاشات الكبيرة */}
-          <div className="hidden md:flex items-center gap-6">
-            <Link to="/gallery" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">المعرض</Link>
-            <Link to="/artists" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">الفنانون</Link>
-            {user ? (
-              <>
-                {user.role === 'ADMIN' && (
-                  <Link to="/admin" className="font-bold text-red-500 hover:text-red-700">لوحة الإدارة</Link>
-                )}
-                <Link to="/dashboard" className="text-gray-700 hover:text-orange-600 font-medium">لوحة التحكم</Link>
-                <LogoutButton />
-              </>
-            ) : (
-              <>
-                <Link to="/login" className="text-gray-700 hover:text-orange-600 font-medium">تسجيل الدخول</Link>
-                <Link to="/register" className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full shadow-md transition-all">
-                  إنشاء حساب
-                </Link>
-              </>
-            )}
+          {/* --== تخطيط الجوال (يختفي على الشاشات الكبيرة) ==-- */}
+          <div className="md:hidden grid grid-cols-3 w-full items-center h-full">
+            {/* اليسار: قائمة الهامبرغر */}
+            <div className="flex justify-start">
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+              </button>
+            </div>
+            {/* المنتصف: الشعار */}
+            <div className="flex justify-center">
+              <Link to="/" onClick={() => setIsMenuOpen(false)}>
+                <img src="/logo.svg" alt="Fanan Logo" className="h-16" />
+              </Link>
+            </div>
+            {/* اليمين: فراغ للموازنة */}
+            <div className="flex justify-end"></div>
           </div>
 
-          {/* زر قائمة الهامبرغر للشاشات الصغيرة */}
-          <div className="md:hidden">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
-              {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-            </button>
-          </div>
-        </nav>
+          <nav className="hidden md:flex w-full justify-between items-center h-full">
+            {/* الشعار */}
+            <Link to="/">
+              <img src="/logo.svg" alt="Fanan Logo" className="h-16" />
+            </Link>
+
+            {/* روابط الشاشات الكبيرة */}
+            <div className="hidden md:flex items-center gap-6">
+              <Link to="/gallery" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">المعرض</Link>
+              <Link to="/artists" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">الفنانون</Link>
+              {user ? (
+                <>
+                  {user.role === 'ADMIN' && (
+                    <Link to="/admin" className="font-bold text-red-500 hover:text-red-700">لوحة الإدارة</Link>
+                  )}
+                  <Link to="/dashboard" className="text-gray-700 hover:text-orange-600 font-medium">لوحة التحكم</Link>
+                  <LogoutButton />
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="text-gray-700 hover:text-orange-600 font-medium">تسجيل الدخول</Link>
+                  <Link to="/register" className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full shadow-md transition-all">
+                    إنشاء حساب
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* زر قائمة الهامبرغر للشاشات الصغيرة */}
+            <div className="md:hidden">
+              <button onClick={() => setIsMenuOpen(!isMenuOpen)}>
+                {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+              </button>
+            </div>
+          </nav>
+        </div>
 
         {/* القائمة المنسدلة للشاشات الصغيرة */}
         {isMenuOpen && (
