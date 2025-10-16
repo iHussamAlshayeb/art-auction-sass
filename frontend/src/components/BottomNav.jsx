@@ -67,7 +67,7 @@ function BottomNav() {
                     <span className="text-xs">الفنانون</span>
                 </NavLink>
                 {user ? (
-                    <NavLink to="/dashboard" className={linkClass}>
+                    <NavLink to="/dashboard/profile" className={linkClass}>
                         <img
                             src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.name}&background=ffedd5&color=f97316&size=128`}
                             alt={user.name}
