@@ -24,14 +24,14 @@ import ActiveBids from './components/ActiveBids';
 import FloatingActionButton from './components/FloatingActionButton';
 import GalleryPage from './pages/GalleryPage';
 import ArtistsPage from './pages/ArtistsPage';
-
+import BottomNav from './components/BottomNav';
 
 function App() {
   const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <div className="bg-orange-50 min-h-screen">
+    <div className="flex flex-col h-screen bg-orange-50">
       <Toaster position="top-center"
         toastOptions={{
           duration: 5000,
@@ -150,6 +150,7 @@ function App() {
           </Route>
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/artists" element={<ArtistsPage />} />
+          <BottomNav />
         </Routes>
       </main>
       <FloatingActionButton />
