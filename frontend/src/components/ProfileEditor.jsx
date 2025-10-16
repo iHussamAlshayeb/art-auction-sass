@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getMyProfile, updateMyProfile, uploadImage } from '../services/api.js';
+import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 
 function ProfileEditor() {
@@ -69,7 +70,7 @@ function ProfileEditor() {
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
   if (loading || !formData) {
-    return <p className="text-gray-500">جاري تحميل الملف الشخصي...</p>;
+    return <Spinner />;
   }
 
   return (
