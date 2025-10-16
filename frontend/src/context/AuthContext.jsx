@@ -1,31 +1,36 @@
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
-import { jwtDecode } from 'jwt-decode';
-import { getMyProfile } from '../services/api';
+import { getMyProfile } from '../services/api'; // 1. استيراد دالة جلب الملف الشخصي
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token') || null);
+  const [user, setUser] = useState(null); // سيحتوي على بيانات المستخدم الكاملة
+  const [token, setToken] = useState(localStorage.getItem('token'));
   const [isInitializing, setIsInitializing] = useState(true);
 
+  // 2. دالة مخصصة لجلب بيانات المستخدم من الخادم
   const fetchUser = useCallback(async () => {
+    // لا تحاول الجلب إذا لم يكن هناك توكن
     if (!localStorage.getItem('token')) {
       setIsInitializing(false);
+      setUser(null); // التأكد من أن المستخدم فارغ
       return;
     }
     try {
       const response = await getMyProfile();
-      setUser(response.data.user);
+      setUser(response.data.user); // حفظ كائن المستخدم الكامل
     } catch (error) {
-      // إذا كان التوكن غير صالح، قم بتسجيل الخروج
+      // إذا كان التوكن غير صالح أو منتهي الصلاحية، قم بتسجيل الخروج
       localStorage.removeItem('token');
       setUser(null);
       setToken(null);
+      console.error("Auth token is invalid, logging out.", error);
     } finally {
       setIsInitializing(false);
     }
   }, []);
 
+  // 3. جلب بيانات المستخدم عند تحميل التطبيق لأول مرة
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
@@ -33,7 +38,8 @@ export const AuthProvider = ({ children }) => {
   const login = (newToken) => {
     localStorage.setItem('token', newToken);
     setToken(newToken);
-    fetchUser(); // جلب بيانات المستخدم الكاملة بعد تسجيل الدخول
+    // 4. جلب بيانات المستخدم الكاملة فور تسجيل الدخول
+    fetchUser();
   };
 
   const logout = () => {
@@ -49,7 +55,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// تم التعديل هنا
 export function useAuth() {
   return useContext(AuthContext);
-}
+};
