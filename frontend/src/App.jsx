@@ -150,10 +150,12 @@ function App() {
           </Route>
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/artists" element={<ArtistsPage />} />
-          <BottomNav />
+
         </Routes>
       </main>
+
       <FloatingActionButton />
+      <BottomNav />
     </div>
   );
 }
