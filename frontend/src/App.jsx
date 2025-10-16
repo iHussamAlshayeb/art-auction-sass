@@ -41,9 +41,8 @@ function App() {
           },
         }}
       />
-      <header className="bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-40">
-
-        <nav className="hidden md:flex w-full justify-between items-center h-full">
+      <header className="bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-50">
+        <nav className="container mx-auto p-4 flex justify-between items-center h-24">
           {/* الشعار */}
           <Link to="/">
             <img src="/logo.svg" alt="Fanan Logo" className="h-16" />
