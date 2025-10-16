@@ -1,6 +1,7 @@
 import { NavLink, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiHome, FiGrid, FiSearch, FiUser, FiPlus } from 'react-icons/fi';
+import { FiHome, FiGrid, FiUser, FiPlus } from 'react-icons/fi';
+import { MdOutlineDesignServices } from "react-icons/md";
 
 function BottomNav() {
     const { user } = useAuth();
@@ -34,7 +35,7 @@ function BottomNav() {
                     </Link>
 
                     <NavLink to="/artists" className={linkClass}>
-                        <FiSearch size={22} />
+                        <MdOutlineDesignServices size={22} />
                         <span className="text-xs">الفنانون</span>
                     </NavLink>
                     <NavLink to="/dashboard" className={linkClass}>
