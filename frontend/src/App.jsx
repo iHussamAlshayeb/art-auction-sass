@@ -42,11 +42,11 @@ function App() {
 
           {/* تخطيط الجوال (يختفي على الشاشات الكبيرة) */}
           <div className="md:hidden grid grid-cols-3 w-full items-center h-full">
-            {/* <div className="flex justify-start">
-              <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Open menu">
+            <div className="flex justify-start">
+              {/* <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Open menu">
                 {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-              </button>
-            </div> */}
+              </button> */}
+            </div>
             <div className="flex justify-center">
               <Link to="/" onClick={() => setIsMenuOpen(false)}>
                 <img src="/logo.svg" alt="Fanan Logo" className="h-16" />
