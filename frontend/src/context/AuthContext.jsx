@@ -1,6 +1,6 @@
-import { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-
+import { getMyProfile } from '../services/api';
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -8,31 +8,32 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token') || null);
   const [isInitializing, setIsInitializing] = useState(true);
 
-  useEffect(() => {
+  const fetchUser = useCallback(async () => {
+    if (!localStorage.getItem('token')) {
+      setIsInitializing(false);
+      return;
+    }
     try {
-      const tokenInStorage = localStorage.getItem('token');
-      if (tokenInStorage) {
-        const decodedUser = jwtDecode(tokenInStorage);
-        // يمكنك إضافة فحص لصلاحية التوكن هنا إذا أردت
-        setUser({ id: decodedUser.userId, role: decodedUser.role });
-        setToken(tokenInStorage);
-      }
+      const response = await getMyProfile();
+      setUser(response.data.user);
     } catch (error) {
-      // التعامل مع التوكن التالف
+      // إذا كان التوكن غير صالح، قم بتسجيل الخروج
       localStorage.removeItem('token');
       setUser(null);
       setToken(null);
     } finally {
-      // 3. أخبر التطبيق بأن عملية التحقق الأولية قد انتهت
       setIsInitializing(false);
     }
   }, []);
 
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
   const login = (newToken) => {
-    const decodedUser = jwtDecode(newToken);
     localStorage.setItem('token', newToken);
-    setUser({ id: decodedUser.userId, role: decodedUser.role });
     setToken(newToken);
+    fetchUser(); // جلب بيانات المستخدم الكاملة بعد تسجيل الدخول
   };
 
   const logout = () => {
