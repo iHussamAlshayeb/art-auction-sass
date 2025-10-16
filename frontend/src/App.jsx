@@ -47,6 +47,7 @@ function App() {
                 {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
               </button> */}
             </div>
+
             <div className="flex justify-center">
               <Link to="/" onClick={() => setIsMenuOpen(false)}>
                 <img src="/logo.svg" alt="Fanan Logo" className="h-16" />
