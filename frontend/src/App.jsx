@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
-import { FiMenu, FiX } from 'react-icons/fi';
-import { Toaster } from 'react-hot-toast';
+import { Toaster } from "react-hot-toast";
 
-// استيراد الصفحات والمكونات
+// الصفحات
 import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
@@ -14,96 +13,113 @@ import AuctionDetailPage from "./pages/AuctionDetailPage";
 import ArtistsPage from "./pages/ArtistsPage";
 import GalleryPage from "./pages/GalleryPage";
 import StudentProfilePage from "./pages/StudentProfilePage";
-import AdminDashboardPage from './pages/AdminDashboardPage';
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LogoutButton from "./components/LogoutButton";
-import BottomNav from './components/BottomNav';
-import FloatingActionButton from './components/FloatingActionButton';
+import BottomNav from "./components/BottomNav";
+import FloatingActionButton from "./components/FloatingActionButton";
 import DashboardLayout from "./layouts/DashboardLayout";
 
-// مكونات لوحة التحكم المتداخلة
-import ProfileEditor from './components/ProfileEditor';
-import PasswordEditor from './components/PasswordEditor';
-import MyArtworksList from './components/MyArtworksList';
-import WonArtworks from './components/WonArtworks';
-import ActiveBids from './components/ActiveBids';
-
+import ProfileEditor from "./components/ProfileEditor";
+import PasswordEditor from "./components/PasswordEditor";
+import MyArtworksList from "./components/MyArtworksList";
+import WonArtworks from "./components/WonArtworks";
+import ActiveBids from "./components/ActiveBids";
 
 function App() {
   const { user } = useAuth();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeLink, setActiveLink] = useState("/");
+
+  const navLinks = [
+    { to: "/", label: "الرئيسية" },
+    { to: "/gallery", label: "المعرض" },
+    { to: "/artists", label: "الفنانون" },
+  ];
 
   return (
-    <div className="flex flex-col h-screen bg-orange-50">
+    <div className="flex h-screen bg-orange-50">
       <Toaster position="top-center" toastOptions={{ duration: 4000 }} />
 
-      <header className="bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-40">
-        <div className="container mx-auto px-4 h-24">
-
-          {/* تخطيط الجوال (يختفي على الشاشات الكبيرة) */}
-          <div className="md:hidden grid grid-cols-3 w-full items-center h-full">
-            <div className="flex justify-start">
-              {/* <button onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Open menu">
-                {isMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-              </button> */}
-            </div>
-
-            <div className="flex justify-center">
-              <Link to="/" onClick={() => setIsMenuOpen(false)}>
-                <img src="/logo.svg" alt="Fanan Logo" className="h-16" />
-              </Link>
-            </div>
-            <div className="flex justify-end"></div> {/* فراغ للموازنة */}
-          </div>
-
-          {/* تخطيط سطح المكتب (يظهر على الشاشات الكبيرة) */}
-          <nav className="hidden md:flex w-full justify-between items-center h-full">
-            <Link to="/">
+      {/* ======= الشريط الجانبي (يظهر فقط في سطح المكتب) ======= */}
+      <aside className="hidden md:flex flex-col w-64 bg-white border-l border-gray-200 shadow-sm fixed right-0 top-0 bottom-0 z-30">
+        <div className="flex flex-col h-full">
+          {/* الشعار */}
+          <div className="flex justify-center py-6 border-b">
+            <Link to="/" onClick={() => setActiveLink("/")}>
               <img src="/logo.svg" alt="Fanan Logo" className="h-16" />
             </Link>
-            <div className="flex items-center gap-6">
-              <Link to="/gallery" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">المعرض</Link>
-              <Link to="/artists" className="text-gray-700 hover:text-orange-600 transition-colors font-medium">الفنانون</Link>
-              {user ? (
-                <>
-                  {user.role === 'ADMIN' && (<Link to="/admin" className="font-bold text-red-500 hover:text-red-700">لوحة الإدارة</Link>)}
-                  <Link to="/dashboard" className="text-gray-700 hover:text-orange-600 font-medium">لوحة التحكم</Link>
-                  <LogoutButton />
-                </>
-              ) : (
-                <>
-                  <Link to="/login" className="text-gray-700 hover:text-orange-600 font-medium">تسجيل الدخول</Link>
-                  <Link to="/register" className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full shadow-md transition-all">إنشاء حساب</Link>
-                </>
-              )}
-            </div>
-          </nav>
-        </div>
-
-        {/* القائمة المنسدلة للجوال */}
-        {isMenuOpen && (
-          <div className="md:hidden bg-white/95 backdrop-blur-md shadow-lg py-4">
-            <div className="flex flex-col items-center gap-4">
-              <Link to="/gallery" className="text-gray-700 hover:text-orange-600 font-medium w-full text-center py-2" onClick={() => setIsMenuOpen(false)}>المعرض</Link>
-              <Link to="/artists" className="text-gray-700 hover:text-orange-600 font-medium w-full text-center py-2" onClick={() => setIsMenuOpen(false)}>الفنانون</Link>
-              {user ? (
-                <>
-                  {user.role === 'ADMIN' && (<Link to="/admin" className="font-bold text-red-500 hover:text-red-700 w-full text-center py-2" onClick={() => setIsMenuOpen(false)}>لوحة الإدارة</Link>)}
-                  <Link to="/dashboard" className="text-gray-700 hover:text-orange-600 font-medium w-full text-center py-2" onClick={() => setIsMenuOpen(false)}>لوحة التحكم</Link>
-                  <div onClick={() => setIsMenuOpen(false)}><LogoutButton /></div>
-                </>
-              ) : (
-                <>
-                  <Link to="/login" className="text-gray-700 hover:text-orange-600 font-medium w-full text-center py-2" onClick={() => setIsMenuOpen(false)}>تسجيل الدخول</Link>
-                  <Link to="/register" className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full shadow-md w-auto" onClick={() => setIsMenuOpen(false)}>إنشاء حساب</Link>
-                </>
-              )}
-            </div>
           </div>
-        )}
-      </header>
 
-      <main className="flex-grow overflow-y-auto container mx-auto px-4 pb-24 pt-24">
+          {/* الروابط */}
+          <nav className="flex flex-col flex-grow p-4 space-y-2">
+            {navLinks.map((link) => (
+              <Link
+                key={link.to}
+                to={link.to}
+                onClick={() => setActiveLink(link.to)}
+                className={`rounded-lg px-4 py-2 font-medium transition-all ${activeLink === link.to
+                    ? "bg-orange-100 text-orange-600"
+                    : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                  }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+
+            {user && (
+              <>
+                <Link
+                  to="/dashboard"
+                  className={`rounded-lg px-4 py-2 font-medium transition-all ${activeLink === "/dashboard"
+                      ? "bg-orange-100 text-orange-600"
+                      : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                    }`}
+                  onClick={() => setActiveLink("/dashboard")}
+                >
+                  لوحة التحكم
+                </Link>
+                {user.role === "ADMIN" && (
+                  <Link
+                    to="/admin"
+                    className={`rounded-lg px-4 py-2 font-medium transition-all ${activeLink === "/admin"
+                        ? "bg-red-100 text-red-600"
+                        : "text-red-500 hover:bg-red-50 hover:text-red-700"
+                      }`}
+                    onClick={() => setActiveLink("/admin")}
+                  >
+                    لوحة الإدارة
+                  </Link>
+                )}
+              </>
+            )}
+          </nav>
+
+          {/* تسجيل الدخول / الخروج */}
+          <div className="border-t p-4">
+            {user ? (
+              <LogoutButton />
+            ) : (
+              <div className="flex flex-col gap-2">
+                <Link
+                  to="/login"
+                  className="text-gray-700 hover:text-orange-600 font-medium text-center"
+                >
+                  تسجيل الدخول
+                </Link>
+                <Link
+                  to="/register"
+                  className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full text-center shadow-md transition-all"
+                >
+                  إنشاء حساب
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* ======= المحتوى الرئيسي ======= */}
+      <main className="flex-1 overflow-y-auto md:mr-64 pb-24 pt-8 px-4">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/auctions/:id" element={<AuctionDetailPage />} />
@@ -113,7 +129,14 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
 
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route index element={<DashboardPage />} />
             <Route path="profile" element={<ProfileEditor />} />
             <Route path="password" element={<PasswordEditor />} />
@@ -122,11 +145,26 @@ function App() {
             <Route path="active-bids" element={<ActiveBids />} />
           </Route>
 
-          <Route path="/artworks/new" element={<ProtectedRoute roles={["STUDENT"]}><CreateArtworkPage /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
+          <Route
+            path="/artworks/new"
+            element={
+              <ProtectedRoute roles={["STUDENT"]}>
+                <CreateArtworkPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute roles={["ADMIN"]}>
+                <AdminDashboardPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
 
+      {/* الجوال فقط */}
       <FloatingActionButton />
       <BottomNav />
     </div>
@@ -134,4 +172,3 @@ function App() {
 }
 
 export default App;
-
