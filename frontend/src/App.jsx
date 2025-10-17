@@ -45,14 +45,14 @@ function App() {
           {/* المسارات المحمية */}
           <Route path="/artworks/new" element={<ProtectedRoute roles={["STUDENT"]}><CreateArtworkPage /></ProtectedRoute>} />
 
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+          {/* <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route index element={<DashboardPage />} />
             <Route path="profile" element={<ProfileEditor />} />
             <Route path="password" element={<PasswordEditor />} />
             <Route path="my-artworks" element={<MyArtworksList />} />
             <Route path="won-auctions" element={<WonArtworks />} />
             <Route path="active-bids" element={<ActiveBids />} />
-          </Route>
+          </Route> */}
 
           <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
         </Routes>
