@@ -15,7 +15,6 @@ import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import CreateArtworkPage from "./pages/CreateArtworkPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
-import DashboardLayout from "./layouts/DashboardLayout";
 import DashboardPage from "./pages/DashboardPage";
 import ProfileEditor from './components/ProfileEditor';
 import PasswordEditor from './components/PasswordEditor';
@@ -45,7 +44,7 @@ function App() {
           {/* المسارات المحمية */}
           <Route path="/artworks/new" element={<ProtectedRoute roles={["STUDENT"]}><CreateArtworkPage /></ProtectedRoute>} />
 
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+          <Route path="/dashboard">
             <Route index element={<DashboardPage />} />
             <Route path="profile" element={<ProfileEditor />} />
             <Route path="password" element={<PasswordEditor />} />
