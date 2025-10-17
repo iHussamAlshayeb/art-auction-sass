@@ -1,95 +1,131 @@
-import { NavLink } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { FiGrid, FiUser, FiLock, FiBriefcase, FiAward, FiTag, FiShield, FiX } from 'react-icons/fi';
+import { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { FiChevronLeft, FiChevronDown, FiHome, FiUser, FiImage } from "react-icons/fi";
 
 function DashboardSidebar({ isOpen, setIsOpen }) {
-    const { user } = useAuth();
+    const location = useLocation();
+    const [openMenus, setOpenMenus] = useState({});
 
-    // دالة لتنسيق الرابط النشط وغير النشط
-    const linkClass = ({ isActive }) =>
-        `flex items-center gap-3 w-full text-left px-4 py-2.5 rounded-lg transition-colors duration-200 font-semibold ${isActive
-            ? 'bg-orange-500 text-white shadow-sm'
-            : 'text-gray-600 hover:bg-orange-100 hover:text-orange-600'
-        }`;
-
-    // دالة لإغلاق القائمة عند النقر على رابط (مهم للشاشات الصغيرة)
-    const handleLinkClick = () => {
-        if (window.innerWidth < 768) { // 768px هو breakpoint 'md'
-            setIsOpen(false);
-        }
+    const toggleMenu = (menu) => {
+        setOpenMenus((prev) => ({ ...prev, [menu]: !prev[menu] }));
     };
+
+    const links = [
+        { to: "/dashboard", label: "الرئيسية", icon: <FiHome /> },
+        {
+            label: "الفنانون",
+            icon: <FiUser />,
+            submenu: [
+                { to: "/dashboard/artists/top", label: "فنانين بارزين" },
+                { to: "/dashboard/artists/new", label: "فنانين جدد" },
+                { to: "/dashboard/artists/featured", label: "المميزون" },
+            ],
+        },
+        {
+            label: "المعرض",
+            icon: <FiImage />,
+            submenu: [
+                { to: "/dashboard/gallery/paintings", label: "لوحات" },
+                { to: "/dashboard/gallery/sculptures", label: "منحوتات" },
+                { to: "/dashboard/gallery/photos", label: "تصوير فوتوغرافي" },
+            ],
+        },
+    ];
 
     return (
         <>
-            {/* خلفية معتمة تظهر فقط على الجوال عند فتح القائمة */}
+            {/* خلفية سوداء شفافة عند فتح القائمة في الجوال */}
             {isOpen && (
                 <div
-                    className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-10"
                     onClick={() => setIsOpen(false)}
+                    className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40 md:hidden"
                 ></div>
             )}
 
+            {/* القائمة نفسها */}
             <aside
-                className={`fixed top-0 left-0 h-full w-64 bg-white/80 backdrop-blur-sm border-r border-orange-100 p-4 z-20 transform transition-transform duration-300 ease-in-out 
-                  ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
-                  md:translate-x-0 md:static`}
+                className={`fixed top-0 right-0 z-50 h-full w-64 bg-white shadow-lg border-l border-gray-200 transform transition-transform duration-300 ease-in-out
+          ${isOpen ? "translate-x-0" : "translate-x-full"}
+          md:translate-x-0 md:static md:shadow-none
+        `}
             >
-                <div className="flex justify-between items-center mb-6 md:hidden">
-                    <span className="font-bold text-lg">القائمة</span>
-                    <button onClick={() => setIsOpen(false)} aria-label="Close menu">
-                        <FiX size={24} />
+                {/* الشعار */}
+                <div className="flex items-center justify-between px-5 py-4 border-b">
+                    <h2 className="text-lg font-bold text-orange-600">لوحة التحكم</h2>
+                    <button
+                        onClick={() => setIsOpen(false)}
+                        className="md:hidden text-gray-500 hover:text-orange-600"
+                    >
+                        ✕
                     </button>
                 </div>
 
-                <nav className="space-y-2">
-                    <h3 className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">الرئيسية</h3>
-                    <NavLink to="/dashboard" end className={linkClass} onClick={handleLinkClick}>
-                        <FiGrid /> <span>نظرة عامة</span>
-                    </NavLink>
+                {/* روابط القائمة */}
+                <nav className="flex flex-col p-4 overflow-y-auto">
+                    {links.map((item, i) => {
+                        const isActive =
+                            location.pathname === item.to ||
+                            item.submenu?.some((s) => location.pathname === s.to);
 
-                    <h3 className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">إدارة الحساب</h3>
-                    <NavLink to="/dashboard/profile" className={linkClass} onClick={handleLinkClick}>
-                        <FiUser /> <span>تعديل الملف الشخصي</span>
-                    </NavLink>
-                    <NavLink to="/dashboard/password" className={linkClass} onClick={handleLinkClick}>
-                        <FiLock /> <span>تغيير كلمة المرور</span>
-                    </NavLink>
+                        if (!item.submenu) {
+                            return (
+                                <Link
+                                    key={i}
+                                    to={item.to}
+                                    onClick={() => setIsOpen(false)}
+                                    className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition ${isActive
+                                            ? "bg-orange-100 text-orange-600"
+                                            : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                                        }`}
+                                >
+                                    {item.icon}
+                                    {item.label}
+                                </Link>
+                            );
+                        }
 
-                    {/* أقسام خاصة بالأدوار */}
-                    {user.role === 'STUDENT' && (
-                        <>
-                            <h3 className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">كطالب</h3>
-                            <NavLink to="/dashboard/my-artworks" className={linkClass} onClick={handleLinkClick}>
-                                <FiBriefcase />
-                                <span>أعمالي الفنية</span>
-                            </NavLink>
-                        </>
-                    )}
+                        return (
+                            <div key={i}>
+                                <button
+                                    onClick={() => toggleMenu(item.label)}
+                                    className={`flex w-full items-center justify-between gap-3 px-4 py-2 rounded-lg text-sm font-medium transition ${isActive
+                                            ? "bg-orange-100 text-orange-600"
+                                            : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                                        }`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        {item.icon}
+                                        {item.label}
+                                    </div>
+                                    {openMenus[item.label] ? (
+                                        <FiChevronDown size={16} />
+                                    ) : (
+                                        <FiChevronLeft size={16} />
+                                    )}
+                                </button>
 
-                    {user.role === 'BUYER' && (
-                        <>
-                            <h3 className="px-4 pt-4 pb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">كمشتري</h3>
-                            <NavLink to="/dashboard/won-auctions" className={linkClass} onClick={handleLinkClick}>
-                                <FiAward />
-                                <span>مزاداتي الفائزة</span>
-                            </NavLink>
-                            <NavLink to="/dashboard/active-bids" className={linkClass} onClick={handleLinkClick}>
-                                <FiTag />
-                                <span>عروضي النشطة</span>
-                            </NavLink>
-                        </>
-                    )}
-
-                    {/* قسم الإدارة (يظهر للمسؤول فقط) */}
-                    {user.role === 'ADMIN' && (
-                        <>
-                            <h3 className="px-4 pt-4 pb-2 text-xs font-semibold text-red-400 uppercase tracking-wider">أدوات الإدارة</h3>
-                            <NavLink to="/admin" className={linkClass} onClick={handleLinkClick}>
-                                <FiShield />
-                                <span>لوحة الإدارة</span>
-                            </NavLink>
-                        </>
-                    )}
+                                {/* القوائم الفرعية مع الأنميشن */}
+                                <div
+                                    className={`overflow-hidden transition-all duration-300 ease-in-out ${openMenus[item.label] ? "max-h-60 opacity-100" : "max-h-0 opacity-0"
+                                        }`}
+                                >
+                                    {item.submenu.map((sub, j) => (
+                                        <Link
+                                            key={j}
+                                            to={sub.to}
+                                            onClick={() => setIsOpen(false)}
+                                            className={`block px-6 py-1.5 rounded-md text-sm transition ${location.pathname === sub.to
+                                                    ? "bg-orange-50 text-orange-600 font-medium"
+                                                    : "text-gray-600 hover:bg-orange-50 hover:text-orange-600"
+                                                }`}
+                                        >
+                                            {sub.label}
+                                        </Link>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </nav>
             </aside>
         </>
