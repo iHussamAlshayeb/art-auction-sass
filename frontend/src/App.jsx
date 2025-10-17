@@ -2,8 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 
 // استيراد المكونات والتخطيطات
-import Header from './components/Header';
-import Sidebar from './components/Sidebar';
+import UnifiedSidebar from './components/UnifiedSidebar';
 import BottomNav from './components/BottomNav';
 import ProtectedRoute from "./components/ProtectedRoute";
 import HomePage from "./pages/HomePage";
@@ -27,13 +26,12 @@ function App() {
   return (
     <div className="bg-orange-50 min-h-screen" dir="rtl">
       <Toaster position="top-center" />
-      <Header />  {/* الشريط العلوي للجوال */}
-      <Sidebar /> {/* الشريط الجانبي لسطح المكتب */}
+      <UnifiedSidebar /> {/* الشريط الجانبي الثابت لسطح المكتب */}
 
-      {/* المحتوى الرئيسي يأخذ هامشًا لترك مساحة للشريط الجانبي على سطح المكتب */}
-      <main className="transition-all duration-300 md:mr-64 pb-24 pt-24 md:pt-8 px-4">
+      {/* المحتوى الرئيسي يأخذ هامشًا لترك مساحة للشريط الجانبي */}
+      <main className="transition-all duration-300 md:mr-64 pb-24 md:pb-8 pt-8 px-4">
         <Routes>
-          {/* المسارات العامة */}
+          {/* ... (كل مساراتك تبقى كما هي) ... */}
           <Route path="/" element={<HomePage />} />
           <Route path="/gallery" element={<GalleryPage />} />
           <Route path="/artists" element={<ArtistsPage />} />
@@ -41,10 +39,7 @@ function App() {
           <Route path="/auctions/:id" element={<AuctionDetailPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
-
-          {/* المسارات المحمية */}
           <Route path="/artworks/new" element={<ProtectedRoute roles={["STUDENT"]}><CreateArtworkPage /></ProtectedRoute>} />
-
           <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route index element={<DashboardPage />} />
             <Route path="profile" element={<ProfileEditor />} />
@@ -53,7 +48,6 @@ function App() {
             <Route path="won-auctions" element={<WonArtworks />} />
             <Route path="active-bids" element={<ActiveBids />} />
           </Route>
-
           <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
         </Routes>
       </main>
