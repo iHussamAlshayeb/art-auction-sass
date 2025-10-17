@@ -21,11 +21,13 @@ import PasswordEditor from './components/PasswordEditor';
 import MyArtworksList from './components/MyArtworksList';
 import WonArtworks from './components/WonArtworks';
 import ActiveBids from './components/ActiveBids';
+import Header from "./components/Header";
 
 function App() {
   return (
     <div className="bg-orange-50 min-h-screen" dir="rtl">
       <Toaster position="top-center" />
+      <Header />
       <UnifiedSidebar /> {/* الشريط الجانبي الثابت لسطح المكتب */}
 
       {/* المحتوى الرئيسي يأخذ هامشًا لترك مساحة للشريط الجانبي */}
