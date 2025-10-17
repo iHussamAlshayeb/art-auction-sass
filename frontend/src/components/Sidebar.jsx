@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Image, Users, LayoutDashboard, LogOut, LogIn, UserPlus } from "lucide-react";
+import { Home, Image, Users, LayoutDashboard, LogIn, UserPlus } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import LogoutButton from "./LogoutButton";
 
@@ -28,14 +28,7 @@ const Sidebar = () => {
                     {navLinks.map(({ to, label, icon }) => {
                         const active = location.pathname === to;
                         return (
-                            <Link
-                                key={to}
-                                to={to}
-                                className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all ${active
-                                        ? "bg-orange-100 text-orange-600"
-                                        : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
-                                    }`}
-                            >
+                            <Link key={to} to={to} className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all ${active ? "bg-orange-100 text-orange-600" : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"}`}>
                                 {icon}
                                 <span>{label}</span>
                             </Link>
@@ -43,26 +36,14 @@ const Sidebar = () => {
                     })}
 
                     {user && (
-                        <Link
-                            to="/dashboard"
-                            className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all ${location.pathname.startsWith("/dashboard")
-                                    ? "bg-orange-100 text-orange-600"
-                                    : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
-                                }`}
-                        >
+                        <Link to="/dashboard" className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all ${location.pathname.startsWith("/dashboard") ? "bg-orange-100 text-orange-600" : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"}`}>
                             <LayoutDashboard size={18} />
                             <span>لوحة التحكم</span>
                         </Link>
                     )}
 
                     {user?.role === "ADMIN" && (
-                        <Link
-                            to="/admin"
-                            className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all ${location.pathname.startsWith("/admin")
-                                    ? "bg-red-100 text-red-600"
-                                    : "text-red-500 hover:bg-red-50 hover:text-red-700"
-                                }`}
-                        >
+                        <Link to="/admin" className={`flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all ${location.pathname.startsWith("/admin") ? "bg-red-100 text-red-600" : "text-red-500 hover:bg-red-50 hover:text-red-700"}`}>
                             <LayoutDashboard size={18} />
                             <span>لوحة الإدارة</span>
                         </Link>
@@ -75,17 +56,11 @@ const Sidebar = () => {
                         <LogoutButton />
                     ) : (
                         <div className="flex flex-col gap-2">
-                            <Link
-                                to="/login"
-                                className="flex items-center justify-center gap-2 text-gray-700 hover:text-orange-600 font-medium transition"
-                            >
+                            <Link to="/login" className="flex items-center justify-center gap-2 text-gray-700 hover:text-orange-600 font-medium transition">
                                 <LogIn size={16} />
                                 تسجيل الدخول
                             </Link>
-                            <Link
-                                to="/register"
-                                className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full text-center shadow-md transition-all"
-                            >
+                            <Link to="/register" className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full text-center shadow-md transition-all">
                                 <UserPlus size={16} />
                                 إنشاء حساب
                             </Link>
