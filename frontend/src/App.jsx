@@ -3,6 +3,7 @@ import { Toaster } from 'react-hot-toast';
 
 // استيراد المكونات والتخطيطات
 import Sidebar from './components/Sidebar';
+import Header from "./components/Header";
 import BottomNav from './components/BottomNav';
 import ProtectedRoute from "./components/ProtectedRoute";
 import HomePage from "./pages/HomePage";
@@ -26,6 +27,7 @@ function App() {
   return (
     <div className="bg-orange-50 min-h-screen" dir="rtl">
       <Toaster position="top-center" />
+      <Header />
       <Sidebar /> {/* الشريط الجانبي الثابت لسطح المكتب */}
 
       {/* المحتوى الرئيسي يأخذ هامشًا لترك مساحة للشريط الجانبي على سطح المكتب، ومساحة للشريط السفلي على الجوال */}
