@@ -8,7 +8,7 @@ function Header() {
             <div className="container mx-auto px-4 h-20 flex justify-between items-center">
                 {/* زر القائمة (يمكن ربطه لاحقًا لإظهار قائمة منسدلة) */}
                 <button className="p-2">
-                    <FiMenu size={24} className="text-gray-600" />
+                    {/* <FiMenu size={24} className="text-gray-600" /> */}
                 </button>
 
                 {/* الشعار */}
