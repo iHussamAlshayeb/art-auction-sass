@@ -1,12 +1,11 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiGrid, FiUser, FiLock, FiBriefcase, FiAward, FiTag, FiX } from 'react-icons/fi';
+import { FiGrid, FiUser, FiLock, FiBriefcase, FiAward, FiTag, FiShield, FiX } from 'react-icons/fi';
 
-// === الحل هنا: استقبال isOpen و setIsOpen كـ props ===
 function DashboardSidebar({ isOpen, setIsOpen }) {
     const { user } = useAuth();
 
-    // تنسيق الرابط النشط وغير النشط
+    // دالة لتنسيق الرابط النشط وغير النشط
     const linkClass = ({ isActive }) =>
         `flex items-center gap-3 w-full text-left px-4 py-2.5 rounded-lg transition-colors duration-200 font-semibold ${isActive
             ? 'bg-orange-500 text-white shadow-sm'
@@ -37,7 +36,7 @@ function DashboardSidebar({ isOpen, setIsOpen }) {
             >
                 <div className="flex justify-between items-center mb-6 md:hidden">
                     <span className="font-bold text-lg">القائمة</span>
-                    <button onClick={() => setIsOpen(false)}>
+                    <button onClick={() => setIsOpen(false)} aria-label="Close menu">
                         <FiX size={24} />
                     </button>
                 </div>
@@ -77,6 +76,17 @@ function DashboardSidebar({ isOpen, setIsOpen }) {
                             <NavLink to="/dashboard/active-bids" className={linkClass} onClick={handleLinkClick}>
                                 <FiTag />
                                 <span>عروضي النشطة</span>
+                            </NavLink>
+                        </>
+                    )}
+
+                    {/* قسم الإدارة (يظهر للمسؤول فقط) */}
+                    {user.role === 'ADMIN' && (
+                        <>
+                            <h3 className="px-4 pt-4 pb-2 text-xs font-semibold text-red-400 uppercase tracking-wider">أدوات الإدارة</h3>
+                            <NavLink to="/admin" className={linkClass} onClick={handleLinkClick}>
+                                <FiShield />
+                                <span>لوحة الإدارة</span>
                             </NavLink>
                         </>
                     )}
