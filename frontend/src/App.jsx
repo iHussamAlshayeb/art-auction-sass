@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 
 // استيراد المكونات والتخطيطات
-import Sidebar from './components/Sidebar';;
+import UnifiedSidebar from './components/UnifiedSidebar';
 import BottomNav from './components/BottomNav';
 import ProtectedRoute from "./components/ProtectedRoute";
 import HomePage from "./pages/HomePage";
@@ -26,7 +26,7 @@ function App() {
   return (
     <div className="bg-orange-50 min-h-screen" dir="rtl">
       <Toaster position="top-center" />
-      <Sidebar />  {/* الشريط الجانبي الثابت لسطح المكتب */}
+      <UnifiedSidebar /> {/* الشريط الجانبي الثابت لسطح المكتب */}
 
       {/* المحتوى الرئيسي يأخذ هامشًا لترك مساحة للشريط الجانبي */}
       <main className="transition-all duration-300 md:mr-64 pb-24 md:pb-8 pt-8 px-4">
