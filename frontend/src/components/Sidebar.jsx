@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Home, Image, Users, LayoutDashboard, Shield, User, Lock, Briefcase, Award, Tag, LogIn, UserPlus, ChevronDown } from "lucide-react";
+import { Home, Image, Users, LayoutDashboard, Shield, LogIn, UserPlus, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import LogoutButton from "./LogoutButton";
