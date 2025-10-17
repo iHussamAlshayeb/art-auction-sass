@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { LogOut } from 'lucide-react';
 
 function LogoutButton() {
   const { logout } = useAuth();
@@ -7,14 +8,15 @@ function LogoutButton() {
 
   const handleLogout = () => {
     logout();
-    navigate('/'); // توجيه المستخدم إلى الصفحة الرئيسية بعد تسجيل الخروج
+    navigate('/');
   };
 
   return (
-    <button 
-      onClick={handleLogout} 
-      className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full shadow-md transition-all"
+    <button
+      onClick={handleLogout}
+      className="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-red-100 text-red-600 font-semibold py-2 px-5 rounded-full text-center transition-all"
     >
+      <LogOut size={16} />
       تسجيل الخروج
     </button>
   );
