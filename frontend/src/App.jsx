@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
-import { useAuth } from './src/context/AuthContext';
+import { useAuth } from './context/AuthContext';
 
 // استيراد المكونات والتخطيطات
 import Header from './components/Header';
