@@ -92,7 +92,7 @@ function App() {
         </Routes>
       </main>
 
-      <BottomNav />
+      {/* <BottomNav /> */}
     </div>
   );
 }
