@@ -75,7 +75,25 @@ const MobileMenu = ({ isOpen, setIsOpen }) => {
                             </nav>
 
                             <div className="border-t p-4">
-                                {user ? (<div onClick={closeMenu}><LogoutButton /></div>) : ( /* ... */ )}
+                                {user ? (<div onClick={closeMenu}><LogoutButton /></div>
+                                ) : (
+                                    <div className="flex flex-col gap-2">
+                                        <Link
+                                            to="/login"
+                                            className="flex items-center justify-center gap-2 text-gray-700 hover:text-orange-600 font-medium transition"
+                                        >
+                                            <LogIn size={16} />
+                                            تسجيل الدخول
+                                        </Link>
+                                        <Link
+                                            to="/register"
+                                            className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full text-center shadow-md transition-all"
+                                        >
+                                            <UserPlus size={16} />
+                                            إنشاء حساب
+                                        </Link>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </motion.aside>
