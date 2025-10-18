@@ -52,7 +52,7 @@ function App() {
           {/* المسارات المحمية */}
           <Route path="/artworks/new" element={<ProtectedRoute roles={["STUDENT"]}><CreateArtworkPage /></ProtectedRoute>} />
 
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+          <Route path="/dashboard">
             <Route index element={<DashboardPage />} />
             <Route path="profile" element={<ProfileEditor />} />
             <Route path="password" element={<PasswordEditor />} />
