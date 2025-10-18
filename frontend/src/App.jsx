@@ -34,7 +34,7 @@ function App() {
     <div className="bg-orange-50 min-h-screen" dir="rtl">
       <Toaster position="top-center" />
       <Header toggleSidebar={toggleSidebar} />
-      <Sidebar isOpen={isSidebarOpen} />
+      <Sidebar isOpen={isSidebarOpen} setIsOpen={setSidebarOpen} />
 
       {/* المحتوى الرئيسي الآن يأخذ هامشًا ديناميكيًا */}
       <main className={`transition-all duration-300 pb-24 md:pb-8 pt-24 md:pt-8 px-4 ${isSidebarOpen ? 'md:mr-64' : 'md:mr-20'}`}>
