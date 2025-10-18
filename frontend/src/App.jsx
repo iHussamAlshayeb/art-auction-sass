@@ -39,6 +39,27 @@ function App() {
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setSidebarOpen} />
       <MobileMenu isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} /> {/* Mobile-only menu */}
 
+
+      <header className="md:hidden bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-30">
+        <div className="container mx-auto px-4 h-20 flex justify-between items-center">
+          <button onClick={() => setIsMobileMenuOpen(true)} className="p-2">
+            <Menu size={24} className="text-gray-600" />
+          </button>
+          <Link to="/">
+            <img src="/logo.svg" alt="Fanan Logo" className="h-14" />
+          </Link>
+          <Link to={user ? "/dashboard" : "/login"} className="w-10 h-10">
+            {user && (
+              <img
+                src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.name}&background=ffedd5&color=f97316&size=128`}
+                alt={user.name}
+                className="w-full h-full rounded-full object-cover"
+              />
+            )}
+          </Link>
+        </div>
+      </header>
+
       {/* المحتوى الرئيسي الآن يأخذ هامشًا ديناميكيًا */}
       <main className={`transition-all duration-300 pb-24 md:pb-8 pt-24 md:pt-8 px-4 ${isSidebarOpen ? 'md:mr-64' : 'md:mr-20'}`}>
         <Routes>
