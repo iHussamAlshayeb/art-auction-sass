@@ -22,19 +22,22 @@ import PasswordEditor from './components/PasswordEditor';
 import MyArtworksList from './components/MyArtworksList';
 import WonArtworks from './components/WonArtworks';
 import ActiveBids from './components/ActiveBids';
+import MobileMenu from './components/MobileMenu';
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true); // 2. الحالة الافتراضية "مفتوح"
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!isSidebarOpen);
-  };
+  // const toggleSidebar = () => {
+  //   setSidebarOpen(!isSidebarOpen);
+  // };
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <div className="bg-orange-50 min-h-screen" dir="rtl">
       <Toaster position="top-center" />
-      <Header toggleSidebar={toggleSidebar} />
+      {/* <Header toggleSidebar={toggleSidebar} /> */}
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setSidebarOpen} />
+      <MobileMenu isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} /> {/* Mobile-only menu */}
 
       {/* المحتوى الرئيسي الآن يأخذ هامشًا ديناميكيًا */}
       <main className={`transition-all duration-300 pb-24 md:pb-8 pt-24 md:pt-8 px-4 ${isSidebarOpen ? 'md:mr-64' : 'md:mr-20'}`}>
