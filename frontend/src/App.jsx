@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
+import { useAuth } from './src/context/AuthContext';
 
 // استيراد المكونات والتخطيطات
 import Header from './components/Header';
@@ -33,6 +34,7 @@ function App() {
   //   setSidebarOpen(!isSidebarOpen);
   // };
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   return (
     <div className="bg-orange-50 min-h-screen" dir="rtl">
