@@ -16,7 +16,6 @@ import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
 import CreateArtworkPage from "./pages/CreateArtworkPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
-import DashboardLayout from "./layouts/DashboardLayout";
 import DashboardPage from "./pages/DashboardPage";
 import ProfileEditor from './components/ProfileEditor';
 import PasswordEditor from './components/PasswordEditor';
