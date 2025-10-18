@@ -23,6 +23,7 @@ import MyArtworksList from './components/MyArtworksList';
 import WonArtworks from './components/WonArtworks';
 import ActiveBids from './components/ActiveBids';
 import MobileMenu from './components/MobileMenu';
+import { FiMenu } from 'react-icons/fi';
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true); // 2. الحالة الافتراضية "مفتوح"
@@ -43,7 +44,7 @@ function App() {
       <header className="md:hidden bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-30">
         <div className="container mx-auto px-4 h-20 flex justify-between items-center">
           <button onClick={() => setIsMobileMenuOpen(true)} className="p-2">
-            <Menu size={24} className="text-gray-600" />
+            <FiMenu size={24} className="text-gray-600" />
           </button>
           <Link to="/">
             <img src="/logo.svg" alt="Fanan Logo" className="h-14" />
