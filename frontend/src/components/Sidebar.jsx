@@ -109,8 +109,8 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 <button
                                     onClick={() => toggleMenu("dashboard")}
                                     className={`w-full flex items-center justify-between px-4 py-2 rounded-lg text-sm font-medium transition-all ${location.pathname.startsWith("/dashboard")
-                                        ? "bg-orange-100 text-orange-600"
-                                        : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
+                                            ? "bg-orange-100 text-orange-600"
+                                            : "text-gray-700 hover:bg-orange-50 hover:text-orange-600"
                                         }`}
                                 >
                                     <div className="flex items-center gap-3">
