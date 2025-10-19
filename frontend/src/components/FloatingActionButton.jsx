@@ -13,7 +13,7 @@ function FloatingActionButton() {
         <Link
             to="/artworks/new"
             // === تم تغيير "right-8" إلى "left-8" ===
-            className="group md:flex items-center fixed bottom-8 left-8 bg-orange-500 text-white p-4 rounded-full shadow-lg hover:bg-orange-600 transition-all duration-300 ease-in-out z-40"
+            className="group hidden md:flex items-center fixed bottom-8 left-8 bg-orange-500 text-white p-4 rounded-full shadow-lg hover:bg-orange-600 transition-all duration-300 ease-in-out z-40"
             aria-label="Add new artwork"
         >
             <FiPlus size={24} />

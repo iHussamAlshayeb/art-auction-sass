@@ -93,8 +93,8 @@ function App() {
         </Routes>
       </main>
 
-      {/* <BottomNav /> */}
-      {<FloatingActionButton />}
+      <BottomNav />
+      <FloatingActionButton />
     </div>
   );
 }
