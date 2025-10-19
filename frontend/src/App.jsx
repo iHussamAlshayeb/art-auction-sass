@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 
 // استيراد مكونات التخطيط الرئيسية
-import Header from './components/Header';
+import MobileMenu from './components/MobileMenu';
 import Sidebar from './components/Sidebar';
 import BottomNav from './components/BottomNav';
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -31,18 +31,21 @@ import ActiveBids from './components/ActiveBids';
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true); // الحالة الافتراضية "مفتوح"
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
 
   // دالة لتبديل حالة القائمة الجانبية
-  const toggleSidebar = () => {
-    setSidebarOpen(!isSidebarOpen);
-  };
+  // const toggleSidebar = () => {
+  //   setSidebarOpen(!isSidebarOpen);
+  // };
 
   return (
     <div className="bg-orange-50 min-h-screen" dir="rtl">
       <Toaster position="top-center" />
 
       {/* 1. الشريط العلوي والقائمة الجانبية (لجميع الشاشات) */}
-      <Header toggleSidebar={toggleSidebar} />
+      {/* <Header toggleSidebar={toggleSidebar} /> */}
+      <MobileMenu isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} /> {/* Mobile-only menu */}
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setSidebarOpen} />
 
       {/* 2. المحتوى الرئيسي مع هامش ديناميكي */}
