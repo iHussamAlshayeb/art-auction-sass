@@ -3,7 +3,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
 
 body {
-  @apply font-sans bg-neutral-100 text-neutral-700;
+  font-family: 'Cairo', sans-serif;
   width: 100%;
 }
 
@@ -13,5 +13,5 @@ h3,
 h4,
 h5,
 h6 {
-  @apply font-heading text-neutral-900;
+  font-family: 'Tajawal', sans-serif;
 }
