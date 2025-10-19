@@ -13,6 +13,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     const toggleMenu = (menu) => {
         setOpenMenus((prev) => ({ ...prev, [menu]: !prev[menu] }));
     };
+    const closeMenu = () => setIsOpen(false);
 
     const navLinks = [
         { to: "/", label: "الرئيسية", icon: <Home size={18} /> },
@@ -114,8 +115,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                             <div className="border-t border-neutral-200 p-4">
                                 {user ? (<LogoutButton />) : (
                                     <div className="flex flex-col gap-2">
-                                        <Link to="/login" className="..."><LogIn size={16} /> تسجيل الدخول</Link>
-                                        <Link to="/register" className="bg-secondary ..."><UserPlus size={16} /> إنشاء حساب</Link>
+                                        <Link to="/login" onClick={closeMenu} className="flex items-center justify-center gap-2 text-neutral-700 hover:text-primary font-medium transition py-2 rounded-lg">
+                                            <LogIn size={16} /> تسجيل الدخول
+                                        </Link>
+                                        <Link to="/register" onClick={closeMenu} className="flex items-center justify-center gap-2 bg-secondary hover:bg-secondary-dark text-white font-semibold py-2 px-5 rounded-full text-center shadow-md transition-all">
+                                            <UserPlus size={16} /> إنشاء حساب
+                                        </Link>
                                     </div>
                                 )}
                             </div>
