@@ -181,29 +181,30 @@ export async function placeBid(req, res) {
   const bidderId = req.user.id;
 
   if (!amount) {
-    return res.status(400).json({ message: "Bid amount is required." });
+    return res.status(400).json({ message: "مبلغ المزايدة مطلوب." });
   }
 
   try {
     const transactionResult = await prisma.$transaction(async (tx) => {
-      // ## الخطوة 1: جلب المزاد مع تضمين عنوان العمل الفني ##
+      // 1. جلب المزاد مع تضمين العمل الفني بالكامل للتحقق
       const auction = await tx.auction.findUnique({
         where: { id: auctionId },
         include: {
-          artwork: {
-            // تضمين معلومات العمل الفني
-            select: {
-              title: true, // تحديد العنوان فقط
-            },
-          },
+          artwork: true, // جلب كل بيانات العمل الفني
         },
       });
 
-      if (!auction) throw new Error("Auction not found.");
+      // ---== التحققات الأساسية ==---
+      if (!auction) throw new Error("المزاد غير موجود.");
       if (new Date() > auction.endTime)
-        throw new Error("This auction has already ended.");
+        throw new Error("هذا المزاد قد انتهى بالفعل.");
       if (amount <= auction.currentPrice)
-        throw new Error("Your bid must be higher than the current price.");
+        throw new Error("يجب أن تكون مزايدتك أعلى من السعر الحالي.");
+
+      // ---== 2. الشرط الجديد: منع المزايدة على العمل الخاص ==---
+      if (auction.artwork.studentId === bidderId) {
+        throw new Error("لا يمكنك المزايدة على عملك الفني الخاص.");
+      }
 
       const previousHighestBidderId = auction.highestBidderId;
 
@@ -223,7 +224,7 @@ export async function placeBid(req, res) {
         },
       });
 
-      // ## الخطوة 2: إرجاع عنوان العمل الفني من الـ transaction ##
+      // إرجاع البيانات اللازمة للإشعارات
       return {
         bid,
         updatedAuction,
@@ -232,18 +233,19 @@ export async function placeBid(req, res) {
       };
     });
 
+    // ---== منطق الإشعارات (يبقى كما هو) ==---
     const io = req.app.get("io");
     const userSocketMap = req.app.get("userSocketMap");
     const roomName = `auction-${auctionId}`;
 
-    // ... (بث السعر الجديد يبقى كما هو)
+    // إرسال تحديث السعر للجميع في الغرفة
     io.to(roomName).emit("priceUpdate", {
       auctionId: auctionId,
       newPrice: transactionResult.updatedAuction.currentPrice,
       bidderName: req.user.name,
     });
 
-    // ## الخطوة 3: استخدام المتغير الذي تم إرجاعه ##
+    // إرسال إشعار للمزايد القديم
     const { previousHighestBidderId, artworkTitle } = transactionResult;
     if (previousHighestBidderId && previousHighestBidderId !== bidderId) {
       const oldBidderSocketId = userSocketMap.get(previousHighestBidderId);
@@ -252,21 +254,32 @@ export async function placeBid(req, res) {
           auctionId: auctionId,
           message: `لقد تمت المزايدة بسعر أعلى منك في مزاد "${artworkTitle}"!`,
         });
-        console.log(
-          `Sent 'outbid' notification to user ${previousHighestBidderId}`
-        );
       }
     }
 
     res.status(201).json({
-      message: "Bid placed successfully!",
+      message: "تم تقديم المزايدة بنجاح!",
       bid: transactionResult.bid,
     });
   } catch (error) {
-    // إرجاع الخطأ الفعلي إذا حدث
+    // ---== 3. معالجة محسّنة للأخطاء ==---
+    if (error.message.includes("لا يمكنك المزايدة")) {
+      return res.status(403).json({ message: error.message }); // 403 Forbidden
+    }
+    if (error.message.includes("المزاد غير موجود")) {
+      return res.status(404).json({ message: error.message }); // 404 Not Found
+    }
+    if (
+      error.message.includes("انتهى بالفعل") ||
+      error.message.includes("أعلى من السعر الحالي")
+    ) {
+      return res.status(400).json({ message: error.message }); // 400 Bad Request
+    }
+
+    // خطأ عام
     res
       .status(500)
-      .json({ message: "Failed to place bid", error: error.message });
+      .json({ message: "فشل في تقديم المزايدة", error: error.message });
   }
 }
 

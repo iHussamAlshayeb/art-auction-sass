@@ -7,7 +7,6 @@ function RegisterPage() {
     name: '',
     email: '',
     password: '',
-    role: 'BUYER',
   });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
@@ -68,16 +67,7 @@ function RegisterPage() {
                   placeholder="••••••••" value={formData.password} onChange={handleChange}
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">أرغب في التسجيل كـ</label>
-                <select 
-                  name="role" value={formData.role} onChange={handleChange}
-                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
-                >
-                  <option value="BUYER">مشتري (أرغب في شراء الأعمال)</option>
-                  <option value="STUDENT">طالب (أرغب في بيع أعمالي)</option>
-                </select>
-              </div>
+
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
@@ -92,7 +82,7 @@ function RegisterPage() {
             </div>
           </form>
         )}
-        
+
         <div className="text-sm text-center text-gray-600">
           <p>
             لديك حساب بالفعل؟{' '}

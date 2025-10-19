@@ -19,7 +19,7 @@ router.get("/:id", getAuctionById);
 
 router.get("/:id/bids", getAuctionBids);
 
-router.post("/:id/bids", protect, checkRole(["BUYER"]), placeBid);
+router.post("/:id/bids", protect, checkRole(["STUDENT"]), placeBid);
 
 router.post("/:id/checkout", protect, createMoyasarPayment);
 

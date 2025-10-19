@@ -133,7 +133,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                                         </NavLink>
                                                     ))}
 
-                                                    {user.role === "STUDENT" &&
+                                                    {user &&
                                                         studentSubmenu.map((item) => (
                                                             <NavLink
                                                                 key={item.to}
@@ -149,7 +149,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                                             </NavLink>
                                                         ))}
 
-                                                    {user.role === "BUYER" &&
+                                                    {user &&
                                                         buyerSubmenu.map((item) => (
                                                             <NavLink
                                                                 key={item.to}

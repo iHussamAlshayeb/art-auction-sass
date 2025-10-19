@@ -121,11 +121,11 @@ function AuctionDetailPage() {
           <CountdownTimer endTime={auction.endTime} />
 
           {/* نموذج المزايدة أو رسالة تسجيل الدخول */}
-          {user && user.role === 'BUYER' ? (
+          {user ? (
             <BiddingForm auctionId={id} currentPrice={auction.currentPrice} />
           ) : (
             <div className="text-center text-gray-600 bg-orange-50 p-4 rounded-lg">
-              <p>الرجاء <Link to="/login" className="font-bold text-orange-600">تسجيل الدخول</Link> كمشتري لتقديم عرض.</p>
+              <p>الرجاء <Link to="/login" className="font-bold text-orange-600">تسجيل الدخول</Link> لتقديم عرض.</p>
             </div>
           )}
 
