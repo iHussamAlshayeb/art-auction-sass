@@ -67,7 +67,7 @@ function BottomNav() {
                     <MdOutlineDesignServices size={22} />
                     <span className="text-xs">الفنانون</span>
                 </NavLink>
-                {user ? (
+                {/* {user ? (
                     <NavLink to="/dashboard/profile" className={linkClass}>
                         <img
                             src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.name}&background=ffedd5&color=f97316&size=128`}
@@ -81,7 +81,7 @@ function BottomNav() {
                         <FiUser size={22} />
                         <span className="text-xs">دخول</span>
                     </NavLink>
-                )}
+                )} */}
             </div>
         </nav>
     );
