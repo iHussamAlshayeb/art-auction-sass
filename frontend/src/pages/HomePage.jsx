@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { fetchAllAuctions } from '../services/api';
 import { Link } from 'react-router-dom';
 import AuctionCardTimer from '../components/AuctionCardTimer';
@@ -7,40 +7,44 @@ import Spinner from '../components/Spinner';
 
 function HomePage() {
   const [auctions, setAuctions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // حالات البحث والترتيب
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const [currentPage, setCurrentPage] = useState(1);
 
-  useEffect(() => {
-    const getAuctions = async () => {
-      try {
-        setLoading(true);
-        const params = { sortBy, search: searchTerm, page: currentPage };
-        const response = await fetchAllAuctions(params);
-        setAuctions(response.data.auctions);
-        setPagination(response.data.pagination);
-        setError(null);
-      } catch (err) {
-        if (err.code === 'ECONNABORTED') {
-          setError('الخادم يستغرق وقتًا طويلاً في الاستجابة. الرجاء الانتظار قليلًا ثم إعادة المحاولة.');
-        } else {
-          setError('فشل في تحميل المزادات.');
-        }
-        console.error(err);
-      } finally {
-        setLoading(false);
+  // دالة موحدة لجلب البيانات
+  const getAuctions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const params = { sortBy, search: searchTerm, page: currentPage };
+      const response = await fetchAllAuctions(params);
+      setAuctions(response.data.auctions);
+      setPagination(response.data.pagination);
+      setError(null);
+    } catch (err) {
+      if (err.code === 'ECONNABORTED') {
+        setError('الخادم يستغرق وقتًا طويلاً في الاستجابة. الرجاء الانتظار وإعادة المحاولة.');
+      } else {
+        setError('فشل في تحميل المزادات.');
       }
-    };
-    getAuctions();
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }, [sortBy, currentPage, searchTerm]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    setCurrentPage(1);
+  useEffect(() => {
     getAuctions();
+  }, [getAuctions]);
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    setCurrentPage(1); // العودة للصفحة الأولى عند كل بحث جديد
+    // سيتم إعادة تشغيل useEffect تلقائيًا لأن searchTerm تغير
   };
 
   const handlePageChange = (page) => {
@@ -48,36 +52,33 @@ function HomePage() {
   };
 
   return (
-    <div className="pt-28 pb-20 px-6 sm:px-10 bg-gradient-to-b from-orange-50 via-white to-orange-50 min-h-screen">
+    <div className="space-y-12">
       {/* رأس الصفحة */}
-      <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-extrabold text-orange-600 mb-4 tracking-tight drop-shadow-sm">
+      <div className="text-center">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-primary-dark mb-4 tracking-tight">
           المزادات الفنية
         </h1>
-        <p className="text-gray-600 text-lg md:text-xl">
+        <p className="text-neutral-700 text-lg md:text-xl">
           استكشف أعمال الطلاب الموهوبين وشارك في دعم الفن الراقي
         </p>
       </div>
 
       {/* البحث والفلاتر */}
-      <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-lg mb-14 max-w-5xl mx-auto border border-orange-100">
-        <h2 className="text-2xl font-bold text-gray-800 mb-5 text-center">
-          ابحث عن عملك الفني المفضل
-        </h2>
+      <div className="bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-lg max-w-4xl mx-auto border border-neutral-200">
         <div className="flex flex-col sm:flex-row items-center gap-4">
-          <form onSubmit={handleSearch} className="flex-grow w-full sm:w-auto">
+          <form onSubmit={handleSearchSubmit} className="flex-grow w-full sm:w-auto">
             <input
               type="text"
               placeholder="ابحث بعنوان العمل الفني..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-3.5 border border-orange-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition bg-white shadow-sm"
+              className="w-full p-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition bg-white shadow-sm"
             />
           </form>
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full sm:w-auto p-3.5 border border-orange-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition bg-white shadow-sm"
+            className="w-full sm:w-auto p-3 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary transition bg-white shadow-sm"
           >
             <option value="newest">الأحدث أولاً</option>
             <option value="ending_soon">ستنتهي قريبًا</option>
@@ -87,18 +88,15 @@ function HomePage() {
         </div>
       </div>
 
-      {/* حالات */}
+      {/* حالات التحميل والخطأ */}
       {loading && <Spinner />}
       {error && <p className="text-center text-red-500 font-semibold">{error}</p>}
 
-      {/* الشبكة */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2">
+      {/* شبكة عرض الكروت */}
+      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {!loading && auctions.map((auction) => (
           <Link key={auction.id} to={`/auctions/${auction.id}`}>
-            {/* --== بداية الكرت المُعاد تصميمه ==-- */}
-            <div className="bg-white rounded-3xl overflow-hidden border border-orange-100 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-
-              {/* الصورة */}
+            <div className="bg-white rounded-2xl overflow-hidden border border-neutral-200 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
               <div className="relative">
                 <img
                   src={auction.artwork.imageUrl}
@@ -106,41 +104,33 @@ function HomePage() {
                   className="w-full h-60 object-contain bg-white"
                 />
               </div>
-
-              {/* المحتوى */}
-              <div className="p-5 flex flex-col h-full">
-                {/* الصف العلوي: الصف الدراسي والسعر */}
+              <div className="p-5 flex flex-col">
                 <div className="flex justify-between items-center mb-2">
-                  {auction.artwork.student.gradeLevel ? (
-                    <span className="bg-orange-100 text-orange-600 text-xs font-semibold px-3 py-1 rounded-full">
+                  {auction.artwork.student.gradeLevel && (
+                    <span className="bg-primary/10 text-primary-dark text-xs font-semibold px-3 py-1 rounded-full">
                       {auction.artwork.student.gradeLevel}
-                    </span>) : <div></div>}
-                  <span className="text-lg font-bold text-orange-500">{auction.currentPrice} ر.س</span>
+                    </span>
+                  )}
+                  <span className="text-lg font-bold text-secondary">{auction.currentPrice} ر.س</span>
                 </div>
-
-                {/* العنوان والفنان */}
-                <h3 className="text-xl font-bold text-gray-800 truncate mb-1">
+                <h3 className="text-xl font-bold text-neutral-900 truncate mb-1">
                   {auction.artwork.title}
                 </h3>
-                <Link to={`/students/${auction.artwork.studentId}`} className="text-sm text-gray-500 hover:text-orange-600 transition-colors">
+                <Link to={`/students/${auction.artwork.studentId}`} className="text-sm text-neutral-700 hover:text-primary transition-colors">
                   بواسطة {auction.artwork.student.name}
                 </Link>
-
-                {/* الصف السفلي: الوقت المتبقي والزر */}
                 <div className="mt-auto pt-4 flex justify-between items-center">
                   <AuctionCardTimer endTime={auction.endTime} />
-                  <span className="bg-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm">
+                  <span className="bg-secondary text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm">
                     المزايدة الآن
                   </span>
                 </div>
               </div>
             </div>
-            {/* --== نهاية الكرت المُعاد تصميمه ==-- */}
           </Link>
         ))}
       </div>
 
-      {/* عرض مكون ترقيم الصفحات في الأسفل */}
       {!loading && pagination && (
         <Pagination
           currentPage={pagination.currentPage}
@@ -149,9 +139,8 @@ function HomePage() {
         />
       )}
 
-      {/* لا توجد نتائج */}
       {!loading && auctions.length === 0 && !error && (
-        <div className="text-center text-gray-500 mt-20">
+        <div className="text-center text-neutral-700 mt-20">
           <p className="text-2xl font-semibold">لم يتم العثور على مزادات.</p>
           <p>حاول تعديل البحث أو عد لاحقًا!</p>
         </div>
@@ -161,3 +150,4 @@ function HomePage() {
 }
 
 export default HomePage;
+
