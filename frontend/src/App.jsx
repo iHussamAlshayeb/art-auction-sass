@@ -32,7 +32,7 @@ function App() {
   const { user } = useAuth();
 
   return (
-    <div className="bg-neutral-100 min-h-screen" dir="rtl">
+    <div className="min-h-screen" dir="rtl">
       <Toaster position="top-center" />
 
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setSidebarOpen} />
@@ -58,30 +58,32 @@ function App() {
         </div>
       </header>
 
-      <main className={`transition-all duration-300 pb-24 md:pb-8 pt-24 md:pt-8 px-4 ${isSidebarOpen ? 'md:mr-64' : 'md:mr-20'}`}>
-        <Routes>
-          {/* المسارات العامة */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/gallery" element={<GalleryPage />} />
-          <Route path="/artists" element={<ArtistsPage />} />
-          <Route path="/students/:id" element={<StudentProfilePage />} />
-          <Route path="/auctions/:id" element={<AuctionDetailPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
+      <main className={`transition-all duration-300 pb-24 md:pb-8 pt-8 px-4 ${isSidebarOpen ? 'md:mr-64' : 'md:mr-20'}`}>
+        <div className="container mx-auto">
+          <Routes>
+            {/* المسارات العامة */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/artists" element={<ArtistsPage />} />
+            <Route path="/students/:id" element={<StudentProfilePage />} />
+            <Route path="/auctions/:id" element={<AuctionDetailPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* المسارات المحمية */}
-          <Route path="/artworks/new" element={<ProtectedRoute roles={["STUDENT"]}><CreateArtworkPage /></ProtectedRoute>} />
+            {/* المسارات المحمية */}
+            <Route path="/artworks/new" element={<ProtectedRoute roles={["STUDENT"]}><CreateArtworkPage /></ProtectedRoute>} />
 
-          {/* مسارات لوحة التحكم (تم إصلاحها لتكون مستقلة) */}
-          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-          <Route path="/dashboard/profile" element={<ProtectedRoute><ProfileEditor /></ProtectedRoute>} />
-          <Route path="/dashboard/password" element={<ProtectedRoute><PasswordEditor /></ProtectedRoute>} />
-          <Route path="/dashboard/my-artworks" element={<ProtectedRoute roles={["STUDENT"]}><MyArtworksList /></ProtectedRoute>} />
-          <Route path="/dashboard/won-auctions" element={<ProtectedRoute roles={["BUYER"]}><WonArtworks /></ProtectedRoute>} />
-          <Route path="/dashboard/active-bids" element={<ProtectedRoute roles={["BUYER"]}><ActiveBids /></ProtectedRoute>} />
+            {/* مسارات لوحة التحكم (تم إصلاحها لتكون مستقلة) */}
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/dashboard/profile" element={<ProtectedRoute><ProfileEditor /></ProtectedRoute>} />
+            <Route path="/dashboard/password" element={<ProtectedRoute><PasswordEditor /></ProtectedRoute>} />
+            <Route path="/dashboard/my-artworks" element={<ProtectedRoute roles={["STUDENT"]}><MyArtworksList /></ProtectedRoute>} />
+            <Route path="/dashboard/won-auctions" element={<ProtectedRoute roles={["BUYER"]}><WonArtworks /></ProtectedRoute>} />
+            <Route path="/dashboard/active-bids" element={<ProtectedRoute roles={["BUYER"]}><ActiveBids /></ProtectedRoute>} />
 
-          <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
-        </Routes>
+            <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
+          </Routes>
+        </div>
       </main>
 
       <BottomNav />
