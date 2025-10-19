@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Link } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
-import { Link } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
 // استيراد المكونات والتخطيطات
-import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import BottomNav from './components/BottomNav';
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -29,26 +27,21 @@ import { FiMenu } from 'react-icons/fi';
 import FloatingActionButton from "./components/FloatingActionButton";
 
 function App() {
-  const [isSidebarOpen, setSidebarOpen] = useState(true); // 2. الحالة الافتراضية "مفتوح"
-
-  // const toggleSidebar = () => {
-  //   setSidebarOpen(!isSidebarOpen);
-  // };
+  const [isSidebarOpen, setSidebarOpen] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
 
   return (
-    <div className="bg-orange-50 min-h-screen" dir="rtl">
+    <div className="bg-neutral-100 min-h-screen" dir="rtl">
       <Toaster position="top-center" />
-      {/* <Header toggleSidebar={toggleSidebar} /> */}
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setSidebarOpen} />
-      <MobileMenu isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} /> {/* Mobile-only menu */}
 
+      <Sidebar isOpen={isSidebarOpen} setIsOpen={setSidebarOpen} />
+      <MobileMenu isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
 
       <header className="md:hidden bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-30">
         <div className="container mx-auto px-4 h-20 flex justify-between items-center">
           <button onClick={() => setIsMobileMenuOpen(true)} className="p-2">
-            <FiMenu size={24} className="text-gray-600" />
+            <FiMenu size={24} className="text-neutral-700" />
           </button>
           <Link to="/">
             <img src="/logo.svg" alt="Fanan Logo" className="h-14" />
@@ -56,7 +49,7 @@ function App() {
           <Link to={user ? "/dashboard" : "/login"} className="w-10 h-10">
             {user && (
               <img
-                src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.name}&background=ffedd5&color=f97316&size=128`}
+                src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.name}&background=E0F2F1&color=00796B&size=128`}
                 alt={user.name}
                 className="w-full h-full rounded-full object-cover"
               />
@@ -65,7 +58,6 @@ function App() {
         </div>
       </header>
 
-      {/* المحتوى الرئيسي الآن يأخذ هامشًا ديناميكيًا */}
       <main className={`transition-all duration-300 pb-24 md:pb-8 pt-24 md:pt-8 px-4 ${isSidebarOpen ? 'md:mr-64' : 'md:mr-20'}`}>
         <Routes>
           {/* المسارات العامة */}
@@ -80,14 +72,13 @@ function App() {
           {/* المسارات المحمية */}
           <Route path="/artworks/new" element={<ProtectedRoute roles={["STUDENT"]}><CreateArtworkPage /></ProtectedRoute>} />
 
-          <Route path="/dashboard">
-            <Route index element={<DashboardPage />} />
-            <Route path="profile" element={<ProfileEditor />} />
-            <Route path="password" element={<PasswordEditor />} />
-            <Route path="my-artworks" element={<MyArtworksList />} />
-            <Route path="won-auctions" element={<WonArtworks />} />
-            <Route path="active-bids" element={<ActiveBids />} />
-          </Route>
+          {/* مسارات لوحة التحكم (تم إصلاحها لتكون مستقلة) */}
+          <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+          <Route path="/dashboard/profile" element={<ProtectedRoute><ProfileEditor /></ProtectedRoute>} />
+          <Route path="/dashboard/password" element={<ProtectedRoute><PasswordEditor /></ProtectedRoute>} />
+          <Route path="/dashboard/my-artworks" element={<ProtectedRoute roles={["STUDENT"]}><MyArtworksList /></ProtectedRoute>} />
+          <Route path="/dashboard/won-auctions" element={<ProtectedRoute roles={["BUYER"]}><WonArtworks /></ProtectedRoute>} />
+          <Route path="/dashboard/active-bids" element={<ProtectedRoute roles={["BUYER"]}><ActiveBids /></ProtectedRoute>} />
 
           <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
         </Routes>
