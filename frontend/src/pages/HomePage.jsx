@@ -64,6 +64,10 @@ function HomePage() {
           ابحث عن عملك الفني المفضل
         </h2>
 
+        <div className="bg-primary-500 text-white p-4">
+          اختبار الألوان
+        </div>
+
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <form onSubmit={handleSearch} className="flex-grow w-full sm:w-auto">
             <input
