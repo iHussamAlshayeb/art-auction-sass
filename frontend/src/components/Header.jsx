@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { FiMenu } from 'react-icons/fi';
-import { useAuth } from './context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 const { user } = useAuth();
 
