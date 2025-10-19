@@ -61,15 +61,13 @@ function App() {
             {/* المسارات المحمية */}
             <Route path="/artworks/new" element={<ProtectedRoute roles={["STUDENT"]}><CreateArtworkPage /></ProtectedRoute>} />
 
-            {/* مسارات لوحة التحكم المتداخلة */}
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-              <Route index element={<DashboardPage />} />
-              <Route path="profile" element={<ProfileEditor />} />
-              <Route path="password" element={<PasswordEditor />} />
-              <Route path="my-artworks" element={<MyArtworksList />} />
-              <Route path="won-auctions" element={<WonArtworks />} />
-              <Route path="active-bids" element={<ActiveBids />} />
-            </Route>
+            {/* مسارات لوحة التحكم الآن مستقلة */}
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/dashboard/profile" element={<ProtectedRoute><ProfileEditor /></ProtectedRoute>} />
+            <Route path="/dashboard/password" element={<ProtectedRoute><PasswordEditor /></ProtectedRoute>} />
+            <Route path="/dashboard/my-artworks" element={<ProtectedRoute roles={["STUDENT"]}><MyArtworksList /></ProtectedRoute>} />
+            <Route path="/dashboard/won-auctions" element={<ProtectedRoute roles={["STUDENT"]}><WonArtworks /></ProtectedRoute>} />
+            <Route path="/dashboard/active-bids" element={<ProtectedRoute roles={["STUDENT"]}><ActiveBids /></ProtectedRoute>} />
 
             {/* مسار لوحة تحكم المسؤول */}
             <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
