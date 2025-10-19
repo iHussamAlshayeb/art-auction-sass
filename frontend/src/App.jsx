@@ -66,31 +66,33 @@ function App() {
       </header>
 
       {/* المحتوى الرئيسي الآن يأخذ هامشًا ديناميكيًا */}
-      <main className={`transition-all duration-300 pb-24 md:pb-8 pt-24 md:pt-8 px-4 ${isSidebarOpen ? 'md:mr-64' : 'md:mr-20'}`}>
-        <Routes>
-          {/* المسارات العامة */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/gallery" element={<GalleryPage />} />
-          <Route path="/artists" element={<ArtistsPage />} />
-          <Route path="/students/:id" element={<StudentProfilePage />} />
-          <Route path="/auctions/:id" element={<AuctionDetailPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/login" element={<LoginPage />} />
+      <main className={`transition-all duration-300 pb-24 md:pb-8 pt-24 md:pt-20 px-4 ${isSidebarOpen ? 'md:mr-64' : 'md:mr-20'}`}>
+        <div className="container mx-auto">
+          <Routes>
+            {/* المسارات العامة */}
+            <Route path="/" element={<HomePage />} />
+            <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/artists" element={<ArtistsPage />} />
+            <Route path="/students/:id" element={<StudentProfilePage />} />
+            <Route path="/auctions/:id" element={<AuctionDetailPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* المسارات المحمية */}
-          <Route path="/artworks/new" element={<ProtectedRoute roles={["STUDENT"]}><CreateArtworkPage /></ProtectedRoute>} />
+            {/* المسارات المحمية */}
+            <Route path="/artworks/new" element={<ProtectedRoute roles={["STUDENT"]}><CreateArtworkPage /></ProtectedRoute>} />
 
-          <Route path="/dashboard">
-            <Route index element={<DashboardPage />} />
-            <Route path="profile" element={<ProfileEditor />} />
-            <Route path="password" element={<PasswordEditor />} />
-            <Route path="my-artworks" element={<MyArtworksList />} />
-            <Route path="won-auctions" element={<WonArtworks />} />
-            <Route path="active-bids" element={<ActiveBids />} />
-          </Route>
+            {/* مسارات لوحة التحكم (تم إصلاحها لتكون مستقلة) */}
+            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
+            <Route path="/dashboard/profile" element={<ProtectedRoute><ProfileEditor /></ProtectedRoute>} />
+            <Route path="/dashboard/password" element={<ProtectedRoute><PasswordEditor /></ProtectedRoute>} />
+            <Route path="/dashboard/my-artworks" element={<ProtectedRoute roles={["STUDENT"]}><MyArtworksList /></ProtectedRoute>} />
+            <Route path="/dashboard/won-auctions" element={<ProtectedRoute roles={["BUYER"]}><WonArtworks /></ProtectedRoute>} />
+            <Route path="/dashboard/active-bids" element={<ProtectedRoute roles={["BUYER"]}><ActiveBids /></ProtectedRoute>} />
 
-          <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
-        </Routes>
+            {/* مسار لوحة تحكم المسؤول */}
+            <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
+          </Routes>
+        </div>
       </main>
 
       <BottomNav />
