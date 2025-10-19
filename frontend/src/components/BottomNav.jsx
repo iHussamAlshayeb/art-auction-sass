@@ -7,16 +7,18 @@ function BottomNav() {
     const { user } = useAuth();
 
     const linkClass = ({ isActive }) =>
-        `flex flex-col items-center gap-1 transition-colors duration-200 w-32 ${isActive
+        // إزالة العرض الثابت وجعل الروابط مرنة
+        `flex flex-col items-center justify-center gap-1 w-full transition-colors duration-200 ${isActive
             ? 'text-orange-500'
             : 'text-gray-500 hover:text-orange-500'
         }`;
 
-    // --== تخطيط خاص بالطلاب ==--
+    // --== تخطيط خاص بالطلاب (مع زر وسطي) ==--
     if (user && user.role === 'STUDENT') {
         return (
             <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md z-50 border-t border-orange-100">
                 <div className="flex justify-around items-center h-full relative">
+                    {/* أول عنصرين على اليمين */}
                     <NavLink to="/" end className={linkClass}>
                         <FiHome size={22} />
                         <span className="text-xs">الرئيسية</span>
@@ -26,6 +28,23 @@ function BottomNav() {
                         <span className="text-xs">المعرض</span>
                     </NavLink>
 
+                    {/* عنصر وهمي في المنتصف ليأخذ مساحة */}
+                    <div className="w-16"></div>
+
+                    {/* آخر عنصرين على اليسار */}
+                    <NavLink to="/artists" className={linkClass}>
+                        <MdOutlineDesignServices size={22} />
+                        <span className="text-xs">الفنانون</span>
+                    </NavLink>
+                    <NavLink to="/dashboard" className={linkClass}>
+                        <img
+                            src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.name}&background=ffedd5&color=f97316&size=128`}
+                            alt={user.name}
+                            className="w-7 h-7 rounded-full object-cover border-2 border-gray-300"
+                        />
+                        <span className="text-xs">حسابي</span>
+                    </NavLink>
+
                     {/* الزر الأوسط العائم */}
                     <Link
                         to="/artworks/new"
@@ -33,19 +52,6 @@ function BottomNav() {
                     >
                         <FiPlus size={32} />
                     </Link>
-
-                    <NavLink to="/artists" className={linkClass}>
-                        <MdOutlineDesignServices size={22} />
-                        <span className="text-xs">الفنانون</span>
-                    </NavLink>
-                    {/* <NavLink to="/dashboard/profile" className={linkClass}>
-                        <img
-                            src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.name}&background=ffedd5&color=f97316&size=128`}
-                            alt={user.name}
-                            className="w-7 h-7 rounded-full object-cover border-2 border-gray-300"
-                        />
-                        <span className="text-xs">حسابي</span>
-                    </NavLink> */}
                 </div>
             </nav>
         );
@@ -67,8 +73,8 @@ function BottomNav() {
                     <MdOutlineDesignServices size={22} />
                     <span className="text-xs">الفنانون</span>
                 </NavLink>
-                {/* {user ? (
-                    <NavLink to="/dashboard/profile" className={linkClass}>
+                {user ? (
+                    <NavLink to="/dashboard" className={linkClass}>
                         <img
                             src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.name}&background=ffedd5&color=f97316&size=128`}
                             alt={user.name}
@@ -81,7 +87,7 @@ function BottomNav() {
                         <FiUser size={22} />
                         <span className="text-xs">دخول</span>
                     </NavLink>
-                )} */}
+                )}
             </div>
         </nav>
     );
