@@ -5,15 +5,16 @@ import { FiPlus } from 'react-icons/fi';
 function FloatingActionButton() {
     const { user } = useAuth();
 
-    if (!user || user.role !== 'STUDENT') {
+    // بما أن كل المستخدمين الآن يمكنهم إضافة أعمال، لم نعد بحاجة لفحص الدور
+    if (!user) {
         return null;
     }
 
     return (
         <Link
             to="/artworks/new"
-            // === تم تغيير "right-8" إلى "left-8" ===
-            className="group hidden md:flex items-center fixed bottom-8 left-8 bg-orange-500 text-white p-4 rounded-full shadow-lg hover:bg-orange-600 transition-all duration-300 ease-in-out z-40"
+            // تم تحديث الألوان هنا
+            className="group hidden md:flex items-center fixed bottom-8 left-8 bg-secondary hover:bg-secondary-dark text-white p-4 rounded-full shadow-lg transition-all duration-300 ease-in-out z-40"
             aria-label="Add new artwork"
         >
             <FiPlus size={24} />
