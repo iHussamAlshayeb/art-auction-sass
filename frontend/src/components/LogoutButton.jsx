@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext.jsx';
 import { LogOut } from 'lucide-react';
 
 function LogoutButton() {
@@ -23,3 +23,4 @@ function LogoutButton() {
 }
 
 export default LogoutButton;
+
