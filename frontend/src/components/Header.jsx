@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom';
 import { FiMenu } from 'react-icons/fi';
+import { useAuth } from './context/AuthContext';
+
+const { user } = useAuth();
 
 function Header() {
     // هذا الشريط العلوي سيظهر فقط على الجوال
@@ -17,7 +20,15 @@ function Header() {
                 </Link>
 
                 {/* صورة المستخدم أو زر الدخول */}
-                {/* (يمكن إضافة هذا الجزء لاحقًا) */}
+                <Link to={user ? "/dashboard" : "/login"} className="w-10 h-10">
+                    {user && (
+                        <img
+                            src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.name}&background=ffedd5&color=f97316&size=128`}
+                            alt={user.name}
+                            className="w-full h-full rounded-full object-cover"
+                        />
+                    )}
+                </Link>
                 <div></div>
             </div>
         </header>

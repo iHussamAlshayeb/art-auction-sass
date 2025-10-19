@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Home, Image, Users, LayoutDashboard, Shield, User, Lock, Briefcase, Award, Tag, LogIn, UserPlus, ChevronDown, X } from "lucide-react";
+import { Home, Image, Users, LayoutDashboard, Shield, LogIn, UserPlus, ChevronDown, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import LogoutButton from "./LogoutButton";
@@ -61,8 +61,8 @@ const MobileMenu = ({ isOpen, setIsOpen }) => {
                                             {openMenus["dashboard"] && (
                                                 <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden mr-4 mt-1 space-y-1 border-r-2 border-orange-100">
                                                     {dashboardSubmenu.map((item) => (<NavLink key={item.to} to={item.to} end={item.end} onClick={closeMenu} className={({ isActive }) => `block pl-8 pr-4 py-2 rounded-md text-sm transition-all ${isActive ? "text-orange-600 font-medium" : "text-gray-600 hover:text-orange-500"}`}>{item.label}</NavLink>))}
-                                                    {user.role === 'STUDENT' && studentSubmenu.map((item) => (<NavLink key={item.to} to={item.to} onClick={closeMenu} className={({ isActive }) => `...`}>{item.label}</NavLink>))}
-                                                    {user.role === 'BUYER' && buyerSubmenu.map((item) => (<NavLink key={item.to} to={item.to} onClick={closeMenu} className={({ isActive }) => `...`}>{item.label}</NavLink>))}
+                                                    {user.role === 'STUDENT' && studentSubmenu.map((item) => (<NavLink key={item.to} to={item.to} onClick={closeMenu} className={({ isActive }) => `block pl-8 pr-4 py-2 rounded-md text-sm transition-all ${isActive ? "text-orange-600 font-medium" : "text-gray-600 hover:text-orange-500"}`}>{item.label}</NavLink>))}
+                                                    {user.role === 'BUYER' && buyerSubmenu.map((item) => (<NavLink key={item.to} to={item.to} onClick={closeMenu} className={({ isActive }) => `block pl-8 pr-4 py-2 rounded-md text-sm transition-all ${isActive ? "text-orange-600 font-medium" : "text-gray-600 hover:text-orange-500"}`}>{item.label}</NavLink>))}
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
@@ -75,22 +75,16 @@ const MobileMenu = ({ isOpen, setIsOpen }) => {
                             </nav>
 
                             <div className="border-t p-4">
-                                {user ? (<div onClick={closeMenu}><LogoutButton /></div>
+                                {user ? (
+                                    <div onClick={closeMenu}><LogoutButton /></div>
                                 ) : (
+                                    // === تم إعادة إضافة هذا الجزء ===
                                     <div className="flex flex-col gap-2">
-                                        <Link
-                                            to="/login"
-                                            className="flex items-center justify-center gap-2 text-gray-700 hover:text-orange-600 font-medium transition"
-                                        >
-                                            <LogIn size={16} />
-                                            تسجيل الدخول
+                                        <Link to="/login" onClick={closeMenu} className="flex items-center justify-center gap-2 text-gray-700 hover:text-orange-600 font-medium transition py-2 rounded-lg">
+                                            <LogIn size={16} /> تسجيل الدخول
                                         </Link>
-                                        <Link
-                                            to="/register"
-                                            className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full text-center shadow-md transition-all"
-                                        >
-                                            <UserPlus size={16} />
-                                            إنشاء حساب
+                                        <Link to="/register" onClick={closeMenu} className="flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-5 rounded-full text-center shadow-md transition-all">
+                                            <UserPlus size={16} /> إنشاء حساب
                                         </Link>
                                     </div>
                                 )}
