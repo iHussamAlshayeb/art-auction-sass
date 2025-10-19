@@ -40,6 +40,7 @@ function HomePage() {
   const handleSearch = (e) => {
     e.preventDefault();
     setCurrentPage(1);
+    getAuctions();
   };
 
   const handlePageChange = (page) => {
@@ -47,28 +48,22 @@ function HomePage() {
   };
 
   return (
-    <div className="pt-28 pb-20 px-6 sm:px-10 bg-gradient-to-b from-primary-50 via-white to-primary-50 min-h-screen font-sans text-neutral-900">
+    <div className="pt-28 pb-20 px-6 sm:px-10 bg-gradient-to-b from-orange-50 via-white to-orange-50 min-h-screen">
       {/* رأس الصفحة */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-primary-700 mb-3 tracking-tight">
+        <h1 className="text-4xl md:text-5xl font-extrabold text-orange-600 mb-4 tracking-tight drop-shadow-sm">
           المزادات الفنية
         </h1>
-        <p className="text-neutral-700 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
-          استكشف أعمال الطلاب الموهوبين وشارك في دعم الفن الراقي عبر المزايدات المفتوحة
+        <p className="text-gray-600 text-lg md:text-xl">
+          استكشف أعمال الطلاب الموهوبين وشارك في دعم الفن الراقي
         </p>
-        <div className="bg-primary-500 text-white p-4">
-          <p>اختبار الألوان</p>
-        </div>
       </div>
 
       {/* البحث والفلاتر */}
-      <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-lg mb-14 max-w-5xl mx-auto border border-neutral-200">
-        <h2 className="text-2xl font-heading font-semibold text-neutral-900 mb-5 text-center">
+      <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-lg mb-14 max-w-5xl mx-auto border border-orange-100">
+        <h2 className="text-2xl font-bold text-gray-800 mb-5 text-center">
           ابحث عن عملك الفني المفضل
         </h2>
-
-
-
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <form onSubmit={handleSearch} className="flex-grow w-full sm:w-auto">
             <input
@@ -76,14 +71,13 @@ function HomePage() {
               placeholder="ابحث بعنوان العمل الفني..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-3.5 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 transition bg-white shadow-sm text-neutral-900 placeholder-neutral-500"
+              className="w-full p-3.5 border border-orange-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition bg-white shadow-sm"
             />
           </form>
-
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full sm:w-auto p-3.5 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 transition bg-white shadow-sm text-neutral-900"
+            className="w-full sm:w-auto p-3.5 border border-orange-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 transition bg-white shadow-sm"
           >
             <option value="newest">الأحدث أولاً</option>
             <option value="ending_soon">ستنتهي قريبًا</option>
@@ -93,86 +87,76 @@ function HomePage() {
         </div>
       </div>
 
-      {/* الحالات */}
+      {/* حالات */}
       {loading && <Spinner />}
-      {error && <p className="text-center text-secondary-700 font-semibold">{error}</p>}
+      {error && <p className="text-center text-red-500 font-semibold">{error}</p>}
 
       {/* الشبكة */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2">
         {!loading && auctions.map((auction) => (
           <Link key={auction.id} to={`/auctions/${auction.id}`}>
-            <div className="bg-white rounded-3xl overflow-hidden border border-neutral-200 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
+            {/* --== بداية الكرت المُعاد تصميمه ==-- */}
+            <div className="bg-white rounded-3xl overflow-hidden border border-orange-100 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
 
               {/* الصورة */}
-              <div className="relative bg-neutral-100">
+              <div className="relative">
                 <img
                   src={auction.artwork.imageUrl}
                   alt={auction.artwork.title}
-                  className="w-full h-60 object-contain"
+                  className="w-full h-60 object-contain bg-white"
                 />
               </div>
 
               {/* المحتوى */}
               <div className="p-5 flex flex-col h-full">
-                {/* الصف العلوي */}
+                {/* الصف العلوي: الصف الدراسي والسعر */}
                 <div className="flex justify-between items-center mb-2">
                   {auction.artwork.student.gradeLevel ? (
-                    <span className="bg-primary-100 text-primary-700 text-xs font-semibold px-3 py-1 rounded-full">
+                    <span className="bg-orange-100 text-orange-600 text-xs font-semibold px-3 py-1 rounded-full">
                       {auction.artwork.student.gradeLevel}
-                    </span>
-                  ) : (
-                    <div></div>
-                  )}
-                  <span className="text-lg font-bold text-secondary-700">
-                    {auction.currentPrice} ر.س
-                  </span>
+                    </span>) : <div></div>}
+                  <span className="text-lg font-bold text-orange-500">{auction.currentPrice} ر.س</span>
                 </div>
 
                 {/* العنوان والفنان */}
-                <h3 className="text-xl font-heading font-bold text-neutral-900 truncate mb-1">
+                <h3 className="text-xl font-bold text-gray-800 truncate mb-1">
                   {auction.artwork.title}
                 </h3>
-                <Link
-                  to={`/students/${auction.artwork.studentId}`}
-                  className="text-sm text-neutral-600 hover:text-primary-600 transition-colors"
-                >
+                <Link to={`/students/${auction.artwork.studentId}`} className="text-sm text-gray-500 hover:text-orange-600 transition-colors">
                   بواسطة {auction.artwork.student.name}
                 </Link>
 
-                {/* الصف السفلي */}
+                {/* الصف السفلي: الوقت المتبقي والزر */}
                 <div className="mt-auto pt-4 flex justify-between items-center">
                   <AuctionCardTimer endTime={auction.endTime} />
-                  <span className="bg-primary-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-primary-600 transition">
+                  <span className="bg-orange-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm">
                     المزايدة الآن
                   </span>
                 </div>
               </div>
             </div>
+            {/* --== نهاية الكرت المُعاد تصميمه ==-- */}
           </Link>
         ))}
       </div>
 
-      {/* الترقيم */}
-      {
-        !loading && pagination && (
-          <Pagination
-            currentPage={pagination.currentPage}
-            totalPages={pagination.totalPages}
-            onPageChange={handlePageChange}
-          />
-        )
-      }
+      {/* عرض مكون ترقيم الصفحات في الأسفل */}
+      {!loading && pagination && (
+        <Pagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          onPageChange={handlePageChange}
+        />
+      )}
 
       {/* لا توجد نتائج */}
-      {
-        !loading && auctions.length === 0 && !error && (
-          <div className="text-center text-neutral-600 mt-20">
-            <p className="text-2xl font-semibold font-heading">لم يتم العثور على مزادات.</p>
-            <p>حاول تعديل البحث أو عد لاحقًا!</p>
-          </div>
-        )
-      }
-    </div >
+      {!loading && auctions.length === 0 && !error && (
+        <div className="text-center text-gray-500 mt-20">
+          <p className="text-2xl font-semibold">لم يتم العثور على مزادات.</p>
+          <p>حاول تعديل البحث أو عد لاحقًا!</p>
+        </div>
+      )}
+    </div>
   );
 }
 
