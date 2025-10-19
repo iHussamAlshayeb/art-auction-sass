@@ -86,8 +86,8 @@ function App() {
             <Route path="/dashboard/profile" element={<ProtectedRoute><ProfileEditor /></ProtectedRoute>} />
             <Route path="/dashboard/password" element={<ProtectedRoute><PasswordEditor /></ProtectedRoute>} />
             <Route path="/dashboard/my-artworks" element={<ProtectedRoute roles={["STUDENT"]}><MyArtworksList /></ProtectedRoute>} />
-            <Route path="/dashboard/won-auctions" element={<ProtectedRoute roles={["BUYER"]}><WonArtworks /></ProtectedRoute>} />
-            <Route path="/dashboard/active-bids" element={<ProtectedRoute roles={["BUYER"]}><ActiveBids /></ProtectedRoute>} />
+            <Route path="/dashboard/won-auctions" element={<ProtectedRoute roles={["STUDENT"]}><WonArtworks /></ProtectedRoute>} />
+            <Route path="/dashboard/active-bids" element={<ProtectedRoute roles={["STUDENT"]}><ActiveBids /></ProtectedRoute>} />
 
             {/* مسار لوحة تحكم المسؤول */}
             <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
