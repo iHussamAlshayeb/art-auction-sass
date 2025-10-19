@@ -12,12 +12,12 @@ function FloatingActionButton() {
     return (
         <Link
             to="/artworks/new"
-            // === الحل هنا: إخفاء الزر على الجوال وإظهاره على الشاشات الأكبر ===
-            className="group hidden md:flex items-center fixed bottom-8 right-8 bg-orange-500 text-white p-4 rounded-full shadow-lg hover:bg-orange-600 transition-all duration-300 ease-in-out z-40"
+            // === تم تغيير "right-8" إلى "left-8" ===
+            className="group hidden md:flex items-center fixed bottom-8 left-8 bg-orange-500 text-white p-4 rounded-full shadow-lg hover:bg-orange-600 transition-all duration-300 ease-in-out z-40"
             aria-label="Add new artwork"
         >
             <FiPlus size={24} />
-            <span className="max-w-0 group-hover:max-w-xs transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap group-hover:ml-2">
+            <span className="max-w-0 group-hover:max-w-xs transition-all duration-300 ease-in-out overflow-hidden whitespace-nowrap group-hover:mr-2">
                 إضافة عمل
             </span>
         </Link>

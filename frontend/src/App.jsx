@@ -26,6 +26,7 @@ import WonArtworks from './components/WonArtworks';
 import ActiveBids from './components/ActiveBids';
 import MobileMenu from './components/MobileMenu';
 import { FiMenu } from 'react-icons/fi';
+import FloatingActionButton from "./components/FloatingActionButton";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true); // 2. الحالة الافتراضية "مفتوح"
@@ -93,6 +94,7 @@ function App() {
       </main>
 
       {/* <BottomNav /> */}
+      {<FloatingActionButton />}
     </div>
   );
 }
