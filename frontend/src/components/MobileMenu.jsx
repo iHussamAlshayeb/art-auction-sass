@@ -57,7 +57,7 @@ const MobileMenu = ({ isOpen, setIsOpen }) => {
                         animate={{ x: 0 }}
                         exit={{ x: 300 }}
                         transition={{ type: "tween", duration: 0.3 }}
-                        className="md:hidden flex flex-col w-72 bg-white shadow-lg fixed right-0 top-0 bottom-0 z-50"
+                        className="md:hidden flex flex-col w-72 bg-white shadow-lg fixed right-0 top-0 bottom-0 z-60"
                     >
                         <div className="flex flex-col h-full">
                             <div className="flex justify-between items-center p-4 border-b border-neutral-200">
