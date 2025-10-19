@@ -25,13 +25,10 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
         { to: "/dashboard", label: "نظرة عامة", end: true },
         { to: "/dashboard/profile", label: "تعديل الملف الشخصي" },
         { to: "/dashboard/password", label: "تغيير كلمة المرور" },
-    ];
-    const studentSubmenu = [{ to: "/dashboard/my-artworks", label: "أعمالي الفنية" }];
-    const buyerSubmenu = [
+        { to: "/dashboard/my-artworks", label: "أعمالي الفنية" },
         { to: "/dashboard/won-auctions", label: "مزاداتي الفائزة" },
         { to: "/dashboard/active-bids", label: "عروضي النشطة" },
     ];
-
     const linkClass = ({ isActive }) =>
         `flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isActive
             ? "bg-primary/10 text-primary-dark"
@@ -95,8 +92,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                                     {dashboardSubmenu.map((item) => (
                                                         <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `block pl-8 pr-4 py-1.5 rounded-md text-sm transition-all ${isActive ? "bg-primary/10 text-primary-dark font-medium" : "text-neutral-700 hover:text-primary-dark"}`}>{item.label}</NavLink>
                                                     ))}
-                                                    {user.role === 'STUDENT' && studentSubmenu.map((item) => (<NavLink key={item.to} to={item.to} className={({ isActive }) => `...`}>{item.label}</NavLink>))}
-                                                    {user.role === 'BUYER' && buyerSubmenu.map((item) => (<NavLink key={item.to} to={item.to} className={({ isActive }) => `...`}>{item.label}</NavLink>))}
+
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
