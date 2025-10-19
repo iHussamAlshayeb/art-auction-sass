@@ -1,6 +1,6 @@
 import { NavLink, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiHome, FiGrid, FiUser, FiPlus } from 'react-icons/fi';
+import { FiHome, FiGrid, FiBell, FiPlus } from 'react-icons/fi';
 import { MdOutlineDesignServices } from "react-icons/md";
 
 function BottomNav() {
