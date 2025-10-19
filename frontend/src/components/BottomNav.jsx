@@ -15,7 +15,7 @@ function BottomNav() {
     // تخطيط خاص بالطلاب
     if (user && user.role === 'STUDENT') {
         return (
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md z-50 border-t border-orange-100">
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white/80 backdrop-blur-md z-40 border-t border-orange-100">
                 <div className="flex justify-around items-center h-full relative">
                     <NavLink to="/gallery" className={linkClass}>
                         <FiGrid size={22} />
@@ -28,10 +28,11 @@ function BottomNav() {
                     <div className="w-16"></div> {/* عنصر وهمي للمساحة */}
                     <Link
                         to="/artworks/new"
-                        className="absolute left-1/2 -translate-x-1/2 -top-6 w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center text-white shadow-lg border-4 border-white"
+                        className="absolute left-1/2 -translate-x-1/2 -top-8 w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center text-white shadow-lg border-4 border-white z-50"
                     >
-                        <FiPlus size={32} />
+                        <FiPlus size={28} />
                     </Link>
+
                     {/* 2. استبدال "حسابي" بـ "الإشعارات" */}
                     <NavLink to="/notifications" className={linkClass}>
                         <FiBell size={22} />
