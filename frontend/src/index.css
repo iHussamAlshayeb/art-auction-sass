@@ -1,17 +1,44 @@
 @import "tailwindcss";
 
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap');
+/* 1. تعريف مكونات التصميم الجديدة باستخدام @theme */
+@theme {
+  --color-primary: #009688;
+  /* اللون الأساسي (الفيروزي) */
+  --color-primary-light: #4DB6AC;
+  --color-primary-dark: #00796B;
 
-body {
-  font-family: 'Cairo', sans-serif;
-  width: 100%;
+  --color-secondary: #FF6F61;
+  /* اللون الثانوي (البرتقالي المحمر) */
+  --color-secondary-dark: #E64A19;
+
+  --color-neutral-100: #F5F5F5;
+  /* لون الخلفية */
+  --color-neutral-200: #EEEEEE;
+  /* لون الحدود */
+  --color-neutral-700: #616161;
+  /* لون النصوص */
+  --color-neutral-900: #212121;
+  /* لون العناوين */
+
+  --font-sans: "Cairo", "sans-serif";
+  --font-heading: "Tajawal", "sans-serif";
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: 'Tajawal', sans-serif;
+/* 2. تطبيق هذه المكونات على مستوى الموقع */
+@layer base {
+  body {
+    font-family: theme('fontFamily.sans');
+    background-color: theme('colors.neutral.100');
+    color: theme('colors.neutral.700');
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: theme('fontFamily.heading');
+    color: theme('colors.neutral.900');
+  }
 }
