@@ -56,6 +56,9 @@ function HomePage() {
         <p className="text-neutral-700 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
           استكشف أعمال الطلاب الموهوبين وشارك في دعم الفن الراقي عبر المزايدات المفتوحة
         </p>
+        <div className="bg-primary-500 text-white p-4">
+          <p>اختبار الألوان</p>
+        </div>
       </div>
 
       {/* البحث والفلاتر */}
@@ -64,9 +67,7 @@ function HomePage() {
           ابحث عن عملك الفني المفضل
         </h2>
 
-        <div className="bg-primary-500 text-white p-4">
-          اختبار الألوان
-        </div>
+
 
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <form onSubmit={handleSearch} className="flex-grow w-full sm:w-auto">
@@ -152,22 +153,26 @@ function HomePage() {
       </div>
 
       {/* الترقيم */}
-      {!loading && pagination && (
-        <Pagination
-          currentPage={pagination.currentPage}
-          totalPages={pagination.totalPages}
-          onPageChange={handlePageChange}
-        />
-      )}
+      {
+        !loading && pagination && (
+          <Pagination
+            currentPage={pagination.currentPage}
+            totalPages={pagination.totalPages}
+            onPageChange={handlePageChange}
+          />
+        )
+      }
 
       {/* لا توجد نتائج */}
-      {!loading && auctions.length === 0 && !error && (
-        <div className="text-center text-neutral-600 mt-20">
-          <p className="text-2xl font-semibold font-heading">لم يتم العثور على مزادات.</p>
-          <p>حاول تعديل البحث أو عد لاحقًا!</p>
-        </div>
-      )}
-    </div>
+      {
+        !loading && auctions.length === 0 && !error && (
+          <div className="text-center text-neutral-600 mt-20">
+            <p className="text-2xl font-semibold font-heading">لم يتم العثور على مزادات.</p>
+            <p>حاول تعديل البحث أو عد لاحقًا!</p>
+          </div>
+        )
+      }
+    </div >
   );
 }
 
