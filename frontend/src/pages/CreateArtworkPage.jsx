@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createArtwork, uploadImage } from '../services/api';
+import { createArtwork, uploadImage } from '../services/api.js';
 import toast from 'react-hot-toast';
 
 function CreateArtworkPage() {
@@ -116,3 +116,4 @@ function CreateArtworkPage() {
 }
 
 export default CreateArtworkPage;
+
