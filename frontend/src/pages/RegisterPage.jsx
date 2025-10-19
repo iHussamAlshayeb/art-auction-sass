@@ -30,10 +30,10 @@ function RegisterPage() {
   };
 
   return (
-    <div className="pt-28 pb-20 px-6 sm:px-10 bg-gradient-to-b from-orange-50 via-white to-orange-50 min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-lg space-y-8 bg-white/90 backdrop-blur-sm p-8 sm:p-10 rounded-3xl shadow-lg border border-orange-100">
+    <div className="flex items-center justify-center min-h-screen px-4">
+      <div className="w-full max-w-lg space-y-8 bg-white/90 backdrop-blur-sm p-8 sm:p-10 rounded-2xl shadow-xl border border-neutral-200">
         <div>
-          <h2 className="text-center text-4xl font-extrabold tracking-tight text-orange-600">
+          <h2 className="text-center text-4xl font-extrabold tracking-tight text-primary-dark">
             إنشاء حساب جديد
           </h2>
         </div>
@@ -44,30 +44,29 @@ function RegisterPage() {
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
-                <label className="text-sm font-medium text-gray-600">الاسم الكامل</label>
+                <label className="text-sm font-medium text-neutral-700">الاسم الكامل</label>
                 <input
                   name="name" type="text" required
-                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  className="mt-1 w-full p-3 border border-neutral-200 rounded-lg focus:ring-primary focus:border-primary"
                   placeholder="اسمك الكامل" value={formData.name} onChange={handleChange}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">البريد الإلكتروني</label>
+                <label className="text-sm font-medium text-neutral-700">البريد الإلكتروني</label>
                 <input
                   name="email" type="email" required
-                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  className="mt-1 w-full p-3 border border-neutral-200 rounded-lg focus:ring-primary focus:border-primary"
                   placeholder="email@example.com" value={formData.email} onChange={handleChange}
                 />
               </div>
               <div>
-                <label className="text-sm font-medium text-gray-600">كلمة المرور</label>
+                <label className="text-sm font-medium text-neutral-700">كلمة المرور</label>
                 <input
                   name="password" type="password" required
-                  className="mt-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500"
+                  className="mt-1 w-full p-3 border border-neutral-200 rounded-lg focus:ring-primary focus:border-primary"
                   placeholder="••••••••" value={formData.password} onChange={handleChange}
                 />
               </div>
-
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
@@ -75,7 +74,7 @@ function RegisterPage() {
             <div>
               <button
                 type="submit"
-                className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-5 rounded-xl shadow-sm transition-all duration-200"
+                className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-5 rounded-lg shadow-md transition-all duration-200"
               >
                 إنشاء الحساب
               </button>
@@ -83,10 +82,10 @@ function RegisterPage() {
           </form>
         )}
 
-        <div className="text-sm text-center text-gray-600">
+        <div className="text-sm text-center text-neutral-700">
           <p>
             لديك حساب بالفعل؟{' '}
-            <Link to="/login" className="font-semibold text-orange-600 hover:text-orange-500">
+            <Link to="/login" className="font-semibold text-primary hover:text-primary-dark">
               سجل دخولك من هنا
             </Link>
           </p>

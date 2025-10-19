@@ -26,11 +26,11 @@ function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-orange-50 via-white to-orange-50 px-4">
-      <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-3xl shadow-xl border border-orange-100 p-10 space-y-8">
+    <div className="flex items-center justify-center min-h-screen px-4">
+      <div className="w-full max-w-md bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-neutral-200 p-10 space-y-8">
         <div className="text-center">
-          <h2 className="text-4xl font-extrabold text-orange-600 mb-3">تسجيل الدخول</h2>
-          <p className="text-gray-600">أدخل بيانات حسابك للمتابعة</p>
+          <h2 className="text-4xl font-extrabold text-primary-dark mb-3">تسجيل الدخول</h2>
+          <p className="text-neutral-700">أدخل بيانات حسابك للمتابعة</p>
         </div>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
@@ -42,7 +42,7 @@ function LoginPage() {
               placeholder="البريد الإلكتروني"
               value={formData.email}
               onChange={handleChange}
-              className="w-full p-3 rounded-xl border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:outline-none"
+              className="w-full p-3 rounded-lg border border-neutral-200 focus:ring-2 focus:ring-primary focus:outline-none"
             />
             <input
               name="password"
@@ -51,7 +51,7 @@ function LoginPage() {
               placeholder="كلمة المرور"
               value={formData.password}
               onChange={handleChange}
-              className="w-full p-3 rounded-xl border border-orange-200 focus:ring-2 focus:ring-orange-400 focus:outline-none"
+              className="w-full p-3 rounded-lg border border-neutral-200 focus:ring-2 focus:ring-primary focus:outline-none"
             />
           </div>
 
@@ -59,16 +59,16 @@ function LoginPage() {
 
           <button
             type="submit"
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-md transition-all duration-200"
+            className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-lg shadow-md transition-all duration-200"
           >
             تسجيل الدخول
           </button>
         </form>
 
-        <div className="text-center text-gray-600 text-sm">
+        <div className="text-center text-neutral-700 text-sm">
           <p>
             ليس لديك حساب؟{' '}
-            <Link to="/register" className="text-orange-600 hover:underline font-medium">
+            <Link to="/register" className="text-primary hover:underline font-medium">
               إنشاء حساب جديد
             </Link>
           </p>
