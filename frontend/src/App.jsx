@@ -21,7 +21,7 @@ import CreateArtworkPage from "./pages/CreateArtworkPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 
 // استيراد تخطيط ومكونات لوحة التحكم
-import DashboardLayout from "./layouts/DashboardLayout";
+// import DashboardLayout from "./layouts/DashboardLayout";
 import DashboardPage from "./pages/DashboardPage";
 import ProfileEditor from './components/ProfileEditor';
 import PasswordEditor from './components/PasswordEditor';
