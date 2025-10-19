@@ -10,6 +10,7 @@ function GalleryPage() {
     const [pagination, setPagination] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const getArtworks = async () => {
@@ -18,7 +19,9 @@ function GalleryPage() {
                 const response = await fetchAllArtworks(currentPage);
                 setArtworks(response.data.artworks);
                 setPagination(response.data.pagination);
+                setError(null);
             } catch (err) {
+                setError("فشل في تحميل المعرض الفني.");
                 console.error("Failed to fetch artworks", err);
             } finally {
                 setLoading(false);
@@ -34,34 +37,37 @@ function GalleryPage() {
     return (
         <div className="space-y-12">
             <div className="text-center">
-                <h1 className="text-4xl md:text-5xl font-extrabold text-orange-600 mb-4 tracking-tight">
+                <h1 className="text-4xl md:text-5xl font-extrabold text-primary-dark mb-4 tracking-tight">
                     المعرض الفني
                 </h1>
-                <p className="text-gray-600 text-lg md:text-xl">
+                <p className="text-neutral-700 text-lg md:text-xl">
                     تصفح كل الأعمال الفنية التي أضافها طلابنا الموهوبون
                 </p>
             </div>
 
             {loading && <Spinner />}
+            {error && <p className="text-center text-red-500 font-semibold">{error}</p>}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {!loading && artworks.map((artwork) => (
-                    <div key={artwork.id} className="bg-white rounded-3xl overflow-hidden border border-orange-100 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
+                    <div key={artwork.id} className="bg-white rounded-2xl overflow-hidden border border-neutral-200 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
                         <img
                             src={artwork.imageUrl}
                             alt={artwork.title}
                             className="w-full h-60 object-cover"
                         />
-                        <div className="p-5">
-                            <h3 className="text-lg font-bold text-gray-800 truncate mb-1">
+                        <div className="p-5 flex flex-col">
+                            <h3 className="text-lg font-bold text-neutral-900 truncate mb-1">
                                 {artwork.title}
                             </h3>
                             <Link to={`/students/${artwork.student.id}`}>
-                                <p className="text-sm text-gray-500 hover:text-orange-600 transition-colors">
+                                <p className="text-sm text-neutral-700 hover:text-primary transition-colors">
                                     بواسطة {artwork.student.name}
                                 </p>
                             </Link>
-                            <ArtworkStatusBadge artwork={artwork} />
+                            <div className="mt-auto pt-3">
+                                <ArtworkStatusBadge artwork={artwork} />
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -79,3 +85,4 @@ function GalleryPage() {
 }
 
 export default GalleryPage;
+
