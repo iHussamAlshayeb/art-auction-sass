@@ -47,10 +47,10 @@ function HomePage() {
   };
 
   return (
-    <div className="pt-28 pb-20 px-6 sm:px-10 bg-gradient-to-b from-neutral-100 via-white to-neutral-100 min-h-screen font-sans text-neutral-900">
+    <div className="pt-28 pb-20 px-6 sm:px-10 bg-gradient-to-b from-primary-50 via-white to-primary-50 min-h-screen font-sans text-neutral-900">
       {/* رأس الصفحة */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-primary-dark mb-3 tracking-tight">
+        <h1 className="text-4xl md:text-5xl font-heading font-extrabold text-primary-700 mb-3 tracking-tight">
           المزادات الفنية
         </h1>
         <p className="text-neutral-700 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed">
@@ -71,14 +71,14 @@ function HomePage() {
               placeholder="ابحث بعنوان العمل الفني..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full p-3.5 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition bg-white shadow-sm text-neutral-900 placeholder-neutral-500"
+              className="w-full p-3.5 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 transition bg-white shadow-sm text-neutral-900 placeholder-neutral-500"
             />
           </form>
 
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="w-full sm:w-auto p-3.5 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary transition bg-white shadow-sm text-neutral-900"
+            className="w-full sm:w-auto p-3.5 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-400 transition bg-white shadow-sm text-neutral-900"
           >
             <option value="newest">الأحدث أولاً</option>
             <option value="ending_soon">ستنتهي قريبًا</option>
@@ -90,7 +90,7 @@ function HomePage() {
 
       {/* الحالات */}
       {loading && <Spinner />}
-      {error && <p className="text-center text-secondary-dark font-semibold">{error}</p>}
+      {error && <p className="text-center text-secondary-700 font-semibold">{error}</p>}
 
       {/* الشبكة */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 px-2">
@@ -112,13 +112,13 @@ function HomePage() {
                 {/* الصف العلوي */}
                 <div className="flex justify-between items-center mb-2">
                   {auction.artwork.student.gradeLevel ? (
-                    <span className="bg-primary-light/20 text-primary-dark text-xs font-semibold px-3 py-1 rounded-full">
+                    <span className="bg-primary-100 text-primary-700 text-xs font-semibold px-3 py-1 rounded-full">
                       {auction.artwork.student.gradeLevel}
                     </span>
                   ) : (
                     <div></div>
                   )}
-                  <span className="text-lg font-bold text-secondary-dark">
+                  <span className="text-lg font-bold text-secondary-700">
                     {auction.currentPrice} ر.س
                   </span>
                 </div>
@@ -129,7 +129,7 @@ function HomePage() {
                 </h3>
                 <Link
                   to={`/students/${auction.artwork.studentId}`}
-                  className="text-sm text-neutral-600 hover:text-primary-dark transition-colors"
+                  className="text-sm text-neutral-600 hover:text-primary-600 transition-colors"
                 >
                   بواسطة {auction.artwork.student.name}
                 </Link>
@@ -137,7 +137,7 @@ function HomePage() {
                 {/* الصف السفلي */}
                 <div className="mt-auto pt-4 flex justify-between items-center">
                   <AuctionCardTimer endTime={auction.endTime} />
-                  <span className="bg-primary text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-primary-dark transition">
+                  <span className="bg-primary-500 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-md hover:bg-primary-600 transition">
                     المزايدة الآن
                   </span>
                 </div>
