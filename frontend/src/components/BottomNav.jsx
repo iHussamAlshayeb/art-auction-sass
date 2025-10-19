@@ -7,7 +7,7 @@ function BottomNav() {
     const { user } = useAuth();
 
     const linkClass = ({ isActive }) =>
-        `flex flex-col items-center gap-1 transition-colors duration-200 w-16 ${isActive
+        `flex flex-col items-center gap-1 transition-colors duration-200 w-32 ${isActive
             ? 'text-orange-500'
             : 'text-gray-500 hover:text-orange-500'
         }`;
