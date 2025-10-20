@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Clock } from 'lucide-react'; // 1. استيراد أيقونة الساعة
 
 function AuctionCardTimer({ endTime }) {
   const calculateTimeLeft = () => {
@@ -17,18 +18,23 @@ function AuctionCardTimer({ endTime }) {
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
   useEffect(() => {
-    // تحديث المؤقت كل دقيقة بدلاً من كل ثانية لتحسين الأداء
+    // تحديث المؤقت كل دقيقة لتحسين الأداء
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft());
-    }, 60000); 
+    }, 60000);
 
     return () => clearInterval(timer);
   }, [endTime]);
 
+  // 2. تحديث التنسيق والألوان
   return (
-    <span className={`text-sm font-medium ${timeLeft === 'انتهى المزاد' ? 'text-red-500' : 'text-gray-500'}`}>
-      {timeLeft}
-    </span>
+    <div className={`flex items-center gap-1.5 text-sm font-medium ${timeLeft === 'انتهى المزاد'
+        ? 'text-secondary' // اللون البرتقالي المحمر
+        : 'text-neutral-700' // اللون المحايد للنصوص
+      }`}>
+      <Clock size={14} />
+      <span>{timeLeft}</span>
+    </div>
   );
 }
 
