@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import {
     Home, Image, Users, LayoutDashboard, Shield, LogIn, UserPlus, ChevronDown, X,
-    User, Lock, Briefcase, Award, Tag
+    User, Lock, Briefcase, Award, Tag, Menu
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
