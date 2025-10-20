@@ -177,7 +177,6 @@ function AdminDashboardPage() {
                           onChange={(e) => handleRoleChange(user.id, e.target.value)}
                           className="text-xs p-1.5 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
                         >
-                          <option value="BUYER">BUYER</option>
                           <option value="STUDENT">STUDENT</option>
                           <option value="ADMIN">ADMIN</option>
                         </select>
