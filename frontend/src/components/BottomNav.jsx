@@ -35,10 +35,7 @@ function BottomNav() {
                         <MdOutlineDesignServices size={22} />
                         <span className="text-xs">الفنانون</span>
                     </NavLink>
-                    <NavLink to="/notifications" className={linkClass}>
-                        <FiBell size={22} />
-                        <span className="text-xs">الإشعارات</span>
-                    </NavLink>
+                    <NavLink to="/notifications" className={linkClass}><FiBell size={22} /><span className="text-xs">الإشعارات</span></NavLink>
 
                     {/* الزر الأوسط العائم باللون الثانوي الجديد */}
                     <Link
@@ -69,14 +66,7 @@ function BottomNav() {
                     <span className="text-xs">الفنانون</span>
                 </NavLink>
                 {user ? (
-                    <NavLink to="/dashboard" className={linkClass}>
-                        <img
-                            src={user.profileImageUrl || `https://ui-avatars.com/api/?name=${user.name}&background=E0F2F1&color=00796B&size=128`}
-                            alt={user.name}
-                            className="w-7 h-7 rounded-full object-cover border-2 border-gray-300"
-                        />
-                        <span className="text-xs">حسابي</span>
-                    </NavLink>
+                    <NavLink to="/notifications" className={linkClass}><FiBell size={22} /><span className="text-xs">الإشعارات</span></NavLink>
                 ) : (
                     <NavLink to="/login" className={linkClass}>
                         <FiUser size={22} />

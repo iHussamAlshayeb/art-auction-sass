@@ -25,6 +25,7 @@ import MyArtworksList from './components/MyArtworksList';
 import WonArtworks from './components/WonArtworks';
 import ActiveBids from './components/ActiveBids';
 import MobileMenu from './components/MobileMenu';
+import NotificationsPage from './pages/NotificationsPage';
 import { FiMenu } from 'react-icons/fi';
 import FloatingActionButton from "./components/FloatingActionButton";
 
@@ -78,6 +79,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
 
+
             {/* المسارات المحمية */}
             <Route path="/artworks/new" element={<ProtectedRoute roles={["STUDENT"]}><CreateArtworkPage /></ProtectedRoute>} />
 
@@ -88,6 +90,7 @@ function App() {
             <Route path="/dashboard/my-artworks" element={<ProtectedRoute roles={["STUDENT"]}><MyArtworksList /></ProtectedRoute>} />
             <Route path="/dashboard/won-auctions" element={<ProtectedRoute roles={["STUDENT"]}><WonArtworks /></ProtectedRoute>} />
             <Route path="/dashboard/active-bids" element={<ProtectedRoute roles={["STUDENT"]}><ActiveBids /></ProtectedRoute>} />
+            <Route path="/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
 
             {/* مسار لوحة تحكم المسؤول */}
             <Route path="/admin" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboardPage /></ProtectedRoute>} />
