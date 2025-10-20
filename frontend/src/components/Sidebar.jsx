@@ -83,7 +83,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 ))}
 
                                 {/* لوحة التحكم */}
-                                {user.role === "STUDENT" && (
+                                {user?.role === "STUDENT" && (
                                     <div>
                                         <button onClick={() => toggleMenu("dashboard")} className={`w-full ${linkClass({ isActive: location.pathname.startsWith("/dashboard") })} justify-between`}>
                                             <div className="flex items-center gap-3"><LayoutDashboard size={18} /><span>لوحة التحكم</span></div>
