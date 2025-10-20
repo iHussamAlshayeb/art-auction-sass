@@ -3,54 +3,54 @@ const { PrismaClient } = PrismaClientPkg;
 const prisma = new PrismaClient();
 import axios from "axios"; // استيراد axios
 
-export async function createAuction(req, res) {
+export const createAuction = async (req, res) => {
   const { artworkId, startPrice, endTime } = req.body;
-  const studentId = req.user.id; // هوية الطالب المسجل دخوله
+  const studentId = req.user.id;
 
-  // التحقق من المدخلات
   if (!artworkId || !startPrice || !endTime) {
-    return res
-      .status(400)
-      .json({ message: "Artwork ID, start price, and end time are required." });
+    return res.status(400).json({ message: "كل الحقول مطلوبة." });
   }
 
   try {
-    // الخطوة 1: العثور على العمل الفني والتأكد من ملكيته
+    // التحقق من ملكية العمل الفني وحالته
     const artwork = await prisma.artwork.findUnique({
       where: { id: artworkId },
     });
 
     if (!artwork) {
-      return res.status(404).json({ message: "Artwork not found." });
+      return res.status(404).json({ message: "العمل الفني غير موجود." });
     }
-
     if (artwork.studentId !== studentId) {
-      return res.status(403).json({
-        message:
-          "Forbidden: You can only create auctions for your own artwork.",
-      });
+      return res
+        .status(403)
+        .json({ message: "يمكنك بدء مزاد لأعمالك الخاصة فقط." });
     }
-
     if (!["DRAFT", "ENDED"].includes(artwork.status)) {
-      return res.status(400).json({
-        message: "This artwork is already in an auction or has been sold.",
-      });
+      return res
+        .status(400)
+        .json({
+          message: "هذا العمل الفني موجود بالفعل في مزاد نشط أو تم بيعه.",
+        });
     }
 
-    // الخطوة 2: استخدام معاملة (transaction) لضمان تنفيذ العمليتين معًا
     const newAuction = await prisma.$transaction(async (tx) => {
-      // 2a: إنشاء المزاد الجديد
+      // ---== الحل هنا: حذف أي مزادات قديمة مرتبطة بهذا العمل ==---
+      await tx.auction.deleteMany({
+        where: { artworkId: artworkId },
+      });
+
+      // 2. إنشاء المزاد الجديد
       const auction = await tx.auction.create({
         data: {
           artworkId: artworkId,
           startPrice: parseFloat(startPrice),
-          currentPrice: parseFloat(startPrice), // السعر الحالي يبدأ بنفس السعر الابتدائي
+          currentPrice: parseFloat(startPrice),
           startTime: new Date(),
-          endTime: new Date(endTime), // تحويل النص إلى تاريخ
+          endTime: new Date(endTime),
         },
       });
 
-      // 2b: تحديث حالة العمل الفني إلى "في مزاد"
+      // 3. تحديث حالة العمل الفني إلى "في مزاد"
       await tx.artwork.update({
         where: { id: artworkId },
         data: { status: "IN_AUCTION" },
@@ -61,19 +61,18 @@ export async function createAuction(req, res) {
 
     res
       .status(201)
-      .json({ message: "Auction created successfully", auction: newAuction });
+      .json({ message: "تم إنشاء المزاد بنجاح", auction: newAuction });
   } catch (error) {
-    // خطأ في حال كان هناك مزاد قائم بالفعل على هذا العمل الفني
     if (error.code === "P2002") {
       return res
         .status(409)
-        .json({ message: "An auction for this artwork already exists." });
+        .json({ message: "يوجد مزاد لهذا العمل الفني بالفعل." });
     }
     res
       .status(500)
-      .json({ message: "Failed to create auction", error: error.message });
+      .json({ message: "فشل في إنشاء المزاد", error: error.message });
   }
-}
+};
 
 // دالة لجلب كل المزادات النشطة
 export async function getAllAuctions(req, res) {
