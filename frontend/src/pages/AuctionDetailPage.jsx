@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { fetchAuctionById, fetchAuctionBids } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+
 // استيراد المكونات
 import BiddingForm from '../components/BiddingForm';
 import CountdownTimer from '../components/CountdownTimer';
@@ -15,21 +16,23 @@ const SOCKET_URL = import.meta.env.VITE_API_BASE_URL;
 function AuctionDetailPage() {
   const { id } = useParams();
   const { user, token } = useAuth();
+
   const [auction, setAuction] = useState(null);
   const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const getBids = async (auctionId) => {
+  // ✅ دالة مستقرة (لا يعاد تعريفها عند كل render)
+  const getBids = useCallback(async (auctionId) => {
     try {
       const response = await fetchAuctionBids(auctionId);
       setBids(response.data.bids);
     } catch (error) {
       console.error("Failed to fetch bids", error);
     }
-  };
+  }, []);
 
+  // ✅ جلب البيانات الأولية (مرة واحدة عند تحميل الصفحة أو تغيّر id)
   useEffect(() => {
-    // دالة لجلب البيانات الأولية (المزاد والمزايدات)
     const fetchInitialData = async () => {
       try {
         const auctionRes = await fetchAuctionById(id);
@@ -42,46 +45,46 @@ function AuctionDetailPage() {
       }
     };
     fetchInitialData();
+  }, [id, getBids]);
 
-    // إعداد اتصال Socket.IO
+  // ✅ إعداد Socket.io بشكل منفصل (لتفادي أي loop)
+  useEffect(() => {
     const socket = io(SOCKET_URL, {
       auth: { token },
-      transports: ['polling'],
+      transports: ['polling'], // يمكن استبدالها بـ ['websocket'] لتحسين الأداء
     });
 
     socket.on('connect', () => {
       socket.emit('joinAuctionRoom', id);
     });
 
-    // الاستماع لتحديثات السعر وتحديث سجل المزايدات
+    // عند وصول تحديث في السعر
     socket.on('priceUpdate', (data) => {
-      setAuction(prevAuction => ({
-        ...prevAuction,
-        currentPrice: data.newPrice,
-      }));
-      getBids(id);
+      setAuction(prev => {
+        if (!prev || prev.currentPrice === data.newPrice) return prev;
+        return { ...prev, currentPrice: data.newPrice };
+      });
+      getBids(id); // تحديث سجل المزايدات فقط عند التغيير
     });
 
-    // الاستماع للإشعارات
+    // إشعارات مختلفة
     socket.on('outbid', (data) => {
-      toast.error(data.message); // يمكنك استبدال هذا بنظام إشعارات أفضل لاحقًا
+      toast.error(data.message);
     });
 
     socket.on('auctionWon', (data) => {
       toast.success(data.message, {
-        duration: 6000, // إظهار الإشعار لمدة أطول
+        duration: 6000,
         icon: '🎉',
       });
     });
 
     // تنظيف الاتصال عند مغادرة الصفحة
     return () => socket.disconnect();
-  }, [id, token]);
+  }, [id, token, getBids]);
 
-
-  if (loading) {
-    return <Spinner />;
-  }
+  // === واجهة المستخدم ===
+  if (loading) return <Spinner />;
 
   if (!auction) {
     return <p className="text-center p-10 text-xl">لم يتم العثور على المزاد.</p>;
@@ -89,7 +92,7 @@ function AuctionDetailPage() {
 
   return (
     <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-start">
-      {/* العمود الأيسر: الصورة (تأخذ 3/5 من المساحة على الشاشات الكبيرة) */}
+      {/* الصورة */}
       <div className="w-full lg:col-span-3">
         <img
           src={auction.artwork.imageUrl}
@@ -98,15 +101,19 @@ function AuctionDetailPage() {
         />
       </div>
 
-      {/* العمود الأيمن: التفاصيل (تأخذ 2/5 من المساحة على الشاشات الكبيرة) */}
+      {/* التفاصيل */}
       <div className="w-full lg:col-span-2">
-        {/* === الحل هنا: كل التفاصيل الآن داخل بطاقة واحدة === */}
         <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-orange-100 space-y-6">
 
           {/* العنوان والفنان */}
           <div>
-            <h1 className="text-3xl lg:text-4xl font-extrabold text-orange-600 tracking-tight">{auction.artwork.title}</h1>
-            <Link to={`/students/${auction.artwork.studentId}`} className="text-sm text-gray-500 hover:text-orange-600 transition-colors">
+            <h1 className="text-3xl lg:text-4xl font-extrabold text-orange-600 tracking-tight">
+              {auction.artwork.title}
+            </h1>
+            <Link
+              to={`/students/${auction.artwork.studentId}`}
+              className="text-sm text-gray-500 hover:text-orange-600 transition-colors"
+            >
               بواسطة {auction.artwork.student.name}
             </Link>
           </div>
@@ -114,24 +121,31 @@ function AuctionDetailPage() {
           {/* السعر */}
           <div className="flex justify-between items-center border-t border-orange-100 pt-4">
             <span className="text-gray-600 text-base">السعر الحالي</span>
-            <span className="text-3xl font-bold text-orange-500">{auction.currentPrice.toFixed(2)} ريال</span>
+            <span className="text-3xl font-bold text-orange-500">
+              {auction.currentPrice.toFixed(2)} ريال
+            </span>
           </div>
 
-          {/* مؤقت العد التنازلي */}
+          {/* العد التنازلي */}
           <CountdownTimer endTime={auction.endTime} />
 
-          {/* نموذج المزايدة أو رسالة تسجيل الدخول */}
+          {/* نموذج المزايدة */}
           {user ? (
             <BiddingForm auctionId={id} currentPrice={auction.currentPrice} />
           ) : (
             <div className="text-center text-gray-600 bg-orange-50 p-4 rounded-lg">
-              <p>الرجاء <Link to="/login" className="font-bold text-orange-600">تسجيل الدخول</Link> لتقديم عرض.</p>
+              <p>
+                الرجاء{' '}
+                <Link to="/login" className="font-bold text-orange-600">
+                  تسجيل الدخول
+                </Link>{' '}
+                لتقديم عرض.
+              </p>
             </div>
           )}
 
           {/* سجل المزايدات */}
           <BidHistory bids={bids} />
-
         </div>
       </div>
     </div>
