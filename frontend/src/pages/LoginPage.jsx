@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // 1. استيراد useEffect
 import { useNavigate, Link } from 'react-router-dom';
 import { loginUser } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -7,7 +7,15 @@ function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth(); // 2. الحصول على حالة المستخدم
+
+  // ---== الحل هنا: التحقق من حالة الدخول عند كل إعادة رسم ==---
+  useEffect(() => {
+    // إذا كان المستخدم موجودًا (مسجل دخوله)، قم بإعادة توجيهه فورًا
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]); // 3. تشغيل هذا التأثير عند تغير حالة المستخدم
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -19,7 +27,7 @@ function LoginPage() {
     try {
       const response = await loginUser(formData);
       login(response.data.token);
-      navigate('/dashboard');
+      // لم نعد بحاجة لـ navigate هنا، لأن useEffect سيتولى الأمر
     } catch (err) {
       setError(err.response?.data?.message || 'فشل تسجيل الدخول.');
     }
