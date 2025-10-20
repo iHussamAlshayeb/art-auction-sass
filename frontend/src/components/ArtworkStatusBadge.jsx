@@ -13,33 +13,32 @@ function ArtworkStatusBadge({ artwork }) {
             if (artwork.auction) {
                 return (
                     <Link to={`/auctions/${artwork.auction.id}`} className="mt-4 inline-block">
-                        <span className="bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full hover:bg-green-200 transition">
+                        <span className="bg-primary/10 text-primary-dark text-xs font-semibold px-3 py-1 rounded-full hover:bg-primary/20 transition">
                             متاح في مزاد
                         </span>
                     </Link>
                 );
             }
-            // إذا كان في مزاد ولكن لا توجد بيانات مزاد، اعرض حالة عامة
             return (
-                <span className="mt-4 inline-block bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">
+                <span className="mt-4 inline-block bg-neutral-200 text-neutral-700 text-xs font-semibold px-3 py-1 rounded-full">
                     قيد المعالجة
                 </span>
             );
         case 'SOLD':
             return (
-                <span className="mt-4 inline-block bg-purple-100 text-purple-700 text-xs font-semibold px-3 py-1 rounded-full">
+                <span className="mt-4 inline-block bg-secondary/10 text-secondary-dark text-xs font-semibold px-3 py-1 rounded-full">
                     مُباع
                 </span>
             );
         case 'ENDED':
             return (
-                <span className="mt-4 inline-block bg-yellow-100 text-yellow-700 text-xs font-semibold px-3 py-1 rounded-full">
+                <span className="mt-4 inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full">
                     انتهى المزاد
                 </span>
             );
         default: // الحالة الافتراضية هي 'DRAFT'
             return (
-                <span className="mt-4 inline-block bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">
+                <span className="mt-4 inline-block bg-neutral-200 text-neutral-700 text-xs font-semibold px-3 py-1 rounded-full">
                     قريبًا
                 </span>
             );
@@ -47,4 +46,3 @@ function ArtworkStatusBadge({ artwork }) {
 }
 
 export default ArtworkStatusBadge;
-
