@@ -9,15 +9,30 @@ const prisma = new PrismaClient();
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
 
-  if (!name || !email || !password) {
+  // --- بداية: التحقق من صحة كلمة المرور ---
+  // Regex للتحقق من:
+  // - 8 أحرف على الأقل
+  // - حرف كبير واحد على الأقل
+  // - حرف صغير واحد على الأقل
+  // - رقم واحد على الأقل
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+
+  if (!password || !passwordRegex.test(password)) {
+    return res.status(400).json({
+      message:
+        "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل وأن تحتوي على حرف كبير وحرف صغير ورقم واحد على الأقل.",
+    });
+  }
+  // --- نهاية: التحقق من صحة كلمة المرور ---
+
+  if (!name || !email) {
     return res
       .status(400)
-      .json({ message: "Name, email, and password are required." });
+      .json({ message: "الاسم والبريد الإلكتروني حقول إلزامية." });
   }
 
   try {
     const hashedPassword = await bcrypt.hash(password, 12);
-
     const user = await prisma.user.create({
       data: {
         name,
@@ -27,14 +42,14 @@ export const register = async (req, res) => {
     });
 
     user.password = undefined;
-    res.status(201).json({ message: "User created successfully", user });
+    res.status(201).json({ message: "تم إنشاء المستخدم بنجاح", user });
   } catch (error) {
     if (error.code === "P2002") {
-      return res.status(409).json({ message: "Email already exists." });
+      return res
+        .status(409)
+        .json({ message: "هذا البريد الإلكتروني مستخدم بالفعل." });
     }
-    res
-      .status(500)
-      .json({ message: "Something went wrong", error: error.message });
+    res.status(500).json({ message: "حدث خطأ ما", error: error.message });
   }
 };
 

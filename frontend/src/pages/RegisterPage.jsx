@@ -4,30 +4,53 @@ import { registerUser } from '../services/api';
 import { useAuth } from '../context/AuthContext'; // 2. استيراد useAuth
 
 function RegisterPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-  });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
-  const { user } = useAuth(); // 3. الحصول على حالة المستخدم
+  const { user } = useAuth();
 
-  // ---== الحل هنا: التحقق من حالة الدخول ==---
+  // حالة جديدة للتحقق من كلمة المرور
+  const [passwordValidations, setPasswordValidations] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+  });
+
   useEffect(() => {
-    // إذا كان المستخدم مسجلاً دخوله، قم بإعادة توجيهه فورًا
     if (user) {
       navigate('/dashboard', { replace: true });
     }
-  }, [user, navigate]); // 4. تشغيل هذا التأثير عند تغير حالة المستخدم
+  }, [user, navigate]);
+
+  // دالة للتحقق من كلمة المرور في الوقت الفعلي
+  const validatePassword = (password) => {
+    setPasswordValidations({
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /\d/.test(password),
+    });
+  };
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    if (name === 'password') {
+      validatePassword(value);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const isPasswordValid = Object.values(passwordValidations).every(Boolean);
+    if (!isPasswordValid) {
+      setError("كلمة المرور لا تلبي جميع المتطلبات.");
+      return;
+    }
+
     setError(null);
     setSuccess(null);
     try {
@@ -39,6 +62,13 @@ function RegisterPage() {
     }
   };
 
+  // مكون لعرض كل شرط من شروط التحقق
+  const ValidationItem = ({ isValid, text }) => (
+    <li className={`flex items-center gap-2 text-sm ${isValid ? 'text-green-600' : 'text-gray-500'}`}>
+      {isValid ? <FiCheckCircle /> : <FiXCircle />}
+      {text}
+    </li>
+  );
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
@@ -78,6 +108,13 @@ function RegisterPage() {
                   placeholder="••••••••" value={formData.password} onChange={handleChange}
                 />
               </div>
+              {/* قائمة التحقق من كلمة المرور */}
+              <ul className="space-y-1 mt-2">
+                <ValidationItem isValid={passwordValidations.length} text="8 أحرف على الأقل" />
+                <ValidationItem isValid={passwordValidations.uppercase} text="حرف كبير واحد على الأقل (A-Z)" />
+                <ValidationItem isValid={passwordValidations.lowercase} text="حرف صغير واحد على الأقل (a-z)" />
+                <ValidationItem isValid={passwordValidations.number} text="رقم واحد على الأقل (0-9)" />
+              </ul>
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
