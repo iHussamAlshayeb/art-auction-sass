@@ -104,7 +104,7 @@ function HomePage() {
                 <img
                   src={auction.artwork.imageUrl}
                   alt={auction.artwork.title}
-                  className="w-full h-60 object-contain bg-white"
+                  className="w-full h-60 object-cover bg-white"
                 />
               </div>
               <div className="p-5 flex flex-col">
