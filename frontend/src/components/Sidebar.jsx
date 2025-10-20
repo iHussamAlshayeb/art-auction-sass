@@ -93,7 +93,9 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                             {openMenus["dashboard"] && (
                                                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mr-4 mt-1 space-y-1 border-r-2 border-primary/20">
                                                     {dashboardSubmenu.map((item) => (
-                                                        <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `block pl-8 pr-4 py-1.5 rounded-md text-sm transition-all ${isActive ? "bg-primary/10 text-primary-dark font-medium" : "text-neutral-700 hover:text-primary-dark"}`}>{item.label}</NavLink>
+                                                        <NavLink key={item.to} to={item.to} end={item.end} className={({ isActive }) => `block pl-8 pr-4 py-1.5 rounded-md text-sm transition-all ${isActive ? "bg-primary/10 text-primary-dark font-medium" : "text-neutral-700 hover:text-primary-dark"}`}>
+                                                            {item.icon}<span>{item.label}</span>
+                                                        </NavLink>
                                                     ))}
 
                                                 </motion.div>
