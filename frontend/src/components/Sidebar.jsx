@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { Home, Image, Users, LayoutDashboard, Shield, LogIn, UserPlus, ChevronDown, X, Menu } from "lucide-react";
+import {
+    Home, Image, Users, LayoutDashboard, Shield, LogIn, UserPlus, ChevronDown, X,
+    User, Lock, Briefcase, Award, Tag
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import LogoutButton from "./LogoutButton";
@@ -22,12 +25,12 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     ];
 
     const dashboardSubmenu = [
-        { to: "/dashboard", label: "نظرة عامة", end: true },
-        { to: "/dashboard/profile", label: "تعديل الملف الشخصي" },
-        { to: "/dashboard/password", label: "تغيير كلمة المرور" },
-        { to: "/dashboard/my-artworks", label: "أعمالي الفنية" },
-        { to: "/dashboard/won-auctions", label: "مزاداتي الفائزة" },
-        { to: "/dashboard/active-bids", label: "عروضي النشطة" },
+        { to: "/dashboard", label: "نظرة عامة", icon: <LayoutDashboard size={16} />, end: true },
+        { to: "/dashboard/profile", label: "تعديل الملف الشخصي", icon: <User size={16} /> },
+        { to: "/dashboard/password", label: "تغيير كلمة المرور", icon: <Lock size={16} /> },
+        { to: "/dashboard/my-artworks", label: "أعمالي الفنية", icon: <Briefcase size={16} /> },
+        { to: "/dashboard/won-auctions", label: "مزاداتي الفائزة", icon: <Award size={16} /> },
+        { to: "/dashboard/active-bids", label: "عروضي النشطة", icon: <Tag size={16} /> },
     ];
     const linkClass = ({ isActive }) =>
         `flex items-center gap-3 px-4 py-2 rounded-lg text-sm font-medium transition-all ${isActive
