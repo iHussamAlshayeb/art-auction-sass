@@ -31,7 +31,7 @@ export async function createAuction(req, res) {
       });
     }
 
-    if ((artwork.status !== "DRAFT", "ENDED")) {
+    if (!["DRAFT", "ENDED"].includes(artwork.status)) {
       return res.status(400).json({
         message: "This artwork is already in an auction or has been sold.",
       });
