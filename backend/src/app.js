@@ -7,6 +7,7 @@ import auctionRoutes from "./api/auction.routes.js";
 import uploadRoutes from "./api/upload.routes.js";
 import adminRoutes from "./api/admin.routes.js";
 import studentRoutes from "./api/student.routes.js";
+import notificationRoutes from "./api/notification.routes.js";
 const app = express();
 
 app.use(cors());
@@ -20,6 +21,7 @@ app.use("/api/v1/auctions", auctionRoutes);
 app.use("/api/v1/upload", uploadRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/students", studentRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
 
 // Simple test route
 app.get("/", (req, res) => {

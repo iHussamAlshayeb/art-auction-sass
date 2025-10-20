@@ -26,11 +26,9 @@ export const createAuction = async (req, res) => {
         .json({ message: "يمكنك بدء مزاد لأعمالك الخاصة فقط." });
     }
     if (!["DRAFT", "ENDED"].includes(artwork.status)) {
-      return res
-        .status(400)
-        .json({
-          message: "هذا العمل الفني موجود بالفعل في مزاد نشط أو تم بيعه.",
-        });
+      return res.status(400).json({
+        message: "هذا العمل الفني موجود بالفعل في مزاد نشط أو تم بيعه.",
+      });
     }
 
     const newAuction = await prisma.$transaction(async (tx) => {
@@ -246,6 +244,7 @@ export async function placeBid(req, res) {
 
     // إرسال إشعار للمزايد القديم
     const { previousHighestBidderId, artworkTitle } = transactionResult;
+
     if (previousHighestBidderId && previousHighestBidderId !== bidderId) {
       const oldBidderSocketId = userSocketMap.get(previousHighestBidderId);
       if (oldBidderSocketId) {
@@ -254,6 +253,15 @@ export async function placeBid(req, res) {
           message: `لقد تمت المزايدة بسعر أعلى منك في مزاد "${artworkTitle}"!`,
         });
       }
+
+      // --== حفظ الإشعار في قاعدة البيانات ==--
+      await prisma.notification.create({
+        data: {
+          userId: previousHighestBidderId,
+          message: `تم التفوق على مزايدتك في مزاد "${artworkTitle}".`,
+          link: `/auctions/${auctionId}`,
+        },
+      });
     }
 
     res.status(201).json({

@@ -31,6 +31,18 @@ export const processFinishedAuctions = async (io, userSocketMap) => {
         const winner = await prisma.user.findUnique({
           where: { id: winnerId },
         });
+
+        // --== حفظ الإشعار في قاعدة البيانات ==--
+        if (winner) {
+          await prisma.notification.create({
+            data: {
+              userId: winnerId,
+              message: `🎉 تهانينا! لقد فزت بمزاد "${artwork.title}"`,
+              link: `/dashboard/won-auctions`,
+            },
+          });
+        }
+
         if (winner && winner.email) {
           // استدعاء دالة إرسال البريد
           await sendAuctionWonEmail(winner, artwork, artwork.auction);

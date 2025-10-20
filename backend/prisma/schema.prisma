@@ -36,6 +36,7 @@ model User {
   bids            Bid[]
   winningAuctions Auction[] @relation("WinningBids")
   payments        Payment[]
+  notifications Notification[]
 }
 
 model Artwork {
@@ -89,4 +90,16 @@ model Payment {
   createdAt      DateTime @default(now())
   auction        Auction  @relation(fields: [auctionId], references: [id], onDelete: Cascade)
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+model Notification {
+  id        String    @id @default(cuid())
+  message   String
+  link      String?   // رابط للانتقال إليه (مثلاً رابط المزاد)
+  isRead    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
