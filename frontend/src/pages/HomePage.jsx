@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react'; // 1. استيراد useCallback
 import { fetchAllAuctions } from '../services/api';
 import { Link } from 'react-router-dom';
 import AuctionCardTimer from '../components/AuctionCardTimer';
@@ -11,12 +11,11 @@ function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // حالات البحث والترتيب
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // دالة موحدة لجلب البيانات
+  // 2. تغليف دالة جلب البيانات بـ useCallback
   const getAuctions = useCallback(async () => {
     try {
       setLoading(true);
@@ -27,7 +26,7 @@ function HomePage() {
       setError(null);
     } catch (err) {
       if (err.code === 'ECONNABORTED') {
-        setError('الخادم يستغرق وقتًا طويلاً في الاستجابة. الرجاء الانتظار وإعادة المحاولة.');
+        setError('الخادم يستغرق وقتًا طويلاً في الاستجابة.');
       } else {
         setError('فشل في تحميل المزادات.');
       }
@@ -35,16 +34,20 @@ function HomePage() {
     } finally {
       setLoading(false);
     }
-  }, [sortBy, currentPage, searchTerm]);
+  }, [sortBy, currentPage, searchTerm]); // تعتمد هذه الدالة على هذه المتغيرات
 
+  // 3. useEffect الآن يعتمد على getAuctions فقط
   useEffect(() => {
     getAuctions();
   }, [getAuctions]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setCurrentPage(1); // العودة للصفحة الأولى عند كل بحث جديد
-    // سيتم إعادة تشغيل useEffect تلقائيًا لأن searchTerm تغير
+    if (currentPage !== 1) {
+      setCurrentPage(1); // العودة للصفحة الأولى عند البحث
+    } else {
+      getAuctions(); // إذا كنا بالفعل في الصفحة الأولى، قم بالتحديث يدويًا
+    }
   };
 
   const handlePageChange = (page) => {
