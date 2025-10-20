@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // 1. استيراد useEffect
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../services/api';
+import { useAuth } from '../context/AuthContext'; // 2. استيراد useAuth
 
 function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -11,6 +12,15 @@ function RegisterPage() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
+  const { user } = useAuth(); // 3. الحصول على حالة المستخدم
+
+  // ---== الحل هنا: التحقق من حالة الدخول ==---
+  useEffect(() => {
+    // إذا كان المستخدم مسجلاً دخوله، قم بإعادة توجيهه فورًا
+    if (user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, navigate]); // 4. تشغيل هذا التأثير عند تغير حالة المستخدم
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -28,6 +38,7 @@ function RegisterPage() {
       setError(err.response?.data?.message || 'فشل التسجيل.');
     }
   };
+
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
