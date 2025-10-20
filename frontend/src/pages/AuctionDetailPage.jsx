@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback } from 'react'; // 1. استيراد useCallback
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import { fetchAuctionById, fetchAuctionBids } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
+// استيراد المكونات
 import BiddingForm from '../components/BiddingForm';
 import CountdownTimer from '../components/CountdownTimer';
 import BidHistory from '../components/BidHistory';
@@ -16,61 +18,74 @@ function AuctionDetailPage() {
   const [auction, setAuction] = useState(null);
   const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  // 2. تغليف دالة جلب المزايدات بـ useCallback
-  const getBids = useCallback(async () => {
+  const getBids = async (auctionId) => {
     try {
-      const response = await fetchAuctionBids(id);
+      const response = await fetchAuctionBids(auctionId);
       setBids(response.data.bids);
     } catch (error) {
       console.error("Failed to fetch bids", error);
     }
-  }, [id]); // تعتمد هذه الدالة على id المزاد فقط
+  };
 
-  // 3. useEffect لجلب البيانات الأولية مرة واحدة فقط
   useEffect(() => {
+    // دالة لجلب البيانات الأولية (المزاد والمزايدات)
     const fetchInitialData = async () => {
       try {
-        setLoading(true);
         const auctionRes = await fetchAuctionById(id);
         setAuction(auctionRes.data.auction);
-        await getBids(); // استدعاء الدالة المحفوظة
-      } catch (err) {
-        setError("فشل في تحميل تفاصيل المزاد.");
-        console.error("Failed to load auction page", err);
+        await getBids(id);
+      } catch (error) {
+        console.error("Failed to load auction page", error);
       } finally {
         setLoading(false);
       }
     };
     fetchInitialData();
-  }, [id, getBids]); // يعتمد على id و getBids (التي أصبحت الآن مستقرة)
 
-  // 4. useEffect منفصل للاتصال الفوري (Socket.IO)
-  useEffect(() => {
+    // إعداد اتصال Socket.IO
     const socket = io(SOCKET_URL, {
       auth: { token },
       transports: ['polling'],
     });
 
-    socket.on('connect', () => socket.emit('joinAuctionRoom', id));
+    socket.on('connect', () => {
+      socket.emit('joinAuctionRoom', id);
+    });
 
+    // الاستماع لتحديثات السعر وتحديث سجل المزايدات
     socket.on('priceUpdate', (data) => {
-      setAuction(prev => ({ ...prev, currentPrice: data.newPrice }));
-      getBids(); // استدعاء الدالة المحفوظة لتحديث السجل
+      setAuction(prevAuction => ({
+        ...prevAuction,
+        currentPrice: data.newPrice,
+      }));
+      getBids(id);
     });
 
+    // الاستماع للإشعارات
     socket.on('outbid', (data) => {
-      // يمكنك استخدام toast هنا بدلاً من alert
-      alert(data.message);
+      toast.error(data.message); // يمكنك استبدال هذا بنظام إشعارات أفضل لاحقًا
     });
 
-    return () => socket.disconnect();
-  }, [id, token, getBids]); // يعتمد على getBids (المستقرة)
+    socket.on('auctionWon', (data) => {
+      toast.success(data.message, {
+        duration: 6000, // إظهار الإشعار لمدة أطول
+        icon: '🎉',
+      });
+    });
 
-  if (loading) return <Spinner />;
-  if (error) return <p className="text-center text-red-500 font-semibold p-10">{error}</p>;
-  if (!auction) return <p className="text-center p-10 text-xl">لم يتم العثور على المزاد.</p>;
+    // تنظيف الاتصال عند مغادرة الصفحة
+    return () => socket.disconnect();
+  }, [id, token]);
+
+
+  if (loading) {
+    return <Spinner />;
+  }
+
+  if (!auction) {
+    return <p className="text-center p-10 text-xl">لم يتم العثور على المزاد.</p>;
+  }
 
   return (
     <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-start">
