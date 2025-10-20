@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react'; // 1. استيراد useEffect
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../services/api';
 import { useAuth } from '../context/AuthContext'; // 2. استيراد useAuth
-import { FiCheckCircle } from "react-icons/fi";
+import { FiCheckCircle, FiXCircle } from "react-icons/fi";
+
+
 function RegisterPage() {
   const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [error, setError] = useState(null);
