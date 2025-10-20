@@ -10,12 +10,17 @@ export const register = async (req, res) => {
   const { name, email, password } = req.body;
 
   // --- بداية: التحقق من صحة كلمة المرور ---
+
+  // الكود القديم الخاطئ (لا يسمح بالرموز):
+  // const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+
+  // الكود الجديد الصحيح (يسمح بكل الرموز):
   // Regex للتحقق من:
-  // - 8 أحرف على الأقل
+  // - 8 أحرف على الأقل (أي حرف أو رمز)
   // - حرف كبير واحد على الأقل
   // - حرف صغير واحد على الأقل
   // - رقم واحد على الأقل
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
   if (!password || !passwordRegex.test(password)) {
     return res.status(400).json({
@@ -38,6 +43,7 @@ export const register = async (req, res) => {
         name,
         email,
         password: hashedPassword,
+        // سيتم تعيين الدور الافتراضي 'STUDENT' تلقائيًا
       },
     });
 
