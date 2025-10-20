@@ -1,51 +1,47 @@
 import { useState } from 'react';
 import { placeBid } from '../services/api';
+import toast from 'react-hot-toast';
 
 function BiddingForm({ auctionId, currentPrice }) {
   const [amount, setAmount] = useState('');
-  const [error, setError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
     setIsSubmitting(true);
     try {
       await placeBid(auctionId, parseFloat(amount));
       setAmount('');
+      // The priceUpdate socket event will handle the success feedback
     } catch (err) {
-      setError(err.response?.data?.message || 'فشلت المزايدة.');
+      toast.error(err.response?.data?.message || 'فشلت المزايدة.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="pt-6 border-t border-orange-100">
+    <div className="pt-6 border-t border-neutral-200">
       <form className="flex" onSubmit={handleSubmit}>
-        {/* === تم تعديل الترتيب والتصميم هنا === */}
-
-        {/* 1. حقل الإدخال يأتي أولاً (على اليمين) */}
+        {/* Input Field (Right Side) */}
         <input
           type="number"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder={`عرضك (أعلى من ${currentPrice} ريال)`}
           required
-          className="w-full appearance-none rounded-r-lg border border-gray-300 px-3 py-3 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-orange-500 focus:outline-none focus:ring-orange-500 sm:text-sm text-right"
+          className="w-full appearance-none rounded-r-lg border border-neutral-200 px-3 py-3 text-neutral-900 placeholder-neutral-700 focus:z-10 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary sm:text-sm text-right"
         />
 
-        {/* 2. الزر يأتي ثانيًا (على اليسار) */}
+        {/* Submit Button (Left Side) */}
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-l-lg border border-transparent bg-orange-500 py-3 px-6 text-sm font-medium text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:bg-gray-400"
+          className="rounded-l-lg border border-transparent bg-primary py-3 px-6 text-sm font-medium text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:bg-gray-400"
         >
           {isSubmitting ? '...' : 'مزايدة'}
         </button>
-
       </form>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
     </div>
   );
 }
