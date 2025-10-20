@@ -74,7 +74,7 @@ const MobileMenu = ({ isOpen, setIsOpen }) => {
                                     </NavLink>
                                 ))}
 
-                                {user && (
+                                {user?.role === "STUDENT" && (
                                     <div>
                                         <button
                                             onClick={() => toggleMenu("dashboard")}
