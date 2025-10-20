@@ -115,3 +115,5 @@ export const fetchAllArtworks = (page = 1) => {
 export const fetchAllStudents = (page = 1) => {
   return apiClient.get("/students", { params: { page } });
 };
+
+export const getNotifications = () => apiClient.get("/notifications");
