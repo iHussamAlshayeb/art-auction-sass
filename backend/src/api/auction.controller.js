@@ -6,53 +6,86 @@ import Bid from "../models/bid.model.js";
 import Notification from "../models/notification.model.js";
 import User from "../models/user.model.js";
 
+// helper: تحويل رقم
+const toAmount = (val) => {
+  const n = Number(val);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+};
+
+// helper: تحقق وقتي
+const ensureFutureDate = (dt) => {
+  const d = new Date(dt);
+  if (Number.isNaN(d.getTime())) return null;
+  return d;
+};
+
 // ---== دالة إنشاء مزاد ==---
 export const createAuction = async (req, res) => {
   const { artworkId, startPrice, endTime } = req.body;
-  const studentId = req.user.id;
+  const studentId = req.user?.id;
 
-  if (!artworkId || !startPrice || !endTime) {
+  if (!artworkId || startPrice == null || !endTime) {
     return res.status(400).json({ message: "كل الحقول مطلوبة." });
   }
+  if (!mongoose.Types.ObjectId.isValid(artworkId)) {
+    return res.status(400).json({ message: "artworkId غير صالح." });
+  }
 
-  const session = await mongoose.startSession(); // بدء جلسة (Transaction)
+  const startAmount = toAmount(startPrice);
+  if (startAmount == null) {
+    return res.status(400).json({ message: "قيمة السعر الابتدائي غير صالحة." });
+  }
+
+  const endAt = ensureFutureDate(endTime);
+  if (!endAt) {
+    return res.status(400).json({ message: "تاريخ الانتهاء غير صالح." });
+  }
+  if (endAt <= new Date()) {
+    return res
+      .status(400)
+      .json({ message: "وقت الانتهاء يجب أن يكون في المستقبل." });
+  }
+
+  const session = await mongoose.startSession();
 
   try {
     let newAuction;
-    await session.withTransaction(async () => {
-      // 1. التحقق من ملكية العمل الفني وحالته
-      const artwork = await Artwork.findById(artworkId).session(session);
 
+    await session.withTransaction(async () => {
+      // 1) التحقق من العمل الفني وملكيته
+      const artwork = await Artwork.findById(artworkId).session(session);
       if (!artwork) {
         throw new Error("العمل الفني غير موجود.");
       }
-      if (artwork.student.toString() !== studentId) {
+      if (artwork.student?.toString() !== studentId) {
         throw new Error("يمكنك بدء مزاد لأعمالك الخاصة فقط.");
       }
+      // السماح فقط إذا كان العمل في وضع المسودة أو مزاده منتهي/غير نشط
       if (!["DRAFT", "ENDED"].includes(artwork.status)) {
         throw new Error("هذا العمل الفني موجود بالفعل في مزاد نشط أو تم بيعه.");
       }
 
-      // 2. حذف أي مزادات قديمة مرتبطة بهذا العمل
+      // 2) حذف أي مزادات قديمة مرتبطة بهذا العمل
       await Auction.deleteMany({ artwork: artworkId }, { session });
 
-      // 3. إنشاء المزاد الجديد
-      const auctionResult = await Auction.create(
+      // 3) إنشاء المزاد
+      const result = await Auction.create(
         [
           {
             artwork: artworkId,
-            startPrice: parseFloat(startPrice),
-            currentPrice: parseFloat(startPrice),
+            startPrice: startAmount,
+            currentPrice: startAmount,
             startTime: new Date(),
-            endTime: new Date(endTime),
+            endTime: endAt,
+            highestBidder: null,
           },
         ],
         { session }
       );
+      newAuction = result[0];
 
-      newAuction = auctionResult[0];
-
-      // 4. تحديث حالة العمل الفني
+      // 4) تحديث حالة العمل الفني
       await Artwork.findByIdAndUpdate(
         artworkId,
         { status: "IN_AUCTION" },
@@ -60,18 +93,21 @@ export const createAuction = async (req, res) => {
       );
     });
 
-    res
+    return res
       .status(201)
       .json({ message: "تم إنشاء المزاد بنجاح", auction: newAuction });
   } catch (error) {
-    if (error.code === 11000) {
+    // 11000 => فهرس فريد (مثلاً unique على artwork في Auction)
+    if (error?.code === 11000) {
       return res
         .status(409)
         .json({ message: "يوجد مزاد لهذا العمل الفني بالفعل." });
     }
-    res.status(500).json({ message: error.message || "فشل في إنشاء المزاد" });
+    return res
+      .status(500)
+      .json({ message: error?.message || "فشل في إنشاء المزاد" });
   } finally {
-    session.endSession(); // إنهاء الجلسة
+    session.endSession();
   }
 };
 
@@ -79,56 +115,69 @@ export const createAuction = async (req, res) => {
 export async function getAllAuctions(req, res) {
   const { search, sortBy, page = 1, limit = 12 } = req.query;
 
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
+  const pageNum = Math.max(parseInt(page, 10) || 1, 1);
+  const limitNum = Math.min(Math.max(parseInt(limit, 10) || 12, 1), 50);
   const skip = (pageNum - 1) * limitNum;
 
   try {
-    const mongoWhere = { endTime: { $gt: new Date() } }; // $gt تعادل gt
+    const where = {
+      endTime: { $gt: new Date() },
+    };
 
-    // للبحث في موديل مرتبط، نحتاج استعلام من خطوتين
     if (search) {
+      // استعلام مرحلتين: البحث عن الأعمال ثم استخدام IDs في المزادات
       const artworks = await Artwork.find({
         title: { $regex: search, $options: "i" },
       }).select("_id");
-      const artworkIds = artworks.map((a) => a._id);
-      mongoWhere.artwork = { $in: artworkIds }; // $in تعادل in
+      const ids = artworks.map((a) => a._id);
+      if (ids.length === 0) {
+        return res.status(200).json({
+          auctions: [],
+          pagination: {
+            currentPage: pageNum,
+            totalPages: 0,
+            totalAuctions: 0,
+          },
+        });
+      }
+      where.artwork = { $in: ids };
     }
 
-    let sortOptions = { startTime: "desc" }; // 'desc' تعادل desc
-    if (sortBy === "ending_soon")
-      sortOptions = { endTime: "asc" }; // 'asc' تعادل asc
-    else if (sortBy === "price_asc") sortOptions = { currentPrice: "asc" };
-    else if (sortBy === "price_desc") sortOptions = { currentPrice: "desc" };
+    let sortOptions = { startTime: -1 }; // desc
+    if (sortBy === "ending_soon") sortOptions = { endTime: 1 }; // asc
+    else if (sortBy === "price_asc") sortOptions = { currentPrice: 1 };
+    else if (sortBy === "price_desc") sortOptions = { currentPrice: -1 };
 
-    const auctions = await Auction.find(mongoWhere)
-      .sort(sortOptions)
-      .skip(skip)
-      .limit(limitNum)
-      .populate({
-        // populate تعادل include
-        path: "artwork",
-        populate: {
-          path: "student",
-          select: "_id name schoolName gradeLevel",
-        },
-      });
+    const [auctions, totalAuctions] = await Promise.all([
+      Auction.find(where)
+        .sort(sortOptions)
+        .skip(skip)
+        .limit(limitNum)
+        .populate({
+          path: "artwork",
+          populate: {
+            path: "student",
+            select: "_id name schoolName gradeLevel",
+          },
+        }),
+      Auction.countDocuments(where),
+    ]);
 
-    const totalAuctions = await Auction.countDocuments(mongoWhere);
     const totalPages = Math.ceil(totalAuctions / limitNum);
 
-    res.status(200).json({
+    return res.status(200).json({
       auctions,
       pagination: {
         currentPage: pageNum,
-        totalPages: totalPages,
-        totalAuctions: totalAuctions,
+        totalPages,
+        totalAuctions,
       },
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch auctions", error: error.message });
+    return res.status(500).json({
+      message: "Failed to fetch auctions",
+      error: error?.message,
+    });
   }
 }
 
@@ -141,23 +190,19 @@ export async function getAuctionById(req, res) {
   }
 
   try {
-    const auction = await Auction.findById(id) // findById تعادل findUnique
-      .populate({
-        path: "artwork",
-        populate: {
-          path: "student",
-          select: "_id name",
-        },
-      });
+    const auction = await Auction.findById(id).populate({
+      path: "artwork",
+      populate: { path: "student", select: "_id name" },
+    });
 
     if (!auction) {
       return res.status(404).json({ message: "Auction not found" });
     }
-    res.status(200).json({ auction });
+    return res.status(200).json({ auction });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to fetch auction details",
-      error: error.message,
+      error: error?.message,
     });
   }
 }
@@ -166,14 +211,21 @@ export async function getAuctionById(req, res) {
 export async function placeBid(req, res) {
   const { id: auctionId } = req.params;
   const { amount } = req.body;
-  const bidderId = req.user.id;
+  const bidderId = req.user?.id;
 
-  if (!amount) {
-    return res.status(400).json({ message: "مبلغ المزايدة مطلوب." });
+  if (!mongoose.Types.ObjectId.isValid(auctionId)) {
+    return res.status(400).json({ message: "رقم المزاد غير صالح." });
+  }
+
+  const bidAmount = toAmount(amount);
+  if (bidAmount == null) {
+    return res
+      .status(400)
+      .json({ message: "مبلغ المزايدة مطلوب وقيمة صالحة." });
   }
 
   const session = await mongoose.startSession();
-  let transactionResult = {};
+  let txn = null;
 
   try {
     await session.withTransaction(async () => {
@@ -184,29 +236,28 @@ export async function placeBid(req, res) {
       if (!auction) throw new Error("المزاد غير موجود.");
       if (new Date() > auction.endTime)
         throw new Error("هذا المزاد قد انتهى بالفعل.");
-      if (amount <= auction.currentPrice)
+      if (bidAmount <= auction.currentPrice)
         throw new Error("يجب أن تكون مزايدتك أعلى من السعر الحالي.");
 
-      // Mongoose IDs هي objects، لذا نستخدم .toString() للمقارنة
-      if (auction.artwork.student.toString() === bidderId) {
+      // منع الطالب مالك العمل من المزايدة
+      if (auction.artwork?.student?.toString() === bidderId) {
         throw new Error("لا يمكنك المزايدة على عملك الفني الخاص.");
       }
 
       const previousHighestBidderId = auction.highestBidder;
 
+      // تحديث المزاد
       const updatedAuction = await Auction.findByIdAndUpdate(
         auctionId,
-        {
-          currentPrice: parseFloat(amount),
-          highestBidder: bidderId,
-        },
+        { currentPrice: bidAmount, highestBidder: bidderId },
         { new: true, session }
-      ); // new: true لإرجاع المستند المحدث
+      );
 
-      const bid = await Bid.create(
+      // إنشاء سجل المزايدة
+      const [createdBid] = await Bid.create(
         [
           {
-            amount: parseFloat(amount),
+            amount: bidAmount,
             auction: auctionId,
             bidder: bidderId,
           },
@@ -214,107 +265,126 @@ export async function placeBid(req, res) {
         { session }
       );
 
-      transactionResult = {
-        bid: bid[0],
+      txn = {
+        bid: createdBid,
         updatedAuction,
         previousHighestBidderId,
-        artworkTitle: auction.artwork.title,
+        artworkTitle: auction.artwork?.title || "",
       };
     });
 
-    // --- منطق الإشعارات (خارج الـ transaction) ---
+    // === الإشعارات والبث اللحظي بعد نجاح المعاملة ===
     const io = req.app.get("io");
     const userSocketMap = req.app.get("userSocketMap");
     const roomName = `auction-${auctionId}`;
 
-    io.to(roomName).emit("priceUpdate", {
-      auctionId: auctionId,
-      newPrice: transactionResult.updatedAuction.currentPrice,
-      bidderName: req.user.name,
-    });
+    if (io) {
+      io.to(roomName).emit("priceUpdate", {
+        auctionId,
+        newPrice: txn.updatedAuction.currentPrice,
+        bidderName: req.user?.name || "مستخدم",
+      });
+    }
 
-    const { previousHighestBidderId, artworkTitle } = transactionResult;
+    const { previousHighestBidderId, artworkTitle } = txn || {};
     if (
       previousHighestBidderId &&
       previousHighestBidderId.toString() !== bidderId
     ) {
-      const oldBidderSocketId = userSocketMap.get(previousHighestBidderId);
-      if (oldBidderSocketId) {
+      const key = previousHighestBidderId.toString();
+      const oldBidderSocketId = userSocketMap?.get
+        ? userSocketMap.get(key)
+        : null;
+
+      if (io && oldBidderSocketId) {
         io.to(oldBidderSocketId).emit("outbid", {
-          auctionId: auctionId,
+          auctionId,
           message: `لقد تمت المزايدة بسعر أعلى منك في مزاد "${artworkTitle}"!`,
         });
       }
-      // حفظ الإشعار في MongoDB
+
+      // حفظ إشعار في MongoDB (حقل المستخدم اسمه "user" وليس "userId")
       await Notification.create({
-        userId: previousHighestBidderId,
+        user: previousHighestBidderId,
         message: `تم التفوق على مزايدتك في مزاد "${artworkTitle}".`,
         link: `/auctions/${auctionId}`,
+        isRead: false,
       });
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "تم تقديم المزايدة بنجاح!",
-      bid: transactionResult.bid,
+      bid: txn?.bid,
     });
   } catch (error) {
-    if (error.message.includes("لا يمكنك المزايدة")) {
-      return res.status(403).json({ message: error.message }); // 403 Forbidden
+    const msg = error?.message || "فشل في تقديم المزايدة";
+    if (msg.includes("لا يمكنك المزايدة")) {
+      return res.status(403).json({ message: msg }); // Forbidden
     }
-    if (error.message.includes("المزاد غير موجود")) {
-      return res.status(404).json({ message: error.message }); // 404 Not Found
+    if (msg.includes("المزاد غير موجود")) {
+      return res.status(404).json({ message: msg }); // Not Found
     }
-    if (
-      error.message.includes("انتهى بالفعل") ||
-      error.message.includes("أعلى من السعر الحالي")
-    ) {
-      return res.status(400).json({ message: error.message }); // 400 Bad Request
+    if (msg.includes("انتهى بالفعل") || msg.includes("أعلى من السعر الحالي")) {
+      return res.status(400).json({ message: msg }); // Bad Request
     }
-    res.status(500).json({ message: error.message || "فشل في تقديم المزايدة" });
+    return res.status(500).json({ message: msg });
   } finally {
     session.endSession();
   }
 }
 
-// ---== دالة إنشاء الدفع ==---
+// ---== دالة إنشاء الدفع (Moyasar) ==---
 export async function createMoyasarPayment(req, res) {
   const { id: auctionId } = req.params;
-  const userId = req.user.id;
+  const userId = req.user?.id;
   const moyasarApiKey = process.env.MOYASAR_SECRET_KEY;
+
+  if (!mongoose.Types.ObjectId.isValid(auctionId)) {
+    return res.status(400).json({ message: "رقم المزاد غير صالح." });
+  }
+  if (!moyasarApiKey) {
+    return res
+      .status(500)
+      .json({ message: "مفتاح Moyasar غير مهيأ في الخادم." });
+  }
 
   try {
     const auction = await Auction.findById(auctionId).populate("artwork");
+    if (!auction) {
+      return res.status(404).json({ message: "Auction not found." });
+    }
 
-    if (!auction || auction.highestBidder.toString() !== userId) {
+    // يجب أن يكون المستخدم هو المزايد الأعلى
+    if (!auction.highestBidder || auction.highestBidder.toString() !== userId) {
       return res
         .status(403)
         .json({ message: "Forbidden: You are not the winner." });
     }
-    if (auction.artwork.status !== "SOLD") {
+
+    // السماح بالدفع فقط بعد تغيير حالة العمل إلى SOLD (أو بعد معالجة الانتهاء)
+    if (auction.artwork?.status !== "SOLD") {
       return res.status(400).json({ message: "Payment is not yet available." });
     }
 
     const response = await axios.post(
       "https://api.moyasar.com/v1/invoices",
       {
-        amount: Math.round(auction.currentPrice * 100),
+        amount: Math.round(auction.currentPrice * 100), // بالهللات
         currency: "SAR",
-        description: `Invoice for artwork: ${auction.artwork.title}`,
-        callback_url: `http://app.fanan3.com/payment/callback?auction_id=${auction.id}`,
-        // يمكنك إضافة metadata هنا إذا احتجت
+        description: `Invoice for artwork: ${auction.artwork?.title || ""}`,
+        callback_url: `http://app.fanan3.com/payment/callback?auction_id=${auctionId}`,
+        // يمكن إضافة metadata عند الحاجة
       },
       {
-        auth: {
-          username: moyasarApiKey,
-          password: "",
-        },
+        auth: { username: moyasarApiKey, password: "" },
       }
     );
-    res.status(200).json({ url: response.data.url });
+
+    return res.status(200).json({ url: response?.data?.url });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       message: "Failed to create Moyasar payment",
-      error: error.response ? error.response.data : error.message,
+      error: error?.response ? error.response.data : error?.message,
     });
   }
 }
@@ -322,23 +392,32 @@ export async function createMoyasarPayment(req, res) {
 // ---== دالة جلب المزايدات ==---
 export async function getAuctionBids(req, res) {
   const { id: auctionId } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(auctionId)) {
+    return res.status(400).json({ message: "رقم المزاد غير صالح." });
+  }
+
   try {
     const bids = await Bid.find({ auction: auctionId })
-      .sort({ createdAt: "desc" })
-      .populate("bidder", "name"); // جلب الاسم فقط من موديل User
+      .sort({ createdAt: -1 }) // الأحدث أولاً
+      .populate("bidder", "name");
 
-    res.status(200).json({ bids });
+    return res.status(200).json({ bids });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch bids", error: error.message });
+    return res.status(500).json({
+      message: "Failed to fetch bids",
+      error: error?.message,
+    });
   }
 }
 
 // ---== دالة إلغاء المزاد ==---
 export async function cancelAuction(req, res) {
   const { id: auctionId } = req.params;
-  const userId = req.user.id;
+  const userId = req.user?.id;
+
+  if (!mongoose.Types.ObjectId.isValid(auctionId)) {
+    return res.status(400).json({ message: "رقم المزاد غير صالح." });
+  }
 
   const session = await mongoose.startSession();
 
@@ -347,38 +426,43 @@ export async function cancelAuction(req, res) {
       const auction = await Auction.findById(auctionId)
         .session(session)
         .populate("artwork");
-      if (!auction) throw new Error("Auction not found.");
-      if (auction.artwork.student.toString() !== userId)
+
+      if (!auction) {
+        throw new Error("Auction not found.");
+      }
+      if (auction.artwork?.student?.toString() !== userId) {
         throw new Error("Forbidden: You can only cancel your own auctions.");
+      }
 
       const bidCount = await Bid.countDocuments({ auction: auctionId }).session(
         session
       );
-      if (bidCount > 0)
+      if (bidCount > 0) {
         throw new Error("Cannot cancel an auction that already has bids.");
+      }
 
       await Artwork.findByIdAndUpdate(
         auction.artwork._id,
         { status: "DRAFT" },
         { session }
       );
+
       await Auction.findByIdAndDelete(auctionId, { session });
     });
 
-    res.status(200).json({ message: "Auction cancelled successfully." });
+    return res.status(200).json({ message: "Auction cancelled successfully." });
   } catch (error) {
-    if (error.message.includes("Forbidden")) {
-      return res.status(403).json({ message: error.message });
+    const msg = error?.message || "Failed to cancel auction";
+    if (msg.includes("Forbidden")) {
+      return res.status(403).json({ message: msg });
     }
-    if (error.message.includes("not found")) {
-      return res.status(404).json({ message: error.message });
+    if (msg.includes("not found")) {
+      return res.status(404).json({ message: msg });
     }
-    if (error.message.includes("has bids")) {
-      return res.status(400).json({ message: error.message });
+    if (msg.includes("has bids")) {
+      return res.status(400).json({ message: msg });
     }
-    res
-      .status(500)
-      .json({ message: error.message || "Failed to cancel auction" });
+    return res.status(500).json({ message: msg });
   } finally {
     session.endSession();
   }
