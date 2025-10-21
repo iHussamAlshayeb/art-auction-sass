@@ -1,73 +1,72 @@
-import PrismaClientPkg from "@prisma/client";
-const { PrismaClient } = PrismaClientPkg;
-const prisma = new PrismaClient();
+import Notification from "../models/notification.model.js"; // 1. استيراد نموذج Mongoose
 
+// ---== دالة جلب الإشعارات (نسخة Mongoose) ==---
 export const getNotifications = async (req, res) => {
   const userId = req.user.id;
   try {
-    const notifications = await prisma.notification.findMany({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-      take: 30,
-    });
+    const notifications = await Notification.find({ user: userId })
+      .sort({ createdAt: -1 }) // -1 تعادل 'desc'
+      .limit(30); // .limit تعادل 'take'
+
     res.status(200).json({ notifications });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch notifications" });
+    res.status(500).json({ message: "فشل في جلب الإشعارات" });
   }
 };
 
-// ---== دالة جديدة: تحديد الكل كمقروء ==---
+// ---== دالة تحديد الكل كمقروء (نسخة Mongoose) ==---
 export const markAllAsRead = async (req, res) => {
   const userId = req.user.id;
   try {
-    await prisma.notification.updateMany({
-      where: {
-        userId: userId,
-        isRead: false,
-      },
-      data: { isRead: true },
-    });
-    res.status(200).json({ message: "All notifications marked as read." });
+    // 2. استخدام updateMany مع $set
+    await Notification.updateMany(
+      { user: userId, isRead: false }, // الشرط
+      { $set: { isRead: true } } // التحديث
+    );
+    res.status(200).json({ message: "تم تحديد الكل كمقروء." });
   } catch (error) {
-    res.status(500).json({ message: "Failed to mark notifications as read" });
+    res.status(500).json({ message: "فشل في تحديث الإشعارات" });
   }
 };
 
-// ---== دالة جديدة: حذف إشعار ==---
+// ---== دالة حذف إشعار (نسخة Mongoose) ==---
 export const deleteNotification = async (req, res) => {
   const userId = req.user.id;
   const { id: notificationId } = req.params;
   try {
-    const notification = await prisma.notification.findUnique({
-      where: { id: notificationId },
-    });
+    // 3. العثور على الإشعار
+    const notification = await Notification.findById(notificationId);
 
-    // فحص أمني: التأكد من أن المستخدم يملك هذا الإشعار
-    if (notification.userId !== userId) {
-      return res.status(403).json({ message: "Forbidden" });
+    if (!notification) {
+      return res.status(404).json({ message: "الإشعار غير موجود." });
     }
 
-    await prisma.notification.delete({
-      where: { id: notificationId },
-    });
-    res.status(200).json({ message: "Notification deleted." });
+    // 4. فحص أمني: التأكد من أن المستخدم يملك هذا الإشعار
+    // Mongoose IDs هي objects، لذا نستخدم .toString() للمقارنة
+    if (notification.user.toString() !== userId) {
+      return res.status(403).json({ message: "غير مصرح لك" });
+    }
+
+    // 5. حذف الإشعار
+    await Notification.findByIdAndDelete(notificationId);
+
+    res.status(200).json({ message: "تم حذف الإشعار." });
   } catch (error) {
-    res.status(500).json({ message: "Failed to delete notification" });
+    res.status(500).json({ message: "فشل في حذف الإشعار" });
   }
 };
 
-// ---== دالة جديدة: جلب عدد الإشعارات غير المقروءة ==---
+// ---== دالة جلب عدد الإشعارات غير المقروءة (نسخة Mongoose) ==---
 export const getUnreadNotificationsCount = async (req, res) => {
   const userId = req.user.id;
   try {
-    const count = await prisma.notification.count({
-      where: {
-        userId: userId,
-        isRead: false,
-      },
+    // 6. استخدام countDocuments
+    const count = await Notification.countDocuments({
+      user: userId,
+      isRead: false,
     });
     res.status(200).json({ count });
   } catch (error) {
-    res.status(500).json({ message: "Failed to fetch unread count" });
+    res.status(500).json({ message: "فشل في جلب عدد الإشعارات" });
   }
 };

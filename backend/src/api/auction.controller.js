@@ -1,8 +1,12 @@
-import PrismaClientPkg from "@prisma/client";
-const { PrismaClient } = PrismaClientPkg;
-const prisma = new PrismaClient();
-import axios from "axios"; // استيراد axios
+import mongoose from "mongoose";
+import axios from "axios";
+import Auction from "../models/auction.model.js";
+import Artwork from "../models/artwork.model.js";
+import Bid from "../models/bid.model.js";
+import Notification from "../models/notification.model.js";
+import User from "../models/user.model.js";
 
+// ---== دالة إنشاء مزاد ==---
 export const createAuction = async (req, res) => {
   const { artworkId, startPrice, endTime } = req.body;
   const studentId = req.user.id;
@@ -11,68 +15,67 @@ export const createAuction = async (req, res) => {
     return res.status(400).json({ message: "كل الحقول مطلوبة." });
   }
 
+  const session = await mongoose.startSession(); // بدء جلسة (Transaction)
+
   try {
-    // التحقق من ملكية العمل الفني وحالته
-    const artwork = await prisma.artwork.findUnique({
-      where: { id: artworkId },
-    });
+    let newAuction;
+    await session.withTransaction(async () => {
+      // 1. التحقق من ملكية العمل الفني وحالته
+      const artwork = await Artwork.findById(artworkId).session(session);
 
-    if (!artwork) {
-      return res.status(404).json({ message: "العمل الفني غير موجود." });
-    }
-    if (artwork.studentId !== studentId) {
-      return res
-        .status(403)
-        .json({ message: "يمكنك بدء مزاد لأعمالك الخاصة فقط." });
-    }
-    if (!["DRAFT", "ENDED"].includes(artwork.status)) {
-      return res.status(400).json({
-        message: "هذا العمل الفني موجود بالفعل في مزاد نشط أو تم بيعه.",
-      });
-    }
+      if (!artwork) {
+        throw new Error("العمل الفني غير موجود.");
+      }
+      if (artwork.student.toString() !== studentId) {
+        throw new Error("يمكنك بدء مزاد لأعمالك الخاصة فقط.");
+      }
+      if (!["DRAFT", "ENDED"].includes(artwork.status)) {
+        throw new Error("هذا العمل الفني موجود بالفعل في مزاد نشط أو تم بيعه.");
+      }
 
-    const newAuction = await prisma.$transaction(async (tx) => {
-      // ---== الحل هنا: حذف أي مزادات قديمة مرتبطة بهذا العمل ==---
-      await tx.auction.deleteMany({
-        where: { artworkId: artworkId },
-      });
+      // 2. حذف أي مزادات قديمة مرتبطة بهذا العمل
+      await Auction.deleteMany({ artwork: artworkId }, { session });
 
-      // 2. إنشاء المزاد الجديد
-      const auction = await tx.auction.create({
-        data: {
-          artworkId: artworkId,
-          startPrice: parseFloat(startPrice),
-          currentPrice: parseFloat(startPrice),
-          startTime: new Date(),
-          endTime: new Date(endTime),
-        },
-      });
+      // 3. إنشاء المزاد الجديد
+      const auctionResult = await Auction.create(
+        [
+          {
+            artwork: artworkId,
+            startPrice: parseFloat(startPrice),
+            currentPrice: parseFloat(startPrice),
+            startTime: new Date(),
+            endTime: new Date(endTime),
+          },
+        ],
+        { session }
+      );
 
-      // 3. تحديث حالة العمل الفني إلى "في مزاد"
-      await tx.artwork.update({
-        where: { id: artworkId },
-        data: { status: "IN_AUCTION" },
-      });
+      newAuction = auctionResult[0];
 
-      return auction;
+      // 4. تحديث حالة العمل الفني
+      await Artwork.findByIdAndUpdate(
+        artworkId,
+        { status: "IN_AUCTION" },
+        { session }
+      );
     });
 
     res
       .status(201)
       .json({ message: "تم إنشاء المزاد بنجاح", auction: newAuction });
   } catch (error) {
-    if (error.code === "P2002") {
+    if (error.code === 11000) {
       return res
         .status(409)
         .json({ message: "يوجد مزاد لهذا العمل الفني بالفعل." });
     }
-    res
-      .status(500)
-      .json({ message: "فشل في إنشاء المزاد", error: error.message });
+    res.status(500).json({ message: error.message || "فشل في إنشاء المزاد" });
+  } finally {
+    session.endSession(); // إنهاء الجلسة
   }
 };
 
-// دالة لجلب كل المزادات النشطة
+// ---== دالة جلب كل المزادات ==---
 export async function getAllAuctions(req, res) {
   const { search, sortBy, page = 1, limit = 12 } = req.query;
 
@@ -81,49 +84,39 @@ export async function getAllAuctions(req, res) {
   const skip = (pageNum - 1) * limitNum;
 
   try {
-    const whereClause = { endTime: { gt: new Date() } };
+    const mongoWhere = { endTime: { $gt: new Date() } }; // $gt تعادل gt
+
+    // للبحث في موديل مرتبط، نحتاج استعلام من خطوتين
     if (search) {
-      whereClause.artwork = {
-        title: { contains: search, mode: "insensitive" },
-      };
+      const artworks = await Artwork.find({
+        title: { $regex: search, $options: "i" },
+      }).select("_id");
+      const artworkIds = artworks.map((a) => a._id);
+      mongoWhere.artwork = { $in: artworkIds }; // $in تعادل in
     }
 
-    let orderByClause = { startTime: "desc" };
-    if (sortBy === "ending_soon") orderByClause = { endTime: "asc" };
-    else if (sortBy === "price_asc") orderByClause = { currentPrice: "asc" };
-    else if (sortBy === "price_desc") orderByClause = { currentPrice: "desc" };
+    let sortOptions = { startTime: "desc" }; // 'desc' تعادل desc
+    if (sortBy === "ending_soon")
+      sortOptions = { endTime: "asc" }; // 'asc' تعادل asc
+    else if (sortBy === "price_asc") sortOptions = { currentPrice: "asc" };
+    else if (sortBy === "price_desc") sortOptions = { currentPrice: "desc" };
 
-    // جلب المزادات للصفحة الحالية
-    const auctions = await prisma.auction.findMany({
-      where: whereClause,
-      skip: skip,
-      take: limitNum,
-      orderBy: orderByClause,
-      include: {
-        artwork: {
-          select: {
-            id: true,
-            title: true,
-            imageUrl: true,
-            status: true,
-            studentId: true,
-            student: {
-              select: {
-                name: true,
-                schoolName: true,
-                gradeLevel: true,
-              },
-            },
-          },
+    const auctions = await Auction.find(mongoWhere)
+      .sort(sortOptions)
+      .skip(skip)
+      .limit(limitNum)
+      .populate({
+        // populate تعادل include
+        path: "artwork",
+        populate: {
+          path: "student",
+          select: "name schoolName gradeLevel", // select تبقى كما هي
         },
-      },
-    });
+      });
 
-    // حساب العدد الإجمالي للمزادات لإرساله للمتصفح
-    const totalAuctions = await prisma.auction.count({ where: whereClause });
+    const totalAuctions = await Auction.countDocuments(mongoWhere);
     const totalPages = Math.ceil(totalAuctions / limitNum);
 
-    // إرسال البيانات مع معلومات ترقيم الصفحات
     res.status(200).json({
       auctions,
       pagination: {
@@ -139,30 +132,22 @@ export async function getAllAuctions(req, res) {
   }
 }
 
-// دالة لجلب مزاد واحد عبر الـ ID الخاص به
+// ---== دالة جلب مزاد واحد ==---
 export async function getAuctionById(req, res) {
-  const { id } = req.params; // الحصول على الـ ID من الرابط
-
+  const { id } = req.params;
   try {
-    const auction = await prisma.auction.findUnique({
-      where: { id },
-      include: {
-        artwork: {
-          include: {
-            student: {
-              select: {
-                name: true,
-              },
-            },
-          },
+    const auction = await Auction.findById(id) // findById تعادل findUnique
+      .populate({
+        path: "artwork",
+        populate: {
+          path: "student",
+          select: "name",
         },
-      },
-    });
+      });
 
     if (!auction) {
       return res.status(404).json({ message: "Auction not found" });
     }
-
     res.status(200).json({ auction });
   } catch (error) {
     res.status(500).json({
@@ -172,6 +157,7 @@ export async function getAuctionById(req, res) {
   }
 }
 
+// ---== دالة تقديم مزايدة ==---
 export async function placeBid(req, res) {
   const { id: auctionId } = req.params;
   const { amount } = req.body;
@@ -181,71 +167,72 @@ export async function placeBid(req, res) {
     return res.status(400).json({ message: "مبلغ المزايدة مطلوب." });
   }
 
-  try {
-    const transactionResult = await prisma.$transaction(async (tx) => {
-      // 1. جلب المزاد مع تضمين العمل الفني بالكامل للتحقق
-      const auction = await tx.auction.findUnique({
-        where: { id: auctionId },
-        include: {
-          artwork: true, // جلب كل بيانات العمل الفني
-        },
-      });
+  const session = await mongoose.startSession();
+  let transactionResult = {};
 
-      // ---== التحققات الأساسية ==---
+  try {
+    await session.withTransaction(async () => {
+      const auction = await Auction.findById(auctionId)
+        .session(session)
+        .populate("artwork");
+
       if (!auction) throw new Error("المزاد غير موجود.");
       if (new Date() > auction.endTime)
         throw new Error("هذا المزاد قد انتهى بالفعل.");
       if (amount <= auction.currentPrice)
         throw new Error("يجب أن تكون مزايدتك أعلى من السعر الحالي.");
 
-      // ---== 2. الشرط الجديد: منع المزايدة على العمل الخاص ==---
-      if (auction.artwork.studentId === bidderId) {
+      // Mongoose IDs هي objects، لذا نستخدم .toString() للمقارنة
+      if (auction.artwork.student.toString() === bidderId) {
         throw new Error("لا يمكنك المزايدة على عملك الفني الخاص.");
       }
 
-      const previousHighestBidderId = auction.highestBidderId;
+      const previousHighestBidderId = auction.highestBidder;
 
-      const updatedAuction = await tx.auction.update({
-        where: { id: auctionId },
-        data: {
+      const updatedAuction = await Auction.findByIdAndUpdate(
+        auctionId,
+        {
           currentPrice: parseFloat(amount),
-          highestBidderId: bidderId,
+          highestBidder: bidderId,
         },
-      });
+        { new: true, session }
+      ); // new: true لإرجاع المستند المحدث
 
-      const bid = await tx.bid.create({
-        data: {
-          amount: parseFloat(amount),
-          auctionId: auctionId,
-          bidderId: bidderId,
-        },
-      });
+      const bid = await Bid.create(
+        [
+          {
+            amount: parseFloat(amount),
+            auction: auctionId,
+            bidder: bidderId,
+          },
+        ],
+        { session }
+      );
 
-      // إرجاع البيانات اللازمة للإشعارات
-      return {
-        bid,
+      transactionResult = {
+        bid: bid[0],
         updatedAuction,
         previousHighestBidderId,
         artworkTitle: auction.artwork.title,
       };
     });
 
-    // ---== منطق الإشعارات (يبقى كما هو) ==---
+    // --- منطق الإشعارات (خارج الـ transaction) ---
     const io = req.app.get("io");
     const userSocketMap = req.app.get("userSocketMap");
     const roomName = `auction-${auctionId}`;
 
-    // إرسال تحديث السعر للجميع في الغرفة
     io.to(roomName).emit("priceUpdate", {
       auctionId: auctionId,
       newPrice: transactionResult.updatedAuction.currentPrice,
       bidderName: req.user.name,
     });
 
-    // إرسال إشعار للمزايد القديم
     const { previousHighestBidderId, artworkTitle } = transactionResult;
-
-    if (previousHighestBidderId && previousHighestBidderId !== bidderId) {
+    if (
+      previousHighestBidderId &&
+      previousHighestBidderId.toString() !== bidderId
+    ) {
       const oldBidderSocketId = userSocketMap.get(previousHighestBidderId);
       if (oldBidderSocketId) {
         io.to(oldBidderSocketId).emit("outbid", {
@@ -253,14 +240,11 @@ export async function placeBid(req, res) {
           message: `لقد تمت المزايدة بسعر أعلى منك في مزاد "${artworkTitle}"!`,
         });
       }
-
-      // --== حفظ الإشعار في قاعدة البيانات ==--
-      await prisma.notification.create({
-        data: {
-          userId: previousHighestBidderId,
-          message: `تم التفوق على مزايدتك في مزاد "${artworkTitle}".`,
-          link: `/auctions/${auctionId}`,
-        },
+      // حفظ الإشعار في MongoDB
+      await Notification.create({
+        userId: previousHighestBidderId,
+        message: `تم التفوق على مزايدتك في مزاد "${artworkTitle}".`,
+        link: `/auctions/${auctionId}`,
       });
     }
 
@@ -269,7 +253,6 @@ export async function placeBid(req, res) {
       bid: transactionResult.bid,
     });
   } catch (error) {
-    // ---== 3. معالجة محسّنة للأخطاء ==---
     if (error.message.includes("لا يمكنك المزايدة")) {
       return res.status(403).json({ message: error.message }); // 403 Forbidden
     }
@@ -282,46 +265,37 @@ export async function placeBid(req, res) {
     ) {
       return res.status(400).json({ message: error.message }); // 400 Bad Request
     }
-
-    // خطأ عام
-    res
-      .status(500)
-      .json({ message: "فشل في تقديم المزايدة", error: error.message });
+    res.status(500).json({ message: error.message || "فشل في تقديم المزايدة" });
+  } finally {
+    session.endSession();
   }
 }
 
-// دالة لإنشاء جلسة دفع للفائز
+// ---== دالة إنشاء الدفع ==---
 export async function createMoyasarPayment(req, res) {
   const { id: auctionId } = req.params;
   const userId = req.user.id;
   const moyasarApiKey = process.env.MOYASAR_SECRET_KEY;
 
   try {
-    const auction = await prisma.auction.findUnique({
-      where: { id: auctionId },
-      include: { artwork: true },
-    });
+    const auction = await Auction.findById(auctionId).populate("artwork");
 
-    if (!auction || auction.highestBidderId !== userId) {
-      return res.status(403).json({
-        message: "Forbidden: You are not the winner of this auction.",
-      });
-    }
-
-    if (auction.artwork.status !== "SOLD") {
+    if (!auction || auction.highestBidder.toString() !== userId) {
       return res
-        .status(400)
-        .json({ message: "Payment is not yet available for this auction." });
+        .status(403)
+        .json({ message: "Forbidden: You are not the winner." });
+    }
+    if (auction.artwork.status !== "SOLD") {
+      return res.status(400).json({ message: "Payment is not yet available." });
     }
 
-    // ## تعديل: سنقوم بإنشاء "فاتورة" بدلاً من "دفعة" ##
     const response = await axios.post(
       "https://api.moyasar.com/v1/invoices",
       {
         amount: Math.round(auction.currentPrice * 100),
         currency: "SAR",
         description: `Invoice for artwork: ${auction.artwork.title}`,
-        callback_url: `http://fanan3.com/payment/callback?auction_id=${auction.id}`,
+        callback_url: `http://app.fanan3.com/payment/callback?auction_id=${auction.id}`,
         // يمكنك إضافة metadata هنا إذا احتجت
       },
       {
@@ -331,15 +305,8 @@ export async function createMoyasarPayment(req, res) {
         },
       }
     );
-
-    // رابط صفحة الدفع للفاتورة موجود في 'url' مباشرة
-    const paymentUrl = response.data.url;
-    res.status(200).json({ url: paymentUrl });
+    res.status(200).json({ url: response.data.url });
   } catch (error) {
-    console.error(
-      "Moyasar API Error:",
-      error.response ? error.response.data : error.message
-    );
     res.status(500).json({
       message: "Failed to create Moyasar payment",
       error: error.response ? error.response.data : error.message,
@@ -347,24 +314,14 @@ export async function createMoyasarPayment(req, res) {
   }
 }
 
+// ---== دالة جلب المزايدات ==---
 export async function getAuctionBids(req, res) {
   const { id: auctionId } = req.params;
-
   try {
-    const bids = await prisma.bid.findMany({
-      where: { auctionId },
-      orderBy: {
-        createdAt: "desc", // ترتيب المزايدات من الأحدث للأقدم
-      },
-      include: {
-        bidder: {
-          // تضمين معلومات المزايد
-          select: {
-            name: true, // جلب الاسم فقط لحماية الخصوصية
-          },
-        },
-      },
-    });
+    const bids = await Bid.find({ auction: auctionId })
+      .sort({ createdAt: "desc" })
+      .populate("bidder", "name"); // جلب الاسم فقط من موديل User
+
     res.status(200).json({ bids });
   } catch (error) {
     res
@@ -373,48 +330,34 @@ export async function getAuctionBids(req, res) {
   }
 }
 
+// ---== دالة إلغاء المزاد ==---
 export async function cancelAuction(req, res) {
   const { id: auctionId } = req.params;
-  const userId = req.user.id; // هوية الطالب من الـ token
+  const userId = req.user.id;
+
+  const session = await mongoose.startSession();
 
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // الخطوة 1: العثور على المزاد وتضمين العمل الفني للتحقق من الملكية
-      const auction = await tx.auction.findUnique({
-        where: { id: auctionId },
-        include: { artwork: true },
-      });
-
-      if (!auction) {
-        throw new Error("Auction not found.");
-      }
-
-      // الخطوة 2: التحقق من أن المستخدم هو مالك العمل الفني
-      if (auction.artwork.studentId !== userId) {
+    await session.withTransaction(async () => {
+      const auction = await Auction.findById(auctionId)
+        .session(session)
+        .populate("artwork");
+      if (!auction) throw new Error("Auction not found.");
+      if (auction.artwork.student.toString() !== userId)
         throw new Error("Forbidden: You can only cancel your own auctions.");
-      }
 
-      // الخطوة 3 (الأهم): التحقق من عدم وجود أي مزايدات
-      const bidCount = await tx.bid.count({
-        where: { auctionId: auctionId },
-      });
-
-      if (bidCount > 0) {
+      const bidCount = await Bid.countDocuments({ auction: auctionId }).session(
+        session
+      );
+      if (bidCount > 0)
         throw new Error("Cannot cancel an auction that already has bids.");
-      }
 
-      // الخطوة 4: تحديث حالة العمل الفني إلى "مسودة"
-      await tx.artwork.update({
-        where: { id: auction.artworkId },
-        data: { status: "DRAFT" },
-      });
-
-      // الخطوة 5: حذف المزاد بالكامل
-      await tx.auction.delete({
-        where: { id: auctionId },
-      });
-
-      return { success: true };
+      await Artwork.findByIdAndUpdate(
+        auction.artwork._id,
+        { status: "DRAFT" },
+        { session }
+      );
+      await Auction.findByIdAndDelete(auctionId, { session });
     });
 
     res.status(200).json({ message: "Auction cancelled successfully." });
@@ -430,6 +373,8 @@ export async function cancelAuction(req, res) {
     }
     res
       .status(500)
-      .json({ message: "Failed to cancel auction", error: error.message });
+      .json({ message: error.message || "Failed to cancel auction" });
+  } finally {
+    session.endSession();
   }
 }

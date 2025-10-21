@@ -1,109 +1,28 @@
-import PrismaClientPkg from "@prisma/client";
-const { PrismaClient } = PrismaClientPkg;
-const prisma = new PrismaClient();
+import User from "../models/user.model.js";
+import Artwork from "../models/artwork.model.js";
+import Auction from "../models/auction.model.js";
+import Bid from "../models/bid.model.js";
 import bcrypt from "bcryptjs";
 
-// This is the getMyProfile function we already have
-export const getMyProfile = (req, res) => {
-  res.status(200).json({
-    message: "Profile fetched successfully",
-    user: req.user,
-  });
-};
-
-// Add this new function to user.controller.js
-export const getMyArtworks = async (req, res) => {
-  const studentId = req.user.id; // From the 'protect' middleware
-
-  try {
-    const artworks = await prisma.artwork.findMany({
-      where: { studentId: studentId },
-      orderBy: { createdAt: "desc" },
-      include: { auction: { select: { id: true } } },
-    });
-    res.status(200).json({ artworks });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch your artworks", error: error.message });
-  }
-};
-
-export const getMyActiveBids = async (req, res) => {
-  const userId = req.user.id;
-  try {
-    // نبحث عن المزادات التي تحتوي على مزايدة واحدة على الأقل من المستخدم ولم تنتهِ بعد
-    const auctions = await prisma.auction.findMany({
-      where: {
-        endTime: { gt: new Date() }, // المزاد لم ينتهِ
-        bids: {
-          some: { bidderId: userId }, // يوجد مزايدة من المستخدم
-        },
-      },
-      include: { artwork: true },
-      orderBy: { endTime: "asc" },
-    });
-    res.status(200).json({ auctions });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch active bids", error: error.message });
-  }
-};
-
-// دالة لجلب الأعمال الفنية التي فاز بها المستخدم
-export const getMyWonArtworks = async (req, res) => {
-  const userId = req.user.id;
-  try {
-    const wonAuctions = await prisma.auction.findMany({
-      where: {
-        highestBidderId: userId,
-        artwork: {
-          status: "SOLD",
-        },
-      },
-      include: {
-        artwork: true,
-        payment: true,
-      },
-      orderBy: { endTime: "desc" },
-    });
-    res.status(200).json({ wonAuctions });
-  } catch (error) {
-    console.error("Error fetching won artworks:", error);
-    res
-      .status(500)
-      .json({ message: "Failed to fetch won artworks", error: error.message });
-  }
-};
+// ---== دالة جلب بيانات الملف الشخصي (نسخة Mongoose) ==---
 
 export const getMyProfileData = async (req, res) => {
   const userId = req.user.id;
   try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true,
-        schoolName: true,
-        gradeLevel: true,
-        bio: true,
-        profileImageUrl: true,
-      },
-    });
+    const user = await User.findById(userId).select("-password"); // .select('-password') لتجنب إرسال كلمة المرور
+
+    if (!user) {
+      return res.status(404).json({ message: "المستخدم غير موجود." });
+    }
     res.status(200).json({ user });
   } catch (error) {
     res.status(500).json({ message: "فشل في جلب بيانات الملف الشخصي" });
   }
 };
 
+// ---== دالة تحديث الملف الشخصي (نسخة Mongoose) ==---
 export const updateMyProfile = async (req, res) => {
   const userId = req.user.id;
-
-  // الدالة جاهزة لاستقبال كل البيانات، بما في ذلك profileImageUrl
   const { name, email, profileImageUrl, schoolName, gradeLevel, bio } =
     req.body;
 
@@ -114,21 +33,24 @@ export const updateMyProfile = async (req, res) => {
   }
 
   try {
-    const dataToUpdate = { name, email, schoolName, gradeLevel, bio };
+    const user = await User.findById(userId);
 
-    // أضف رابط الصورة فقط إذا تم إرساله
-    if (profileImageUrl) {
-      dataToUpdate.profileImageUrl = profileImageUrl;
+    if (user) {
+      user.name = name;
+      user.email = email;
+      user.profileImageUrl = profileImageUrl || user.profileImageUrl;
+      user.schoolName = schoolName || user.schoolName;
+      user.gradeLevel = gradeLevel || user.gradeLevel;
+      user.bio = bio || user.bio;
+
+      await user.save();
+      res.status(200).json({ message: "تم تحديث الملف الشخصي بنجاح" });
+    } else {
+      res.status(404).json({ message: "المستخدم غير موجود." });
     }
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: dataToUpdate,
-    });
-
-    res.status(200).json({ message: "تم تحديث الملف الشخصي بنجاح" });
   } catch (error) {
-    if (error.code === "P2002") {
+    // 11000 هو رمز الخطأ لانتهاك القيد الفريد (بريد إلكتروني مكرر)
+    if (error.code === 11000) {
       return res
         .status(409)
         .json({ message: "هذا البريد الإلكتروني مستخدم بالفعل." });
@@ -137,6 +59,7 @@ export const updateMyProfile = async (req, res) => {
   }
 };
 
+// ---== دالة تحديث كلمة المرور (نسخة Mongoose) ==---
 export const updateMyPassword = async (req, res) => {
   const userId = req.user.id;
   const { currentPassword, newPassword } = req.body;
@@ -146,35 +69,79 @@ export const updateMyPassword = async (req, res) => {
   }
 
   try {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await User.findById(userId);
 
-    if (!user || !user.password) {
-      return res
-        .status(401)
-        .json({ message: "هذا الحساب لا يملك كلمة مرور مسجلة." });
+    if (user && (await user.matchPassword(currentPassword))) {
+      user.password = newPassword; // سيتم التشفير تلقائيًا عند الحفظ
+      await user.save();
+      res.status(200).json({ message: "تم تحديث كلمة المرور بنجاح." });
+    } else {
+      res.status(401).json({ message: "كلمة المرور الحالية غير صحيحة." });
     }
+  } catch (error) {
+    res.status(500).json({ message: "فشل في تحديث كلمة المرور" });
+  }
+};
 
-    const isPasswordCorrect = await bcrypt.compare(
-      currentPassword,
-      user.password
+// ---== دالة جلب أعمال الطالب (نسخة Mongoose) ==---
+export const getMyArtworks = async (req, res) => {
+  const studentId = req.user.id;
+  try {
+    const artworks = await Artwork.find({ student: studentId })
+      .sort({ createdAt: -1 })
+      .populate("auction", "id"); // جلب ID المزاد المرتبط
+
+    res.status(200).json({ artworks });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "فشل في تحميل أعمالك الفنية", error: error.message });
+  }
+};
+
+// ---== دالة جلب العروض النشطة (نسخة Mongoose) ==---
+export const getMyActiveBids = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    // 1. جلب كل المزايدات التي قام بها المستخدم
+    const userBids = await Bid.find({ bidder: userId }).select("auction");
+    const auctionIds = [...new Set(userBids.map((bid) => bid.auction))]; // الحصول على IDs فريدة للمزادات
+
+    // 2. البحث عن هذه المزادات التي لم تنتهِ بعد
+    const auctions = await Auction.find({
+      _id: { $in: auctionIds },
+      endTime: { $gt: new Date() },
+    })
+      .populate("artwork")
+      .sort({ endTime: "asc" });
+
+    res.status(200).json({ auctions });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Failed to fetch active bids", error: error.message });
+  }
+};
+
+// ---== دالة جلب المزادات الفائزة (نسخة Mongoose) ==---
+export const getMyWonArtworks = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    // 1. جلب المزادات التي فاز بها المستخدم
+    const wonAuctions = await Auction.find({ highestBidder: userId })
+      .populate("artwork")
+      .populate("payment")
+      .sort({ endTime: "desc" });
+
+    // 2. فلترة النتائج لتشمل فقط الأعمال المباعة
+    const soldAuctions = wonAuctions.filter(
+      (auction) => auction.artwork.status === "SOLD"
     );
 
-    if (!isPasswordCorrect) {
-      return res
-        .status(401)
-        .json({ message: "كلمة المرور الحالية غير صحيحة." });
-    }
-
-    const hashedNewPassword = await bcrypt.hash(newPassword, 12);
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedNewPassword },
-    });
-
-    res.status(200).json({ message: "تم تحديث كلمة المرور بنجاح." });
+    res.status(200).json({ wonAuctions: soldAuctions });
   } catch (error) {
-    console.error("Password update error:", error);
-    res.status(500).json({ message: "فشل في تحديث كلمة المرور." });
+    res
+      .status(500)
+      .json({ message: "Failed to fetch won artworks", error: error.message });
   }
 };

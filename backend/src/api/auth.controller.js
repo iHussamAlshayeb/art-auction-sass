@@ -1,34 +1,25 @@
-import PrismaClientPkg from "@prisma/client";
-import bcrypt from "bcryptjs";
+import User from "../models/user.model.js"; // 1. استيراد نموذج Mongoose
 import jwt from "jsonwebtoken";
 
-const { PrismaClient } = PrismaClientPkg;
-const prisma = new PrismaClient();
+// دالة مساعدة لإنشاء التوكن
+const generateToken = (id, role) => {
+  return jwt.sign({ userId: id, role }, process.env.JWT_SECRET, {
+    expiresIn: "1d", // استخدام نفس مدة الصلاحية
+  });
+};
 
-// export the register function
+// --- دالة التسجيل (النسخة الجديدة) ---
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
 
-  // --- بداية: التحقق من صحة كلمة المرور ---
-
-  // الكود القديم الخاطئ (لا يسمح بالرموز):
-  // const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
-
-  // الكود الجديد الصحيح (يسمح بكل الرموز):
-  // Regex للتحقق من:
-  // - 8 أحرف على الأقل (أي حرف أو رمز)
-  // - حرف كبير واحد على الأقل
-  // - حرف صغير واحد على الأقل
-  // - رقم واحد على الأقل
+  // --- التحقق من صحة كلمة المرور (يبقى كما هو) ---
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-
   if (!password || !passwordRegex.test(password)) {
     return res.status(400).json({
       message:
         "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل وأن تحتوي على حرف كبير وحرف صغير ورقم واحد على الأقل.",
     });
   }
-  // --- نهاية: التحقق من صحة كلمة المرور ---
 
   if (!name || !email) {
     return res
@@ -37,75 +28,78 @@ export const register = async (req, res) => {
   }
 
   try {
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        // سيتم تعيين الدور الافتراضي 'STUDENT' تلقائيًا
-      },
-    });
+    // 2. التحقق من وجود المستخدم (بطريقة Mongoose)
+    const userExists = await User.findOne({ email });
 
-    user.password = undefined;
-    res.status(201).json({ message: "تم إنشاء المستخدم بنجاح", user });
-  } catch (error) {
-    if (error.code === "P2002") {
+    if (userExists) {
       return res
-        .status(409)
+        .status(409) // 409 Conflict
         .json({ message: "هذا البريد الإلكتروني مستخدم بالفعل." });
     }
+
+    // 3. إنشاء مستخدم جديد (بطريقة Mongoose)
+    // سيتم تشفير كلمة المرور تلقائيًا بفضل user.model.js
+    const user = await User.create({
+      name,
+      email,
+      password,
+      // سيتم تعيين الدور الافتراضي 'STUDENT' تلقائيًا
+    });
+
+    if (user) {
+      res.status(201).json({
+        message: "تم إنشاء المستخدم بنجاح",
+        user: {
+          id: user._id, // MongoDB تستخدم _id
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      });
+    } else {
+      res.status(400).json({ message: "بيانات المستخدم غير صالحة." });
+    }
+  } catch (error) {
     res.status(500).json({ message: "حدث خطأ ما", error: error.message });
   }
 };
 
+// --- دالة تسجيل الدخول (النسخة الجديدة) ---
 export const login = async (req, res) => {
   const { email, password } = req.body;
 
-  // 1. Basic validation
   if (!email || !password) {
     return res
       .status(400)
-      .json({ message: "Email and password are required." });
+      .json({ message: "البريد الإلكتروني وكلمة المرور مطلوبان." });
   }
 
   try {
-    // 2. Find the user by their email
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    // 4. البحث عن المستخدم (بطريقة Mongoose)
+    const user = await User.findOne({ email });
 
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials." }); // Use a generic message for security
+    // 5. التحقق من كلمة المرور (باستخدام الدالة المساعدة في النموذج)
+    if (user && (await user.matchPassword(password))) {
+      // 6. إنشاء التوكن
+      const token = generateToken(user._id, user.role);
+
+      res.status(200).json({
+        message: "تم تسجيل الدخول بنجاح",
+        token,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      });
+    } else {
+      // رسالة موحدة لأسباب أمنية
+      res
+        .status(401)
+        .json({ message: "البريد الإلكتروني أو كلمة المرور غير صحيحة." });
     }
-
-    // 3. Compare the provided password with the stored hashed password
-    const isPasswordCorrect = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordCorrect) {
-      return res.status(401).json({ message: "Invalid credentials." });
-    }
-
-    // 4. If credentials are correct, generate a JWT
-    const token = jwt.sign(
-      { userId: user.id, role: user.role }, // Payload: data you want to store in the token
-      process.env.JWT_SECRET, // Secret key from your .env file
-      { expiresIn: "1d" } // Options: e.g., token expires in 1 day
-    );
-
-    // 5. Send the token back to the client
-    res.status(200).json({
-      message: "Logged in successfully",
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
-    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Something went wrong", error: error.message });
+    res.status(500).json({ message: "حدث خطأ ما", error: error.message });
   }
 };

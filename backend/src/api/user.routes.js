@@ -1,28 +1,25 @@
 import express from "express";
 import {
-  getMyProfile,
+  getMyProfileData, // <-- تم تصحيح الاسم هنا
+  updateMyProfile,
+  updateMyPassword,
   getMyArtworks,
   getMyActiveBids,
   getMyWonArtworks,
-  getMyProfileData,
-  updateMyProfile,
-  updateMyPassword,
 } from "./user.controller.js";
-import { protect } from "../middleware/auth.middleware.js"; // Import the middleware
+import { protect } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// Any request to this route must first pass through the 'protect' middleware
-router.get("/profile", protect, getMyProfile);
+// كل المسارات هنا محمية
+router.use(protect);
 
-// Add the new route for fetching a student's own artworks
-router.get("/me/artworks", protect, getMyArtworks);
+router.get("/me", getMyProfileData); // <-- تم تصحيح الاستخدام هنا
+router.put("/me", updateMyProfile);
+router.put("/me/password", updateMyPassword);
 
-// المسارات الجديدة
-router.get("/me/bids", protect, getMyActiveBids);
-router.get("/me/wins", protect, getMyWonArtworks);
+router.get("/me/artworks", getMyArtworks);
+router.get("/me/bids", getMyActiveBids);
+router.get("/me/wins", getMyWonArtworks);
 
-router.get('/me', protect, getMyProfileData);
-router.put('/me', protect, updateMyProfile);
-router.put('/me/password', protect, updateMyPassword);
 export default router;
