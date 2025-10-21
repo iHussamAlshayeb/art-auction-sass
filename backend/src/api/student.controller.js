@@ -1,118 +1,55 @@
-import mongoose from "mongoose";
 import User from "../models/user.model.js";
 import Artwork from "../models/artwork.model.js";
-import Auction from "../models/auction.model.js"; // لجلب بيانات المزادات
+import Auction from "../models/auction.model.js";
 
-// ---== جلب كل الطلاب (مع عدد الأعمال) ==---
-export const getAllStudents = async (req, res) => {
-  const { page = 1, limit = 16 } = req.query;
-
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
-  const skip = (pageNum - 1) * limitNum;
-
+// 📄 جلب بيانات الطالب الشخصية
+export const getMyProfile = async (req, res) => {
   try {
-    const studentsPipeline = [
-      { $match: { role: "STUDENT" } },
-      { $sort: { createdAt: -1 } },
-      { $skip: skip },
-      { $limit: limitNum },
-      {
-        $lookup: {
-          from: "artworks",
-          localField: "_id",
-          foreignField: "student",
-          as: "artworksData",
-        },
-      },
-      {
-        $project: {
-          _id: 1, // ✅ نحتفظ بالـ _id الأصلي
-          id: "$_id", // ✅ للتوافق مع الواجهة الأمامية
-          name: 1,
-          profileImageUrl: 1,
-          schoolName: 1,
-          gradeLevel: 1,
-          _count: {
-            artworks: { $size: "$artworksData" },
-          },
-        },
-      },
-    ];
-
-    const [students, totalStudents] = await Promise.all([
-      User.aggregate(studentsPipeline),
-      User.countDocuments({ role: "STUDENT" }),
-    ]);
-
-    res.status(200).json({
-      students,
-      pagination: {
-        currentPage: pageNum,
-        totalPages: Math.ceil(totalStudents / limitNum),
-      },
-    });
+    const user = await User.findById(req.user._id).select("-password");
+    res.status(200).json({ user });
   } catch (error) {
-    res.status(500).json({
-      message: "Failed to fetch students",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ message: "فشل في جلب الملف الشخصي", error: error.message });
   }
 };
 
-// ---== جلب الملف الشخصي العام للطالب ==---
-export const getStudentPublicProfile = async (req, res) => {
-  const { id } = req.params;
-
-  // ✅ تحقق أولي لتفادي CastError
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: "Invalid student ID" });
-  }
-
+// ✏️ تحديث الملف الشخصي
+export const updateMyProfile = async (req, res) => {
   try {
-    // 1️⃣ جلب بيانات الطالب
-    const student = await User.findOne({ _id: id, role: "STUDENT" }).select(
-      "_id name schoolName gradeLevel bio profileImageUrl"
-    );
+    const { name, schoolName, gradeLevel, avatarUrl } = req.body;
+    const user = await User.findById(req.user._id);
 
-    if (!student) {
-      return res.status(404).json({ message: "Student not found." });
-    }
+    if (!user) return res.status(404).json({ message: "المستخدم غير موجود." });
 
-    // 2️⃣ جلب أعمال الطالب مع بيانات المزاد المرتبطة
-    const artworks = await Artwork.find({ student: id })
-      .sort({ createdAt: -1 })
-      .populate({
-        path: "auction",
-        select: "_id currentPrice endTime", // ✅ استخدم _id لتوحيد البنية
-      })
-      .lean();
+    user.name = name || user.name;
+    user.schoolName = schoolName || user.schoolName;
+    user.gradeLevel = gradeLevel || user.gradeLevel;
+    user.avatarUrl = avatarUrl || user.avatarUrl;
 
-    // 3️⃣ تحويل الأعمال بحيث تحتوي دائمًا على id واضح
-    const artworksWithId = artworks.map((art) => ({
-      ...art,
-      id: art._id,
-      auction: art.auction
-        ? {
-            ...art.auction,
-            id: art.auction._id,
-          }
-        : null,
-    }));
-
-    // 4️⃣ بناء الملف الشخصي النهائي
-    const studentProfile = {
-      ...student.toObject(),
-      id: student._id, // ✅ توحيد المعرف
-      artworks: artworksWithId,
-    };
-
-    res.status(200).json({ student: studentProfile });
+    await user.save();
+    res.status(200).json({ message: "تم تحديث الملف الشخصي بنجاح", user });
   } catch (error) {
-    console.error("Error in getStudentPublicProfile:", error);
-    res.status(500).json({
-      message: "Failed to fetch student profile",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ message: "فشل في تحديث الملف الشخصي", error: error.message });
+  }
+};
+
+// 🧾 جلب أعمال الطالب + مزاداته
+export const getMyDashboardData = async (req, res) => {
+  try {
+    const artworks = await Artwork.find({ student: req.user._id });
+    const auctions = await Auction.find({
+      artwork: { $in: artworks.map((a) => a._id) },
+    })
+      .populate("artwork")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ artworks, auctions });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "فشل في جلب بيانات لوحة التحكم", error: error.message });
   }
 };

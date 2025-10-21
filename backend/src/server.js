@@ -1,17 +1,18 @@
 import "dotenv/config";
 import app from "./app.js";
 import cron from "node-cron";
-import { processFinishedAuctions } from "./services/auction.service.js";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
-import connectDB from "./config/db.js"; // 1. استيراد دالة الاتصال بـ MongoDB
+import connectDB from "./config/db.js";
+import { processFinishedAuctions } from "./services/auction.service.js";
 
 const PORT = process.env.PORT || 3000;
 
-// 2. الاتصال بقاعدة بيانات MongoDB أولاً
-connectDB();
+// 🧩 الاتصال بقاعدة البيانات
+await connectDB();
 
+// 🔌 إعداد HTTP + Socket.io
 const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
@@ -22,62 +23,66 @@ const io = new Server(httpServer, {
       "http://localhost:5173",
       "https://app.fanan3.com",
       "https://www.fanan3.com",
-      "https://fanan3.com", // إضافة النطاق الأساسي أيضًا
+      "https://fanan3.com",
     ],
     methods: ["GET", "POST"],
+    credentials: true,
   },
 });
 
-app.set("io", io);
-
+// 🧠 خريطة المستخدمين المتصلين
 const userSocketMap = new Map();
+app.set("io", io);
 app.set("userSocketMap", userSocketMap);
 
+// 🎧 إعداد Socket.io
 io.on("connection", (socket) => {
-  console.log(`A user connected: ${socket.id}`);
-  const token = socket.handshake.auth.token;
+  console.log(`🟢 User connected: ${socket.id}`);
 
+  const token = socket.handshake.auth?.token;
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.userId;
-      userSocketMap.set(userId, socket.id); // Mongoose IDs هي objects، لكن userId من التوكن هو string
-      console.log(
-        `User ${userId} authenticated and mapped to socket ${socket.id}`
-      );
+      const userId = decoded.id || decoded.userId;
+      if (userId) {
+        userSocketMap.set(userId.toString(), socket.id);
+        console.log(`✅ User ${userId} authenticated via socket ${socket.id}`);
+      }
     } catch (err) {
-      console.log("Authentication error with socket token:", err.message);
+      console.warn("⚠️ Invalid token on socket connection:", err.message);
     }
   }
 
+  // انضمام المستخدم لغرفة مزاد معينة
   socket.on("joinAuctionRoom", (auctionId) => {
     const roomName = `auction-${auctionId}`;
     socket.join(roomName);
-    console.log(`User ${socket.id} joined room ${roomName}`);
+    console.log(`📦 Socket ${socket.id} joined room ${roomName}`);
   });
 
+  // مغادرة المستخدم
   socket.on("disconnect", () => {
-    console.log(`User disconnected: ${socket.id}`);
-    for (let [userId, socketId] of userSocketMap.entries()) {
+    console.log(`🔴 Socket disconnected: ${socket.id}`);
+    for (const [userId, socketId] of userSocketMap.entries()) {
       if (socketId === socket.id) {
         userSocketMap.delete(userId);
-        console.log(`User ${userId} unmapped.`);
+        console.log(`❎ User ${userId} removed from socket map.`);
         break;
       }
     }
   });
 });
 
-httpServer.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+// 🕒 وظيفة كرون: فحص المزادات المنتهية كل دقيقة
+cron.schedule("* * * * *", async () => {
+  try {
+    await processFinishedAuctions(io, userSocketMap);
+  } catch (error) {
+    console.error("❌ Error during cron job:", error);
+  }
+});
 
-  cron.schedule("* * * * *", async () => {
-    try {
-      // 3. هذه الدالة (processFinishedAuctions) تم تحويلها بالفعل
-      //    لتستخدم Mongoose، لذا ستعمل بشكل سليم.
-      await processFinishedAuctions(io, userSocketMap);
-    } catch (error) {
-      console.error("An error occurred during the cron job:", error);
-    }
-  });
+// 🚀 تشغيل السيرفر
+httpServer.listen(PORT, () => {
+  console.log(`✅ Server running at http://localhost:${PORT}`);
 });

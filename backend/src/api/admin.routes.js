@@ -1,25 +1,26 @@
 import express from "express";
 import {
-  getStats,
   getAllUsers,
-  updateUserRole,
   deleteUser,
-  getAllArtworks,
-  deleteArtwork,
+  getAllAuctions,
+  endAuctionManually,
+  getAllNotifications,
+  deleteNotification,
 } from "./admin.controller.js";
-import { protect, checkRole } from "../middleware/auth.middleware.js";
+import { protect, adminOnly } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
-router.use(protect, checkRole(["ADMIN"]));
 
-// تعريف المسارات
-router.get("/stats", getStats);
-router.get("/users", getAllUsers);
+// 👥 إدارة المستخدمين
+router.get("/users", protect, adminOnly, getAllUsers);
+router.delete("/users/:id", protect, adminOnly, deleteUser);
 
-router.put("/users/:id/role", updateUserRole);
-router.delete("/users/:id", deleteUser);
+// 🎨 إدارة المزادات
+router.get("/auctions", protect, adminOnly, getAllAuctions);
+router.post("/auctions/:id/end", protect, adminOnly, endAuctionManually);
 
-router.get("/artworks", getAllArtworks);
-router.delete("/artworks/:id", deleteArtwork);
+// 🔔 إدارة الإشعارات
+router.get("/notifications", protect, adminOnly, getAllNotifications);
+router.delete("/notifications/:id", protect, adminOnly, deleteNotification);
 
 export default router;

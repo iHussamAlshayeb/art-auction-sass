@@ -1,16 +1,20 @@
 import express from "express";
 import {
-  getNotifications,
-  markAllAsRead,
+  getMyNotifications,
+  markNotificationAsRead,
   deleteNotification,
-  getUnreadNotificationsCount,
 } from "./notification.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-router.get("/", protect, getNotifications);
-router.post("/mark-read", protect, markAllAsRead); // <-- مسار جديد
-router.delete("/:id", protect, deleteNotification); // <-- مسار جديد
-router.get("/unread-count", protect, getUnreadNotificationsCount);
+// 🔔 عرض إشعارات المستخدم الحالي
+router.get("/", protect, getMyNotifications);
+
+// ✅ تحديث حالة إشعار إلى "مقروء"
+router.put("/:id/read", protect, markNotificationAsRead);
+
+// 🧹 حذف إشعار
+router.delete("/:id", protect, deleteNotification);
+
 export default router;

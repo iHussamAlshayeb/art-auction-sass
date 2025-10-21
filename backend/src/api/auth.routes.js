@@ -1,11 +1,15 @@
-import express from 'express';
-import { register, login } from './auth.controller.js';
+import express from "express";
+import { register, login, logout } from "./auth.controller.js";
 
 const router = express.Router();
 
-router.post('/register', register);
-router.post('/login', login); 
+// تسجيل مستخدم جديد (طالب افتراضي)
+router.post("/register", register);
 
+// تسجيل الدخول
+router.post("/login", login);
 
-// نستخدم "export default" لتصدير الراوتر
+// تسجيل الخروج
+router.post("/logout", logout);
+
 export default router;

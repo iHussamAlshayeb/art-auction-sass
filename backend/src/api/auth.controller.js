@@ -43,6 +43,7 @@ export const register = async (req, res) => {
       name,
       email,
       password,
+      role: role || "STUDENT", // الافتراضي
       // سيتم تعيين الدور الافتراضي 'STUDENT' تلقائيًا
     });
 

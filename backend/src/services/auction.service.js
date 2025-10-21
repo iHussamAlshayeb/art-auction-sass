@@ -1,72 +1,97 @@
-import { sendAuctionWonEmail } from "./email.service.js";
-import Artwork from "../models/artwork.model.js";
-import Auction from "../models/auction.model.js";
-import User from "../models/user.model.js";
-import Notification from "../models/notification.model.js";
+import nodemailer from "nodemailer";
 
-export const processFinishedAuctions = async (io, userSocketMap) => {
-  console.log(`Running job at server time: ${new Date().toISOString()}`);
+// --- إعداد النقل (Transport) ---
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || "587"),
+  secure: false, // استخدم true فقط للبورت 465
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
-  try {
-    // 1. ابحث عن كل المزادات النشطة التي انتهى وقتها
-    const finishedAuctions = await Auction.find({
-      endTime: { $lte: new Date() }, // $lte تعادل 'less than or equal'
-      status: { $ne: "PROCESSED" }, // حالة جديدة لمنع المعالجة المزدوجة
-    }).populate("artwork"); // .populate تعادل 'include: { artwork: true }'
-
-    for (const auction of finishedAuctions) {
-      let finalStatus;
-      const winnerId = auction.highestBidder; // في Mongoose، هذا هو ID الفائز
-
-      if (winnerId) {
-        finalStatus = "SOLD";
-        console.log(
-          `Auction for artwork "${auction.artwork.title}" (ID: ${auction.artwork._id}) has ended. Winner found. Status changed to SOLD.`
-        );
-
-        // 2. جلب بيانات الفائز لإرسال البريد الإلكتروني والإشعار
-        const winner = await User.findById(winnerId);
-
-        if (winner) {
-          // 3. حفظ الإشعار في MongoDB
-          await Notification.create({
-            user: winnerId,
-            message: `🎉 تهانينا! لقد فزت بمزاد "${auction.artwork.title}"`,
-            link: `/dashboard/won-auctions`,
-          });
-
-          // 4. إرسال البريد الإلكتروني (إذا كان لديه بريد)
-          if (winner.email) {
-            await sendAuctionWonEmail(winner, auction.artwork, auction);
-          }
-
-          // 5. إرسال الإشعار الفوري
-          const winnerSocketId = userSocketMap.get(winnerId.toString());
-          if (winnerSocketId) {
-            io.to(winnerSocketId).emit("auctionWon", {
-              message: `🎉 تهانينا! لقد فزت بمزاد "${auction.artwork.title}"`,
-              auctionId: auction._id,
-              finalPrice: auction.currentPrice,
-            });
-            console.log(`Sent 'auctionWon' notification to user ${winnerId}`);
-          }
-        }
-      } else {
-        finalStatus = "ENDED";
-        console.log(
-          `Auction for artwork "${auction.artwork.title}" (ID: ${auction.artwork._id}) has ended. No bids placed. Status changed to ENDED.`
-        );
-      }
-
-      // 6. تحديث حالة العمل الفني
-      await Artwork.findByIdAndUpdate(auction.artwork._id, {
-        status: finalStatus,
-      });
-
-      // 7. تحديث حالة المزاد لمنع معالجته مرة أخرى
-      await Auction.findByIdAndUpdate(auction._id, { status: "PROCESSED" });
-    }
-  } catch (error) {
-    console.error("Error processing finished auctions:", error);
+// --- فحص الاتصال بخادم البريد ---
+transporter.verify((error, success) => {
+  if (error) {
+    console.error("❌ SMTP connection failed:", error);
+  } else {
+    console.log("✅ SMTP server is ready to send emails.");
   }
+});
+
+// --- دالة أساسية لإرسال البريد ---
+export const sendEmail = async ({ to, subject, html }) => {
+  try {
+    if (!to) throw new Error("Missing recipient email address.");
+
+    const fromEmail =
+      process.env.EMAIL_FROM || `"Fanan3 Auctions" <no-reply@fanan3.com>`;
+
+    const info = await transporter.sendMail({
+      from: fromEmail,
+      to,
+      subject,
+      html,
+    });
+
+    console.log(`📤 Email sent to ${to} (ID: ${info.messageId})`);
+  } catch (error) {
+    console.error("❌ Failed to send email:", error.message);
+  }
+};
+
+// --- قالب فوز المستخدم بالمزاد ---
+export const sendAuctionWonEmail = async (user, artwork, auction) => {
+  const subject = `🎉 تهانينا ${user.name || ""}! لقد فزت بمزاد "${
+    artwork.title
+  }"`;
+
+  const html = `
+    <div style="font-family:'Cairo', sans-serif; direction:rtl; text-align:right;">
+      <h2 style="color:#008080;">🎉 مبروك الفوز!</h2>
+      <p>مرحبًا <strong>${user.name}</strong>،</p>
+      <p>لقد فزت بمزاد العمل الفني <strong>"${artwork.title}"</strong> بسعر نهائي قدره <strong>${auction.currentPrice} ر.س</strong>.</p>
+      <p>يمكنك إتمام الدفع عبر لوحة التحكم الخاصة بك.</p>
+      <a href="http://app.fanan3.com/dashboard/won-auctions" 
+         style="display:inline-block; background:#008080; color:#fff; padding:10px 20px; text-decoration:none; border-radius:8px; margin-top:15px;">
+         الانتقال إلى لوحة التحكم
+      </a>
+      <hr style="margin:20px 0;">
+      <small>شكراً لاستخدامك منصة فنّان لدعم المواهب الطلابية 🎨</small>
+    </div>
+  `;
+
+  await sendEmail({ to: user.email, subject, html });
+};
+
+// --- إشعار المالك ببيع عمله ---
+export const sendArtworkSoldEmail = async (owner, artwork, auction) => {
+  const subject = `💰 تم بيع عملك الفني "${artwork.title}" بنجاح!`;
+
+  const html = `
+    <div style="font-family:'Cairo', sans-serif; direction:rtl; text-align:right;">
+      <h2 style="color:#f97316;">💰 تهانينا!</h2>
+      <p>مرحبًا <strong>${owner.name}</strong>،</p>
+      <p>تم بيع عملك الفني <strong>"${artwork.title}"</strong> عبر المزاد بسعر نهائي قدره <strong>${auction.currentPrice} ر.س</strong>.</p>
+      <p>سيتم التواصل معك قريبًا حول تفاصيل التسليم.</p>
+      <hr style="margin:20px 0;">
+      <small>فنّان — نُقدّر إبداعك 💫</small>
+    </div>
+  `;
+
+  await sendEmail({ to: owner.email, subject, html });
+};
+
+// --- إشعار عام (قابل لإعادة الاستخدام) ---
+export const sendGenericEmail = async (to, title, message) => {
+  const html = `
+    <div style="font-family:'Cairo', sans-serif; direction:rtl; text-align:right;">
+      <h3>${title}</h3>
+      <p>${message}</p>
+      <hr>
+      <small>فنّان — منصة المزادات التعليمية 🎨</small>
+    </div>
+  `;
+  await sendEmail({ to, subject: title, html });
 };

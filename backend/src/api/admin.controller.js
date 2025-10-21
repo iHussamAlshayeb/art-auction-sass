@@ -1,190 +1,97 @@
-import mongoose from "mongoose";
 import User from "../models/user.model.js";
-import Auction from "../models/auction.model.js";
-import Payment from "../models/payment.model.js";
 import Artwork from "../models/artwork.model.js";
-import Bid from "../models/bid.model.js";
+import Auction from "../models/auction.model.js";
+import Notification from "../models/notification.model.js";
 
-// ---== دالة جلب الإحصائيات (نسخة Mongoose) ==---
-export const getStats = async (req, res) => {
-  try {
-    // 1. حساب المستخدمين والمزادات النشطة بالتوازي
-    const [userCount, activeAuctionsCount] = await Promise.all([
-      User.countDocuments(),
-      Auction.countDocuments({ endTime: { $gt: new Date() } }),
-    ]);
-
-    // 2. حساب إجمالي الإيرادات (يتطلب Aggregation)
-    const totalSalesPipeline = await Payment.aggregate([
-      { $match: { status: "paid" } }, // مطابقة المدفوعات الناجحة
-      { $group: { _id: null, totalAmount: { $sum: "$amount" } } }, // جمع المبالغ
-    ]);
-
-    const totalRevenue =
-      totalSalesPipeline.length > 0 ? totalSalesPipeline[0].totalAmount : 0;
-
-    res.status(200).json({
-      users: userCount,
-      activeAuctions: activeAuctionsCount,
-      totalRevenue: totalRevenue,
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to fetch stats", error: error.message });
-  }
-};
-
-// ---== دالة جلب كل المستخدمين (نسخة Mongoose) ==---
+// ---== جلب كل المستخدمين ==---
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find()
-      .select("name email role createdAt") // تحديد الحقول
-      .sort({ createdAt: -1 }); // -1 تعادل 'desc'
-
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
     res.status(200).json({ users });
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Failed to fetch users", error: error.message });
+      .json({ message: "فشل في جلب المستخدمين", error: error.message });
   }
 };
 
-// ---== دالة تغيير دور المستخدم (نسخة Mongoose) ==---
-export const updateUserRole = async (req, res) => {
-  const { id } = req.params;
-  const { role } = req.body;
-
-  if (!["STUDENT", "ADMIN"].includes(role)) {
-    // تم تحديث الأدوار
-    return res.status(400).json({ message: "Invalid role provided." });
-  }
-
-  try {
-    // 3. استخدام Mongoose للبحث والتحديث
-    const updatedUser = await User.findByIdAndUpdate(
-      id,
-      { role: role },
-      { new: true } // لإرجاع المستند المحدث
-    );
-
-    if (!updatedUser) {
-      return res.status(404).json({ message: "User not found." });
-    }
-    res.status(200).json({ message: "User role updated successfully." });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Failed to update user role", error: error.message });
-  }
-};
-
-// ---== دالة حذف مستخدم (نسخة Mongoose مع الحذف المتتالي) ==---
+// ---== حذف مستخدم ==---
 export const deleteUser = async (req, res) => {
   const { id } = req.params;
-
-  const session = await mongoose.startSession(); // بدء جلسة (Transaction)
-
   try {
-    await session.withTransaction(async () => {
-      // 1. ابحث عن المستخدم أولاً
-      const user = await User.findById(id).session(session);
-      if (!user) {
-        throw new Error("User not found.");
-      }
-
-      // 2. ابحث عن كل الأعمال الفنية لهذا المستخدم
-      const artworks = await Artwork.find({ student: id })
-        .session(session)
-        .select("_id");
-      const artworkIds = artworks.map((a) => a._id);
-
-      // 3. ابحث عن كل المزادات المرتبطة بهذه الأعمال
-      const auctions = await Auction.find({ artwork: { $in: artworkIds } })
-        .session(session)
-        .select("_id");
-      const auctionIds = auctions.map((a) => a._id);
-
-      // 4. حذف كل البيانات المرتبطة (المزايدات، الدفعات، إلخ)
-      await Bid.deleteMany({ auction: { $in: auctionIds } }, { session });
-      await Payment.deleteMany({ auction: { $in: auctionIds } }, { session });
-      await Auction.deleteMany({ _id: { $in: auctionIds } }, { session });
-      await Artwork.deleteMany({ _id: { $in: artworkIds } }, { session });
-
-      // 5. حذف المزايدات والدفعات الخاصة بالمستخدم (كمزايد)
-      await Bid.deleteMany({ bidder: id }, { session });
-      await Payment.deleteMany({ user: id }, { session });
-
-      // 6. تحديث المزادات التي فاز بها (جعل الفائز null)
-      await Auction.updateMany(
-        { highestBidder: id },
-        { $set: { highestBidder: null } },
-        { session }
-      );
-
-      // 7. أخيرًا، حذف المستخدم نفسه
-      await User.findByIdAndDelete(id, { session });
-    });
-
-    res
-      .status(200)
-      .json({ message: "User and all associated data deleted successfully." });
+    const user = await User.findByIdAndDelete(id);
+    if (!user) return res.status(404).json({ message: "المستخدم غير موجود" });
+    res.status(200).json({ message: "تم حذف المستخدم بنجاح" });
   } catch (error) {
-    res.status(500).json({ message: error.message || "Failed to delete user" });
-  } finally {
-    session.endSession();
+    res
+      .status(500)
+      .json({ message: "فشل في حذف المستخدم", error: error.message });
   }
 };
 
-// ---== دالة جلب كل الأعمال الفنية (نسخة Mongoose) ==---
-export const getAllArtworks = async (req, res) => {
+// ---== جلب كل المزادات ==---
+export const getAllAuctions = async (req, res) => {
   try {
-    const artworks = await Artwork.find()
-      .populate("student", "name") // .populate تعادل 'include'
+    const auctions = await Auction.find()
+      .populate({
+        path: "artwork",
+        populate: { path: "student", select: "name email schoolName" },
+      })
       .sort({ createdAt: -1 });
 
-    res.status(200).json({ artworks });
+    res.status(200).json({ auctions });
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Failed to fetch artworks", error: error.message });
+      .json({ message: "فشل في جلب المزادات", error: error.message });
   }
 };
 
-// ---== دالة حذف عمل فني (نسخة Mongoose مع الحذف المتتالي) ==---
-export const deleteArtwork = async (req, res) => {
-  const { id } = req.params; // هذا هو artworkId
-
-  const session = await mongoose.startSession();
-
+// ---== إنهاء مزاد يدويًا ==---
+export const endAuctionManually = async (req, res) => {
+  const { id } = req.params;
   try {
-    await session.withTransaction(async () => {
-      // 1. ابحث عن المزاد المرتبط (إن وجد)
-      const auction = await Auction.findOne({ artwork: id })
-        .session(session)
-        .select("_id");
+    const auction = await Auction.findById(id).populate("artwork");
+    if (!auction) return res.status(404).json({ message: "المزاد غير موجود" });
 
-      if (auction) {
-        const auctionId = auction._id;
-        // 2. احذف كل البيانات المرتبطة بالمزاد
-        await Bid.deleteMany({ auction: auctionId }, { session });
-        await Payment.deleteMany({ auction: auctionId }, { session });
-        // 3. احذف المزاد
-        await Auction.findByIdAndDelete(auctionId, { session });
-      }
+    auction.endTime = new Date(); // إنهاء الآن
+    auction.status = "ENDED";
+    await auction.save();
 
-      // 4. احذف العمل الفني نفسه
-      await Artwork.findByIdAndDelete(id, { session });
-    });
+    await Artwork.findByIdAndUpdate(auction.artwork._id, { status: "ENDED" });
 
-    res.status(200).json({
-      message: "Artwork and associated auction data deleted successfully.",
-    });
+    res.status(200).json({ message: "تم إنهاء المزاد يدويًا بنجاح." });
   } catch (error) {
     res
       .status(500)
-      .json({ message: error.message || "Failed to delete artwork" });
-  } finally {
-    session.endSession();
+      .json({ message: "فشل في إنهاء المزاد", error: error.message });
+  }
+};
+
+// ---== جلب كل الإشعارات ==---
+export const getAllNotifications = async (req, res) => {
+  try {
+    const notifications = await Notification.find()
+      .populate("user", "name email")
+      .sort({ createdAt: -1 });
+    res.status(200).json({ notifications });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "فشل في جلب الإشعارات", error: error.message });
+  }
+};
+
+// ---== حذف إشعار ==---
+export const deleteNotification = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const notif = await Notification.findByIdAndDelete(id);
+    if (!notif) return res.status(404).json({ message: "الإشعار غير موجود" });
+    res.status(200).json({ message: "تم حذف الإشعار بنجاح" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "فشل في حذف الإشعار", error: error.message });
   }
 };

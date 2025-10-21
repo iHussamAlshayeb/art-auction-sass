@@ -1,51 +1,47 @@
 import jwt from "jsonwebtoken";
-import User from "../models/user.model.js"; // 1. استيراد نموذج Mongoose
+import User from "../models/user.model.js";
 
-// ---== دالة حماية المسارات (نسخة Mongoose) ==---
+// ✅ حماية المسارات (JWT)
 export const protect = async (req, res, next) => {
   let token;
-
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    try {
-      // 1. الحصول على التوكن من الهيدر
+  try {
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
       token = req.headers.authorization.split(" ")[1];
-
-      // 2. التحقق من التوكن وفك تشفيره
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-      // 3. جلب المستخدم من MongoDB باستخدام ID الموجود في التوكن
-      // .select('-password') تضمن عدم جلب كلمة المرور
-      req.user = await User.findById(decoded.userId).select("-password");
-
-      if (!req.user) {
-        return res.status(401).json({ message: "المستخدم غير موجود" });
-      }
-
-      next(); // الانتقال إلى الدالة (controller) التالية
-    } catch (error) {
-      console.error(error);
-      res.status(401).json({ message: "غير مصرح لك، التوكن غير صالح" });
+    } else if (req.cookies?.token) {
+      token = req.cookies.token;
     }
-  }
 
-  if (!token) {
-    res.status(401).json({ message: "غير مصرح لك، لا يوجد توكن" });
+    if (!token) {
+      return res.status(401).json({ message: "غير مصرح: لم يتم توفير التوكن" });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password");
+    if (!user) return res.status(401).json({ message: "المستخدم غير موجود." });
+
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Auth Error:", error.message);
+    res.status(401).json({ message: "رمز الدخول غير صالح أو منتهي." });
   }
 };
 
-// ---== دالة التحقق من الدور (تبقى كما هي) ==---
-// هذه الدالة لا تتفاعل مع قاعدة البيانات، بل تقرأ من req.user
-// لذا لا تحتاج إلى أي تعديل.
-export const checkRole = (roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res
-        .status(403)
-        .json({ message: "Forbidden: You do not have the required role." });
-    }
-    next();
-  };
+// ✅ التحقق من الدور (ADMIN فقط)
+export const adminOnly = (req, res, next) => {
+  if (!req.user || req.user.role !== "ADMIN") {
+    return res.status(403).json({ message: "صلاحيات الإدارة مطلوبة." });
+  }
+  next();
+};
+
+// ✅ التحقق من الطالب (الافتراضي)
+export const studentOnly = (req, res, next) => {
+  if (!req.user || req.user.role !== "STUDENT") {
+    return res.status(403).json({ message: "هذه العملية متاحة للطلاب فقط." });
+  }
+  next();
 };

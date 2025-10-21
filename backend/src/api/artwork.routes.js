@@ -1,20 +1,28 @@
 import express from "express";
 import {
   createArtwork,
-  getAllArtworks,
-  getPublicArtworks,
+  updateArtwork,
+  deleteArtwork,
+  getAllPublicArtworks,
+  getStudentArtworks,
 } from "./artwork.controller.js";
-import { protect, checkRole } from "../middleware/auth.middleware.js"; // Import both middlewares
+import { protect, studentOnly } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// To post a new artwork, a user must be:
-// 1. Logged in (checked by 'protect')
-// 2. Have the role of 'STUDENT' (checked by 'checkRole')
-router.post("/", protect, checkRole(["STUDENT"]), createArtwork);
+// 👨‍🎓 إنشاء عمل فني جديد
+router.post("/", protect, studentOnly, createArtwork);
 
-router.get("/", getAllArtworks);
+// ✏️ تعديل عمل فني
+router.put("/:id", protect, studentOnly, updateArtwork);
 
-router.get("/public", getPublicArtworks);
+// 🗑️ حذف عمل فني
+router.delete("/:id", protect, studentOnly, deleteArtwork);
+
+// 🖼️ عرض جميع الأعمال العامة
+router.get("/", getAllPublicArtworks);
+
+// 👨‍🎓 جلب أعمال طالب محدد
+router.get("/student/:id", getStudentArtworks);
 
 export default router;
