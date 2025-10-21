@@ -117,3 +117,7 @@ export const fetchAllStudents = (page = 1) => {
 };
 
 export const getNotifications = () => apiClient.get("/notifications");
+export const markAllNotificationsRead = () =>
+  apiClient.post("/notifications/mark-read");
+export const deleteNotificationById = (notificationId) =>
+  apiClient.delete(`/notifications/${notificationId}`);
