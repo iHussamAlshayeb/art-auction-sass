@@ -8,7 +8,7 @@ import {
   getAuctionBids,
   cancelAuction,
 } from "./auction.controller.js";
-import { protect, authorize } from "../middleware/auth.middleware.js";
+import { protect } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
