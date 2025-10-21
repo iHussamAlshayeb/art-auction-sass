@@ -104,3 +104,15 @@ export const login = async (req, res) => {
     res.status(500).json({ message: "حدث خطأ ما", error: error.message });
   }
 };
+
+// 🚪 تسجيل الخروج (إزالة الكوكي / إنهاء الجلسة)
+export const logout = async (req, res) => {
+  try {
+    res.clearCookie("token");
+    res.status(200).json({ message: "تم تسجيل الخروج بنجاح." });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "فشل في تسجيل الخروج", error: error.message });
+  }
+};
