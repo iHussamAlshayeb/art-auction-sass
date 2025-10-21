@@ -50,7 +50,7 @@ function GalleryPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                 {!loading && artworks.map((artwork) => (
-                    <div key={artwork.id} className="bg-white rounded-2xl overflow-hidden border border-neutral-200 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
+                    <div key={artwork._id} className="bg-white rounded-2xl overflow-hidden border border-neutral-200 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
                         <img
                             src={artwork.imageUrl}
                             alt={artwork.title}

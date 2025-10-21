@@ -50,8 +50,8 @@ function ArtistsPage() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
                 {!loading && artists.map((artist) => (
                     <Link
-                        key={artist.id}
-                        to={`/students/${artist.id}`}
+                        key={artist._id}
+                        to={`/students/${artist._id}`}
                         className="group flex flex-col items-center text-center space-y-3"
                     >
                         <img
