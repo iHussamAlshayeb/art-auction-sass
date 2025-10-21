@@ -1,97 +1,103 @@
-import nodemailer from "nodemailer";
+import Artwork from "../models/artwork.model.js";
+import Auction from "../models/auction.model.js";
+import User from "../models/user.model.js";
+import Notification from "../models/notification.model.js";
+import { sendAuctionWonEmail, sendArtworkSoldEmail } from "./email.service.js";
 
-// --- إعداد النقل (Transport) ---
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: false, // استخدم true فقط للبورت 465
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+/**
+ * 🕒 دالة تُنفّذ دوريًا (عبر Cron job)
+ * تقوم بمعالجة المزادات المنتهية، إرسال الإشعارات،
+ * وتحديث حالات الأعمال الفنية والمزادات.
+ */
+export const processFinishedAuctions = async (io, userSocketMap) => {
+  console.log(`Running auction job at ${new Date().toISOString()}`);
 
-// --- فحص الاتصال بخادم البريد ---
-transporter.verify((error, success) => {
-  if (error) {
-    console.error("❌ SMTP connection failed:", error);
-  } else {
-    console.log("✅ SMTP server is ready to send emails.");
-  }
-});
-
-// --- دالة أساسية لإرسال البريد ---
-export const sendEmail = async ({ to, subject, html }) => {
   try {
-    if (!to) throw new Error("Missing recipient email address.");
+    const finishedAuctions = await Auction.find({
+      endTime: { $lte: new Date() },
+      status: { $ne: "PROCESSED" },
+    }).populate("artwork");
 
-    const fromEmail =
-      process.env.EMAIL_FROM || `"Fanan3 Auctions" <no-reply@fanan3.com>`;
+    for (const auction of finishedAuctions) {
+      let finalStatus;
+      const winnerId = auction.highestBidder;
 
-    const info = await transporter.sendMail({
-      from: fromEmail,
-      to,
-      subject,
-      html,
-    });
+      if (winnerId) {
+        finalStatus = "SOLD";
 
-    console.log(`📤 Email sent to ${to} (ID: ${info.messageId})`);
+        console.log(
+          `✅ Auction "${auction.artwork.title}" has a winner (${winnerId}).`
+        );
+
+        const winner = await User.findById(winnerId);
+        const artist = await User.findById(auction.artwork.student);
+
+        // 🧩 تحديث حالة العمل الفني
+        await Artwork.findByIdAndUpdate(auction.artwork._id, {
+          status: finalStatus,
+        });
+
+        // 🧩 إشعار الفائز
+        if (winner) {
+          await Notification.create({
+            user: winnerId,
+            message: `🎉 تهانينا! لقد فزت بمزاد "${auction.artwork.title}"`,
+            link: `/dashboard/won-auctions`,
+          });
+
+          if (winner.email) {
+            await sendAuctionWonEmail(winner, auction.artwork, auction);
+          }
+
+          const socketId = userSocketMap.get(winnerId.toString());
+          if (socketId) {
+            io.to(socketId).emit("auctionWon", {
+              message: `🎉 لقد فزت بمزاد "${auction.artwork.title}"!`,
+              auctionId: auction._id,
+              finalPrice: auction.currentPrice,
+            });
+          }
+        }
+
+        // 🧩 إشعار صاحب العمل الفني (الطالب)
+        if (artist) {
+          await Notification.create({
+            user: artist._id,
+            message: `💰 تم بيع عملك الفني "${auction.artwork.title}" بنجاح بسعر ${auction.currentPrice} ر.س`,
+            link: `/dashboard/sold-artworks`,
+          });
+
+          // ✉️ إرسال بريد إلكتروني لصاحب العمل
+          if (artist.email) {
+            await sendArtworkSoldEmail(artist, auction.artwork, auction);
+          }
+
+          // 💬 إرسال إشعار Socket مباشر للطالب
+          const artistSocketId = userSocketMap.get(artist._id.toString());
+          if (artistSocketId) {
+            io.to(artistSocketId).emit("artworkSold", {
+              message: `🎨 تم بيع عملك "${auction.artwork.title}" بمبلغ ${auction.currentPrice} ر.س`,
+              artworkId: auction.artwork._id,
+              auctionId: auction._id,
+            });
+          }
+        }
+      } else {
+        // ❌ في حالة عدم وجود مزايدات
+        finalStatus = "ENDED";
+        console.log(
+          `⚪ Auction "${auction.artwork.title}" ended without bids.`
+        );
+
+        await Artwork.findByIdAndUpdate(auction.artwork._id, {
+          status: finalStatus,
+        });
+      }
+
+      // ✅ تعليم المزاد بأنه تمت معالجته
+      await Auction.findByIdAndUpdate(auction._id, { status: "PROCESSED" });
+    }
   } catch (error) {
-    console.error("❌ Failed to send email:", error.message);
+    console.error("❌ Error in processFinishedAuctions:", error);
   }
-};
-
-// --- قالب فوز المستخدم بالمزاد ---
-export const sendAuctionWonEmail = async (user, artwork, auction) => {
-  const subject = `🎉 تهانينا ${user.name || ""}! لقد فزت بمزاد "${
-    artwork.title
-  }"`;
-
-  const html = `
-    <div style="font-family:'Cairo', sans-serif; direction:rtl; text-align:right;">
-      <h2 style="color:#008080;">🎉 مبروك الفوز!</h2>
-      <p>مرحبًا <strong>${user.name}</strong>،</p>
-      <p>لقد فزت بمزاد العمل الفني <strong>"${artwork.title}"</strong> بسعر نهائي قدره <strong>${auction.currentPrice} ر.س</strong>.</p>
-      <p>يمكنك إتمام الدفع عبر لوحة التحكم الخاصة بك.</p>
-      <a href="http://app.fanan3.com/dashboard/won-auctions" 
-         style="display:inline-block; background:#008080; color:#fff; padding:10px 20px; text-decoration:none; border-radius:8px; margin-top:15px;">
-         الانتقال إلى لوحة التحكم
-      </a>
-      <hr style="margin:20px 0;">
-      <small>شكراً لاستخدامك منصة فنّان لدعم المواهب الطلابية 🎨</small>
-    </div>
-  `;
-
-  await sendEmail({ to: user.email, subject, html });
-};
-
-// --- إشعار المالك ببيع عمله ---
-export const sendArtworkSoldEmail = async (owner, artwork, auction) => {
-  const subject = `💰 تم بيع عملك الفني "${artwork.title}" بنجاح!`;
-
-  const html = `
-    <div style="font-family:'Cairo', sans-serif; direction:rtl; text-align:right;">
-      <h2 style="color:#f97316;">💰 تهانينا!</h2>
-      <p>مرحبًا <strong>${owner.name}</strong>،</p>
-      <p>تم بيع عملك الفني <strong>"${artwork.title}"</strong> عبر المزاد بسعر نهائي قدره <strong>${auction.currentPrice} ر.س</strong>.</p>
-      <p>سيتم التواصل معك قريبًا حول تفاصيل التسليم.</p>
-      <hr style="margin:20px 0;">
-      <small>فنّان — نُقدّر إبداعك 💫</small>
-    </div>
-  `;
-
-  await sendEmail({ to: owner.email, subject, html });
-};
-
-// --- إشعار عام (قابل لإعادة الاستخدام) ---
-export const sendGenericEmail = async (to, title, message) => {
-  const html = `
-    <div style="font-family:'Cairo', sans-serif; direction:rtl; text-align:right;">
-      <h3>${title}</h3>
-      <p>${message}</p>
-      <hr>
-      <small>فنّان — منصة المزادات التعليمية 🎨</small>
-    </div>
-  `;
-  await sendEmail({ to, subject: title, html });
 };

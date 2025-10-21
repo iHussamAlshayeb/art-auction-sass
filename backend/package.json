@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/iHussamAlshayeb/art-auction-sass#readme",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.6",
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "cloudinary": "^1.41.3",
