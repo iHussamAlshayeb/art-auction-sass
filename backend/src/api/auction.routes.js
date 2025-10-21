@@ -1,4 +1,5 @@
 import express from "express";
+// استيراد الدوال الجديدة
 import {
   createAuction,
   getAllAuctions,
@@ -8,24 +9,20 @@ import {
   getAuctionBids,
   cancelAuction,
 } from "./auction.controller.js";
-import { protect } from "../middleware/auth.middleware.js";
+import { protect, checkRole } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// === المسارات العامة ===
+router.post("/", protect, checkRole(["STUDENT"]), createAuction);
 router.get("/", getAllAuctions);
 router.get("/:id", getAuctionById);
+
 router.get("/:id/bids", getAuctionBids);
 
-// === مسارات محمية للطلاب ===
-router.post("/", protect, authorize("STUDENT"), createAuction);
-router.post("/:id/bids", protect, authorize("STUDENT"), placeBid);
-router.post(
-  "/:id/checkout",
-  protect,
-  authorize("STUDENT"),
-  createMoyasarPayment
-);
-router.delete("/:id", protect, authorize("STUDENT"), cancelAuction);
+router.post("/:id/bids", protect, checkRole(["STUDENT"]), placeBid);
+
+router.post("/:id/checkout", protect, createMoyasarPayment);
+
+router.delete("/:id", protect, checkRole(["STUDENT"]), cancelAuction);
 
 export default router;
