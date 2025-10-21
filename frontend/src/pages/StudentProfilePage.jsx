@@ -61,31 +61,39 @@ function StudentProfilePage() {
             <div>
                 <h2 className="text-3xl font-bold text-gray-800 mb-6">معرض الأعمال</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                    {student.artworks.length > 0 ? (
-                        student.artworks.map(artwork => (
-                            <Link key={artwork.id} to={artwork.auction ? `/auctions/${artwork.auction.id}` : '#'}>
-                                <div className="bg-white rounded-3xl overflow-hidden border border-orange-100 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-                                    <img src={artwork.imageUrl} alt={artwork.title} className="w-full h-60 object-cover" />
-                                    <div className="p-5">
-                                        <h3 className="text-lg font-bold text-gray-800 truncate">{artwork.title}</h3>
-                                        {artwork.auction ? (
-                                            <div className="mt-4">
-                                                <p className="text-xs text-gray-500">السعر الحالي</p>
-                                                <p className="text-2xl font-extrabold text-orange-600">{artwork.auction.currentPrice} ر.س</p>
-                                                <div className="mt-2">
-                                                    <AuctionCardTimer endTime={artwork.auction.endTime} />
-                                                </div>
+                    {student.artworks.map(artwork => {
+                        // ---== الحل هنا: فصل منطق الرابط عن العرض ==---
+                        const ArtworkCard = (
+                            <div className="bg-white rounded-3xl overflow-hidden border border-orange-100 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group h-full">
+                                <img src={artwork.imageUrl} alt={artwork.title} className="w-full h-60 object-cover" />
+                                <div className="p-5">
+                                    <h3 className="text-lg font-bold text-gray-800 truncate">{artwork.title}</h3>
+                                    {artwork.auction ? (
+                                        <div className="mt-4">
+                                            <p className="text-xs text-gray-500">السعر الحالي</p>
+                                            <p className="text-2xl font-extrabold text-orange-600">{artwork.auction.currentPrice} ر.س</p>
+                                            <div className="mt-2">
+                                                <AuctionCardTimer endTime={artwork.auction.endTime} />
                                             </div>
-                                        ) : (
-                                            <p className="mt-4 text-sm font-semibold text-gray-500 bg-gray-100 p-2 rounded-md text-center">غير معروض في مزاد</p>
-                                        )}
-                                    </div>
+                                        </div>
+                                    ) : (
+                                        <p className="mt-4 text-sm font-semibold text-gray-500 bg-gray-100 p-2 rounded-md text-center">غير معروض في مزاد</p>
+                                    )}
                                 </div>
+                            </div>
+                        );
+
+                        // إذا كان هناك مزاد، اجعل الكرت رابطًا، وإلا، اعرضه كـ div عادي
+                        return artwork.auction ? (
+                            <Link key={artwork.id} to={`/auctions/${artwork.auction.id}`}>
+                                {ArtworkCard}
                             </Link>
-                        ))
-                    ) : (
-                        <p className="col-span-full text-center text-gray-500">هذا الفنان لم يقم بإضافة أي أعمال بعد.</p>
-                    )}
+                        ) : (
+                            <div key={artwork.id}>
+                                {ArtworkCard}
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </div>

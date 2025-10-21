@@ -135,6 +135,11 @@ export async function getAllAuctions(req, res) {
 // ---== دالة جلب مزاد واحد ==---
 export async function getAuctionById(req, res) {
   const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(404).json({ message: "Auction not found (Invalid ID)" });
+  }
+
   try {
     const auction = await Auction.findById(id) // findById تعادل findUnique
       .populate({
