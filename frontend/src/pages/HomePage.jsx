@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'; // 1. استيراد useCallback
+import { useState, useEffect, useCallback } from 'react';
 import { fetchAllAuctions } from '../services/api';
 import { Link } from 'react-router-dom';
 import AuctionCardTimer from '../components/AuctionCardTimer';
@@ -15,28 +15,28 @@ function HomePage() {
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
 
-  // 2. تغليف دالة جلب البيانات بـ useCallback
+  // ✅ دالة جلب المزادات
   const getAuctions = useCallback(async () => {
     try {
       setLoading(true);
       const params = { sortBy, search: searchTerm, page: currentPage };
       const response = await fetchAllAuctions(params);
-      setAuctions(response.data.auctions);
-      setPagination(response.data.pagination);
+
+      setAuctions(response.data.auctions || []);
+      setPagination(response.data.pagination || null);
       setError(null);
     } catch (err) {
+      console.error("Failed to fetch auctions:", err);
       if (err.code === 'ECONNABORTED') {
         setError('الخادم يستغرق وقتًا طويلاً في الاستجابة.');
       } else {
         setError('فشل في تحميل المزادات.');
       }
-      console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [sortBy, currentPage, searchTerm]); // تعتمد هذه الدالة على هذه المتغيرات
+  }, [sortBy, currentPage, searchTerm]);
 
-  // 3. useEffect الآن يعتمد على getAuctions فقط
   useEffect(() => {
     getAuctions();
   }, [getAuctions]);
@@ -44,19 +44,17 @@ function HomePage() {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     if (currentPage !== 1) {
-      setCurrentPage(1); // العودة للصفحة الأولى عند البحث
+      setCurrentPage(1);
     } else {
-      getAuctions(); // إذا كنا بالفعل في الصفحة الأولى، قم بالتحديث يدويًا
+      getAuctions();
     }
   };
 
-  const handlePageChange = (page) => {
-    setCurrentPage(page);
-  };
+  const handlePageChange = (page) => setCurrentPage(page);
 
   return (
     <div className="space-y-12">
-      {/* رأس الصفحة */}
+      {/* ===== العنوان الرئيسي ===== */}
       <div className="text-center">
         <h1 className="text-4xl md:text-5xl font-extrabold text-primary-dark mb-4 tracking-tight">
           المزادات الفنية
@@ -66,7 +64,7 @@ function HomePage() {
         </p>
       </div>
 
-      {/* البحث والفلاتر */}
+      {/* ===== مربع البحث والفلاتر ===== */}
       <div className="bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-lg max-w-4xl mx-auto border border-neutral-200">
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <form onSubmit={handleSearchSubmit} className="flex-grow w-full sm:w-auto">
@@ -91,49 +89,87 @@ function HomePage() {
         </div>
       </div>
 
-      {/* حالات التحميل والخطأ */}
+      {/* ===== حالات التحميل / الخطأ ===== */}
       {loading && <Spinner />}
-      {error && <p className="text-center text-red-500 font-semibold">{error}</p>}
+      {error && !loading && (
+        <p className="text-center text-red-500 font-semibold">{error}</p>
+      )}
 
-      {/* شبكة عرض الكروت */}
-      <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-        {!loading && auctions.map((auction) => (
-          <Link key={auction.id} to={`/auctions/${auction.id}`}>
-            <div className="bg-white rounded-2xl overflow-hidden border border-neutral-200 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
-              <div className="relative">
-                <img
-                  src={auction.artwork.imageUrl}
-                  alt={auction.artwork.title}
-                  className="w-full h-60 object-cover bg-white"
-                />
-              </div>
-              <div className="p-5 flex flex-col">
-                <div className="flex justify-between items-center mb-2">
-                  {auction.artwork.student.gradeLevel && (
-                    <span className="bg-primary/10 text-primary-dark text-xs font-semibold px-3 py-1 rounded-full">
-                      {auction.artwork.student.gradeLevel}
-                    </span>
-                  )}
-                  <span className="text-lg font-bold text-secondary">{auction.currentPrice} ر.س</span>
-                </div>
-                <h3 className="text-xl font-bold text-neutral-900 truncate mb-1">
-                  {auction.artwork.title}
-                </h3>
-                <Link to={`/students/${auction.artwork.studentId}`} className="text-sm text-neutral-700 hover:text-primary transition-colors">
-                  بواسطة {auction.artwork.student.name}
-                </Link>
-                <div className="mt-auto pt-4 flex justify-between items-center">
-                  <AuctionCardTimer endTime={auction.endTime} />
-                  <span className="bg-secondary text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm">
-                    المزايدة الآن
-                  </span>
-                </div>
-              </div>
+      {/* ===== شبكة المزادات ===== */}
+      {!loading && !error && (
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {auctions.length === 0 ? (
+            <div className="col-span-full text-center text-gray-500 text-lg">
+              لا توجد مزادات متاحة حالياً.
             </div>
-          </Link>
-        ))}
-      </div>
+          ) : (
+            auctions
+              .filter((a) => a && (a._id || a.id))
+              .map((auction) => {
+                const auctionId = auction._id || auction.id;
+                const artwork = auction.artwork || {};
+                const student = artwork.student || {};
+                const studentId = student._id || student.id || student.studentId;
 
+                return (
+                  <Link key={auctionId} to={`/auctions/${auctionId}`}>
+                    <div className="bg-white rounded-2xl overflow-hidden border border-neutral-200 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group">
+                      <div className="relative">
+                        <img
+                          src={
+                            artwork.imageUrl ||
+                            "https://via.placeholder.com/400x300?text=No+Image"
+                          }
+                          alt={artwork.title || "عمل فني"}
+                          className="w-full h-60 object-cover bg-white"
+                        />
+                      </div>
+
+                      <div className="p-5 flex flex-col">
+                        <div className="flex justify-between items-center mb-2">
+                          {student.gradeLevel && (
+                            <span className="bg-primary/10 text-primary-dark text-xs font-semibold px-3 py-1 rounded-full">
+                              {student.gradeLevel}
+                            </span>
+                          )}
+                          <span className="text-lg font-bold text-secondary">
+                            {auction.currentPrice} ر.س
+                          </span>
+                        </div>
+
+                        <h3 className="text-xl font-bold text-neutral-900 truncate mb-1">
+                          {artwork.title || "عمل فني بدون عنوان"}
+                        </h3>
+
+                        {studentId ? (
+                          <Link
+                            to={`/students/${studentId}`}
+                            className="text-sm text-neutral-700 hover:text-primary transition-colors"
+                          >
+                            بواسطة {student.name || "فنان غير معروف"}
+                          </Link>
+                        ) : (
+                          <span className="text-sm text-gray-400">
+                            فنان غير معروف
+                          </span>
+                        )}
+
+                        <div className="mt-auto pt-4 flex justify-between items-center">
+                          <AuctionCardTimer endTime={auction.endTime} />
+                          <span className="bg-secondary text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm">
+                            المزايدة الآن
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })
+          )}
+        </div>
+      )}
+
+      {/* ===== صفحات التصفح ===== */}
       {!loading && pagination && (
         <Pagination
           currentPage={pagination.currentPage}
@@ -142,6 +178,7 @@ function HomePage() {
         />
       )}
 
+      {/* ===== في حال لا توجد نتائج ===== */}
       {!loading && auctions.length === 0 && !error && (
         <div className="text-center text-neutral-700 mt-20">
           <p className="text-2xl font-semibold">لم يتم العثور على مزادات.</p>
@@ -153,4 +190,3 @@ function HomePage() {
 }
 
 export default HomePage;
-

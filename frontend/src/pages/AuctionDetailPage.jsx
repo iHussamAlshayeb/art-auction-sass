@@ -4,8 +4,6 @@ import { io } from 'socket.io-client';
 import { fetchAuctionById, fetchAuctionBids } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-
-// استيراد المكونات
 import BiddingForm from '../components/BiddingForm';
 import CountdownTimer from '../components/CountdownTimer';
 import BidHistory from '../components/BidHistory';
@@ -21,7 +19,7 @@ function AuctionDetailPage() {
   const [bids, setBids] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ دالة مستقرة (لا يعاد تعريفها عند كل render)
+  // === تحميل المزايدات ===
   const getBids = useCallback(async (auctionId) => {
     try {
       const response = await fetchAuctionBids(auctionId);
@@ -31,7 +29,7 @@ function AuctionDetailPage() {
     }
   }, []);
 
-  // ✅ جلب البيانات الأولية (مرة واحدة عند تحميل الصفحة أو تغيّر id)
+  // === تحميل بيانات المزاد ===
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
@@ -47,27 +45,25 @@ function AuctionDetailPage() {
     fetchInitialData();
   }, [id, getBids]);
 
-  // ✅ إعداد Socket.io بشكل منفصل (لتفادي أي loop)
+  // === إعداد Socket.io ===
   useEffect(() => {
     const socket = io(SOCKET_URL, {
       auth: { token },
-      transports: ['polling'], // يمكن استبدالها بـ ['websocket'] لتحسين الأداء
+      transports: ['polling'], // يمكن تغييره إلى websocket إذا كان السيرفر يدعمه
     });
 
     socket.on('connect', () => {
       socket.emit('joinAuctionRoom', id);
     });
 
-    // عند وصول تحديث في السعر
     socket.on('priceUpdate', (data) => {
       setAuction(prev => {
         if (!prev || prev.currentPrice === data.newPrice) return prev;
         return { ...prev, currentPrice: data.newPrice };
       });
-      getBids(id); // تحديث سجل المزايدات فقط عند التغيير
+      getBids(id);
     });
 
-    // إشعارات مختلفة
     socket.on('outbid', (data) => {
       toast.error(data.message);
     });
@@ -79,7 +75,6 @@ function AuctionDetailPage() {
       });
     });
 
-    // تنظيف الاتصال عند مغادرة الصفحة
     return () => socket.disconnect();
   }, [id, token, getBids]);
 
@@ -89,6 +84,8 @@ function AuctionDetailPage() {
   if (!auction) {
     return <p className="text-center p-10 text-xl">لم يتم العثور على المزاد.</p>;
   }
+
+  const artist = auction.artwork?.student;
 
   return (
     <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12 items-start">
@@ -110,12 +107,14 @@ function AuctionDetailPage() {
             <h1 className="text-3xl lg:text-4xl font-extrabold text-orange-600 tracking-tight">
               {auction.artwork.title}
             </h1>
-            <Link
-              to={`/students/${auction.artwork.studentId}`}
-              className="text-sm text-gray-500 hover:text-orange-600 transition-colors"
-            >
-              بواسطة {auction.artwork.student.name}
-            </Link>
+            {artist && (
+              <Link
+                to={`/students/${artist.id || artist._id}`}
+                className="text-sm text-gray-500 hover:text-orange-600 transition-colors"
+              >
+                بواسطة {artist.name}
+              </Link>
+            )}
           </div>
 
           {/* السعر */}
