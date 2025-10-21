@@ -4,7 +4,7 @@ import { FiHome, FiGrid, FiBell, FiPlus, FiUser } from 'react-icons/fi';
 import { MdOutlineDesignServices } from "react-icons/md";
 
 function BottomNav() {
-    const { user } = useAuth();
+    const { user, unreadCount } = useAuth();
 
     const linkClass = ({ isActive }) =>
         `flex flex-col items-center justify-center gap-1 w-full transition-colors duration-200 ${isActive
@@ -35,7 +35,17 @@ function BottomNav() {
                         <MdOutlineDesignServices size={22} />
                         <span className="text-xs">الفنانون</span>
                     </NavLink>
-                    <NavLink to="/notifications" className={linkClass}><FiBell size={22} /><span className="text-xs">الإشعارات</span></NavLink>
+                    <NavLink to="/notifications" className={linkClass}>
+                        <div className="relative">
+                            <FiBell size={22} />
+                            {unreadCount > 0 && (
+                                <span className="absolute -top-2 -right-2 w-5 h-5 bg-secondary text-white text-xs font-bold rounded-full flex items-center justify-center">
+                                    {unreadCount}
+                                </span>
+                            )}
+                        </div>
+                        <span className="text-xs">الإشعارات</span>
+                    </NavLink>
 
                     {/* الزر الأوسط العائم باللون الثانوي الجديد */}
                     <Link
@@ -66,7 +76,17 @@ function BottomNav() {
                     <span className="text-xs">الفنانون</span>
                 </NavLink>
                 {user ? (
-                    <NavLink to="/notifications" className={linkClass}><FiBell size={22} /><span className="text-xs">الإشعارات</span></NavLink>
+                    <NavLink to="/notifications" className={linkClass}>
+                        <div className="relative">
+                            <FiBell size={22} />
+                            {unreadCount > 0 && (
+                                <span className="absolute -top-2 -right-2 w-5 h-5 bg-secondary text-white text-xs font-bold rounded-full flex items-center justify-center">
+                                    {unreadCount}
+                                </span>
+                            )}
+                        </div>
+                        <span className="text-xs">الإشعارات</span>
+                    </NavLink>
                 ) : (
                     <NavLink to="/login" className={linkClass}>
                         <FiUser size={22} />

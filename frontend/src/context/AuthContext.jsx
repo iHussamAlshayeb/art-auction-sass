@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useContext, useCallback } from 'react';
-import { getMyProfile } from '../services/api'; // 1. استيراد دالة جلب الملف الشخصي
+import { getMyProfile, getUnreadNotifCount } from '../services/api'; // 1. استيراد دالة جلب الملف الشخصي
 
 const AuthContext = createContext(null);
 
@@ -7,6 +7,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); // سيحتوي على بيانات المستخدم الكاملة
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [isInitializing, setIsInitializing] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // 2. دالة مخصصة لجلب بيانات المستخدم من الخادم
   const fetchUser = useCallback(async () => {
@@ -30,16 +31,41 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+
+  const fetchUnreadCount = async () => {
+    if (!localStorage.getItem('token')) return;
+    try {
+      const res = await getUnreadNotifCount();
+      setUnreadCount(res.data.count);
+    } catch (error) {
+      console.error("Failed to fetch unread count", error);
+    }
+  };
   // 3. جلب بيانات المستخدم عند تحميل التطبيق لأول مرة
   useEffect(() => {
-    fetchUser();
+    const initializeAuth = async () => {
+      await fetchUser();
+      await fetchUnreadCount(); // جلب العدد عند بدء التشغيل
+      setIsInitializing(false);
+    };
+    initializeAuth();
+
+
+    // إعداد جلب دوري لعدد الإشعارات كل دقيقة
+    const interval = setInterval(() => {
+      fetchUnreadCount();
+    }, 60000); // 60000ms = 1 دقيقة
+
+    return () => clearInterval(interval); // تنظيف المؤقت عند إزالة المكون
   }, [fetchUser]);
+
 
   const login = (newToken) => {
     localStorage.setItem('token', newToken);
     setToken(newToken);
     // 4. جلب بيانات المستخدم الكاملة فور تسجيل الدخول
     fetchUser();
+    fetchUnreadCount();
   };
 
   const logout = () => {
@@ -49,7 +75,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isInitializing, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isInitializing, login, logout, unreadCount, setUnreadCount }}>
       {children}
     </AuthContext.Provider>
   );

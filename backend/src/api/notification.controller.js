@@ -55,3 +55,19 @@ export const deleteNotification = async (req, res) => {
     res.status(500).json({ message: "Failed to delete notification" });
   }
 };
+
+// ---== دالة جديدة: جلب عدد الإشعارات غير المقروءة ==---
+export const getUnreadNotificationsCount = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const count = await prisma.notification.count({
+      where: {
+        userId: userId,
+        isRead: false,
+      },
+    });
+    res.status(200).json({ count });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to fetch unread count" });
+  }
+};

@@ -121,3 +121,6 @@ export const markAllNotificationsRead = () =>
   apiClient.post("/notifications/mark-read");
 export const deleteNotificationById = (notificationId) =>
   apiClient.delete(`/notifications/${notificationId}`);
+
+export const getUnreadNotifCount = () =>
+  apiClient.get("/notifications/unread-count");

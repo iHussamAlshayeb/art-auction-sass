@@ -4,10 +4,14 @@ import { Link } from 'react-router-dom';
 import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
 import { FiX } from 'react-icons/fi'; // أيقونة الحذف
+import { useAuth } from '../context/AuthContext';
+
 
 function NotificationsPage() {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { setUnreadCount } = useAuth();
+
 
     useEffect(() => {
         fetchNotifications();
@@ -24,9 +28,8 @@ function NotificationsPage() {
         try {
             await markAllNotificationsRead();
             // تحديث الحالة محليًا
-            setNotifications(prevNotifs =>
-                prevNotifs.map(n => ({ ...n, isRead: true }))
-            );
+            setNotifications(prevNotifs => prevNotifs.map(n => ({ ...n, isRead: true })));
+            setUnreadCount(0); // <-- تحديث العدد إلى صفر
             toast.success('تم تحديد الكل كمقروء');
         } catch (error) {
             toast.error('فشل في تحديث الإشعارات');
