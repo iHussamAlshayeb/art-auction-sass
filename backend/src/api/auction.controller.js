@@ -75,6 +75,7 @@ export const createAuction = async (req, res) => {
   }
 };
 
+// ---== دالة جلب كل المزادات ==---
 export async function getAllAuctions(req, res) {
   const { search, sortBy, page = 1, limit = 12 } = req.query;
 
@@ -83,18 +84,20 @@ export async function getAllAuctions(req, res) {
   const skip = (pageNum - 1) * limitNum;
 
   try {
-    const mongoWhere = { endTime: { $gt: new Date() } };
+    const mongoWhere = { endTime: { $gt: new Date() } }; // $gt تعادل gt
 
+    // للبحث في موديل مرتبط، نحتاج استعلام من خطوتين
     if (search) {
       const artworks = await Artwork.find({
         title: { $regex: search, $options: "i" },
       }).select("_id");
       const artworkIds = artworks.map((a) => a._id);
-      mongoWhere.artwork = { $in: artworkIds };
+      mongoWhere.artwork = { $in: artworkIds }; // $in تعادل in
     }
 
-    let sortOptions = { startTime: "desc" };
-    if (sortBy === "ending_soon") sortOptions = { endTime: "asc" };
+    let sortOptions = { startTime: "desc" }; // 'desc' تعادل desc
+    if (sortBy === "ending_soon")
+      sortOptions = { endTime: "asc" }; // 'asc' تعادل asc
     else if (sortBy === "price_asc") sortOptions = { currentPrice: "asc" };
     else if (sortBy === "price_desc") sortOptions = { currentPrice: "desc" };
 
@@ -103,10 +106,10 @@ export async function getAllAuctions(req, res) {
       .skip(skip)
       .limit(limitNum)
       .populate({
+        // populate تعادل include
         path: "artwork",
         populate: {
           path: "student",
-          // === الحل هنا: إضافة _id ===
           select: "_id name schoolName gradeLevel",
         },
       });
@@ -117,7 +120,9 @@ export async function getAllAuctions(req, res) {
     res.status(200).json({
       auctions,
       pagination: {
-        /* ... */
+        currentPage: pageNum,
+        totalPages: totalPages,
+        totalAuctions: totalAuctions,
       },
     });
   } catch (error) {
@@ -127,36 +132,33 @@ export async function getAllAuctions(req, res) {
   }
 }
 
-// ---== دالة جلب مزاد واحد (تم تعديلها) ==---
+// ---== دالة جلب مزاد واحد ==---
 export async function getAuctionById(req, res) {
   const { id } = req.params;
 
-  // فحص صلاحية الـ ID (مهم جدًا)
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return res.status(404).json({ message: "Auction not found (Invalid ID)" });
   }
 
   try {
-    const auction = await Auction.findById(id).populate({
-      path: "artwork",
-      populate: {
-        path: "student",
-        // === الحل هنا: إضافة _id ===
-        select: "_id name",
-      },
-    });
+    const auction = await Auction.findById(id) // findById تعادل findUnique
+      .populate({
+        path: "artwork",
+        populate: {
+          path: "student",
+          select: "_id name",
+        },
+      });
 
     if (!auction) {
       return res.status(404).json({ message: "Auction not found" });
     }
     res.status(200).json({ auction });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Failed to fetch auction details",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Failed to fetch auction details",
+      error: error.message,
+    });
   }
 }
 
