@@ -7,7 +7,7 @@ import {
   createMoyasarPayment,
   getAuctionBids,
   cancelAuction,
-} from "../controllers/auction.controller.js";
+} from "./auction.controller.js";
 import { protect, authorize } from "../middlewares/auth.js";
 
 const router = express.Router();
