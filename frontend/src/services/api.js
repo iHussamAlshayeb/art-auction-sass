@@ -145,8 +145,9 @@ export const deleteArtworkByAdmin = (artworkId) =>
 //
 
 // جلب قائمة الطلاب
-export const fetchAllStudents = (params = {}) =>
-  apiClient.get("/students", { params });
+export const fetchAllStudents = (params = {}) => {
+  return apiClient.get("/students", { params });
+};
 
 //
 // ======================== 🔔 الإشعارات ========================

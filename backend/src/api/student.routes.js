@@ -3,12 +3,20 @@ import {
   getMyProfile,
   updateMyProfile,
   getMyDashboardData,
+  getAllStudents, // ✅ جديد
+  getStudentById, // ✅ جديد
 } from "./student.controller.js";
 import { protect, studentOnly } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
 
-// 📄 عرض الملف الشخصي للطالب
+// ✅ عام: عرض قائمة الطلاب (لصفحة "الفنانون")
+router.get("/", getAllStudents);
+
+// ✅ عام: عرض طالب محدد
+router.get("/:id", getStudentById);
+
+// 📄 عرض الملف الشخصي للطالب (للطالب نفسه)
 router.get("/me", protect, studentOnly, getMyProfile);
 
 // ✏️ تعديل الملف الشخصي
