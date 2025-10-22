@@ -23,31 +23,30 @@ function CreateArtworkPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!formData.imageFile) {
-      toast.error("الرجاء اختيار صورة.");
+    if (!imageFile) {
+      setError('الرجاء اختيار ملف صورة لرفعه.');
       return;
     }
+    setError(null);
+    setUploading(true);
 
     try {
-      // رفع الصورة أولاً إلى Cloudinary
-      const uploadRes = await uploadImage(formData.imageFile);
-      const imageUrl = uploadRes.data.url;
+      const uploadResponse = await uploadImage(imageFile);
+      const finalImageUrl = uploadResponse.data.url;
 
-      // إرسال البيانات إلى السيرفر
-      const artworkRes = await axios.post("/api/v1/artworks", {
-        title: formData.title,
-        description: formData.description,
-        imageUrl, // ✅ هذا ضروري
-      });
+      await createArtwork({ ...formData, imageUrl: finalImageUrl });
 
-      toast.success("تم رفع العمل الفني بنجاح!");
+      toast.success('تمت إضافة العمل بنجاح!');
+      navigate('/dashboard/my-artworks');
+
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "حدث خطأ في الرفع.");
+      const message = err.response?.data?.message || 'فشلت إضافة العمل الفني.';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setUploading(false);
     }
   };
-
 
   return (
     <div className="flex items-center justify-center min-h-screen px-4">
