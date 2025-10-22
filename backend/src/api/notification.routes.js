@@ -5,7 +5,6 @@ import {
   deleteNotification,
   deleteAllNotifications,
   getUnreadNotificationsCount,
-  deleteAllNotifications,
 } from "./notification.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 
