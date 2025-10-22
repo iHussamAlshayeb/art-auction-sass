@@ -7,7 +7,8 @@ import {
   getAllNotifications,
   deleteNotification,
   getAdminStats,
-  getAllArtworks, // ✅ أضف هذا
+  getAllArtworks,
+  deleteArtworkByAdmin, // ✅ أضف هذا
 } from "./admin.controller.js";
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
 
@@ -30,5 +31,5 @@ router.delete("/notifications/:id", protect, adminOnly, deleteNotification);
 
 // 🎨 إدارة الأعمال الفنية
 router.get("/artworks", protect, adminOnly, getAllArtworks);
-
+router.delete("/artworks/:id", protect, adminOnly, deleteArtworkByAdmin);
 export default router;

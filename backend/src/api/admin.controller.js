@@ -146,3 +146,28 @@ export const getAllArtworks = async (req, res) => {
     });
   }
 };
+
+// ---== حذف عمل فني (للمشرف) ==---
+export const deleteArtworkByAdmin = async (req, res) => {
+  const { id } = req.params;
+  try {
+    // 🔹 ابحث عن العمل الفني
+    const artwork = await Artwork.findById(id);
+    if (!artwork) {
+      return res.status(404).json({ message: "العمل الفني غير موجود." });
+    }
+
+    // 🔹 حذف أي مزاد مرتبط بنفس العمل الفني
+    await Auction.deleteMany({ artwork: artwork._id });
+
+    // 🔹 حذف العمل نفسه
+    await Artwork.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "تم حذف العمل الفني بنجاح." });
+  } catch (error) {
+    res.status(500).json({
+      message: "فشل في حذف العمل الفني.",
+      error: error.message,
+    });
+  }
+};
