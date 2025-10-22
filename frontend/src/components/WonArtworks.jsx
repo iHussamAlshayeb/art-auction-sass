@@ -30,8 +30,7 @@ function WonArtworks() {
       const response = await createPayment(auctionId);
       window.location.href = response.data.url;
     } catch (error) {
-      console.error("Payment creation failed:", error.response?.data || error.message);
-      toast.error(error.response?.data?.message || 'فشلت عملية بدء الدفع. الرجاء المحاولة مرة أخرى.');
+      toast.error(error.response?.data?.message || "فشل إنشاء عملية الدفع");
     }
   };
 
@@ -57,7 +56,7 @@ function WonArtworks() {
                 <p className="text-sm font-bold text-primary-dark px-4">✓ مدفوع</p>
               ) : (
                 <button
-                  onClick={() => handlePay(auction.id)}
+                  onClick={() => handlePay(auction._id)}
                   className="w-full sm:w-auto bg-secondary hover:bg-secondary-dark text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm shadow-sm"
                 >
                   ادفع الآن
