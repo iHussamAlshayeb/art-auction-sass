@@ -1,9 +1,6 @@
 import Notification from "../models/notification.model.js";
 
-/**
- * 🔔 جلب إشعارات المستخدم الحالي (مع دعم التصفح)
- * query: page, limit
- */
+// 🔔 جلب الإشعارات (مع pagination)
 export const getNotifications = async (req, res) => {
   try {
     const page = Math.max(parseInt(req.query.page || "1"), 1);
@@ -35,10 +32,7 @@ export const getNotifications = async (req, res) => {
   }
 };
 
-/**
- * 📖 تعليم جميع الإشعارات كمقروءة
- * POST /notifications/mark-read
- */
+// 📖 تحديد جميع الإشعارات كمقروءة
 export const markAllAsRead = async (req, res) => {
   try {
     await Notification.updateMany(
@@ -54,10 +48,7 @@ export const markAllAsRead = async (req, res) => {
   }
 };
 
-/**
- * 🗑️ حذف إشعار واحد
- * DELETE /notifications/:id
- */
+// 🗑️ حذف إشعار واحد
 export const deleteNotification = async (req, res) => {
   try {
     const notif = await Notification.findOneAndDelete({
@@ -77,10 +68,24 @@ export const deleteNotification = async (req, res) => {
   }
 };
 
-/**
- * 🔢 عدد الإشعارات غير المقروءة
- * GET /notifications/unread-count
- */
+// 🧹 حذف جميع الإشعارات للمستخدم الحالي
+export const deleteAllNotifications = async (req, res) => {
+  try {
+    const result = await Notification.deleteMany({ user: req.user.id });
+    res.status(200).json({
+      message: "تم حذف جميع الإشعارات بنجاح.",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("deleteAllNotifications error:", error);
+    res.status(500).json({
+      message: "فشل في حذف جميع الإشعارات",
+      error: error.message,
+    });
+  }
+};
+
+// 🔢 عدد الإشعارات غير المقروءة
 export const getUnreadNotificationsCount = async (req, res) => {
   try {
     const count = await Notification.countDocuments({
