@@ -15,7 +15,7 @@ const router = express.Router();
 router.get("/", protect, getNotifications);
 
 // ✅ تحديد الكل كمقروء
-router.put("/mark-all-read", protect, markAllAsRead);
+router.put("/mark-read", protect, markAllAsRead);
 
 // ❌ حذف إشعار واحد
 router.delete("/:id", protect, deleteNotification);
