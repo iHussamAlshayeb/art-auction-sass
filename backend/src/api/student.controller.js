@@ -119,21 +119,24 @@ export const getStudentById = async (req, res) => {
       .select("name profileImageUrl schoolName gradeLevel bio")
       .lean();
 
-    if (!student) return res.status(404).json({ message: "الطالب غير موجود." });
+    if (!student) {
+      return res.status(404).json({ message: "الطالب غير موجود." });
+    }
 
-    const artworks = await Artwork.find({ student: student._id })
+    // ✅ استعلام مرن للتعامل مع اختلاف أسماء الحقول
+    const artworks = await Artwork.find({
+      $or: [{ student: student._id }, { studentId: student._id }],
+    })
       .select("title imageUrl status")
       .sort({ createdAt: -1 })
       .lean();
 
     res.status(200).json({ student, artworks });
   } catch (error) {
-    console.error("getStudentById error:", error);
-    res
-      .status(500)
-      .json({
-        message: "حدث خطأ أثناء جلب بيانات الطالب",
-        error: error.message,
-      });
+    console.error("Error fetching student:", error);
+    res.status(500).json({
+      message: "حدث خطأ أثناء جلب بيانات الطالب.",
+      error: error.message,
+    });
   }
 };
