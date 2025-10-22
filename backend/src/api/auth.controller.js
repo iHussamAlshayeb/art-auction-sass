@@ -1,14 +1,14 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
-// 🎟️ إنشاء التوكن
-const generateToken = (id, role) => {
-  return jwt.sign({ userId: id, role }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
+// 🎟️ دالة إنشاء التوكن
+const generateToken = (userId, role) => {
+  return jwt.sign({ userId, role }, process.env.JWT_SECRET, {
+    expiresIn: "7d", // مدة الصلاحية أسبوع
   });
 };
 
-// 🧍‍♂️ التسجيل
+// 🧍‍♂️ دالة التسجيل
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -17,7 +17,7 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: "جميع الحقول مطلوبة." });
     }
 
-    // 🔍 تنظيف البريد الإلكتروني
+    // تنظيف البريد الإلكتروني (حل أخطاء الحروف الكبيرة)
     const cleanEmail = email.trim().toLowerCase();
 
     const existing = await User.findOne({ email: cleanEmail });
@@ -27,6 +27,7 @@ export const register = async (req, res) => {
         .json({ message: "البريد الإلكتروني مستخدم مسبقًا." });
     }
 
+    // إنشاء المستخدم (بشكل افتراضي طالب)
     const user = await User.create({
       name,
       email: cleanEmail,
@@ -40,17 +41,19 @@ export const register = async (req, res) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (error) {
     console.error("Register error:", error);
-    res
-      .status(500)
-      .json({ message: "حدث خطأ أثناء إنشاء الحساب", error: error.message });
+    res.status(500).json({
+      message: "حدث خطأ أثناء إنشاء الحساب",
+      error: error.message,
+    });
   }
 };
 
-// 🔑 تسجيل الدخول
+// 🔑 دالة تسجيل الدخول
 export const login = async (req, res) => {
   try {
     let { email, password } = req.body;
@@ -61,17 +64,15 @@ export const login = async (req, res) => {
         .json({ message: "البريد الإلكتروني وكلمة المرور مطلوبان." });
     }
 
-    // 🧼 تنظيف البريد (حل المشكلة الفعلية)
+    // تنظيف البريد الإلكتروني لتطابق التخزين
     const cleanEmail = email.trim().toLowerCase();
 
-    // 🧠 تأكد من جلب كلمة المرور
     const user = await User.findOne({ email: cleanEmail }).select("+password");
 
     if (!user) {
       return res.status(404).json({ message: "المستخدم غير موجود." });
     }
 
-    // 🔒 تحقق من كلمة المرور
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: "كلمة المرور غير صحيحة." });

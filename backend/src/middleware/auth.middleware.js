@@ -5,6 +5,7 @@ import User from "../models/user.model.js";
 export const protect = async (req, res, next) => {
   let token;
   try {
+    // استخرج التوكن من الهيدر أو الكوكيز
     if (
       req.headers.authorization &&
       req.headers.authorization.startsWith("Bearer")
@@ -15,32 +16,37 @@ export const protect = async (req, res, next) => {
     }
 
     if (!token) {
-      return res.status(401).json({ message: "غير مصرح: لم يتم توفير التوكن" });
+      return res
+        .status(401)
+        .json({ message: "غير مصرح: لم يتم توفير رمز الدخول." });
     }
 
+    // ✅ التحقق من صحة التوكن
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // ✅ هنا التعديل الحقيقي
+    // ✅ استخدم decoded.userId بدلاً من decoded.id (حل المشكلة)
     const user = await User.findById(decoded.userId).select("-password");
 
     if (!user) {
       return res.status(401).json({ message: "المستخدم غير موجود." });
     }
 
-    // ✅ ضمان وجود كل القيم بشكل متناسق
+    // 🔒 حفظ بيانات المستخدم في req.user
     req.user = {
       ...user.toObject(),
-      id: user._id.toString(), // لتفادي أخطاء المقارنة مستقبلاً
+      id: user._id.toString(), // توحيد الشكل لجميع المقارنات
     };
 
     next();
   } catch (error) {
     console.error("Auth Error:", error.message);
-    res.status(401).json({ message: "رمز الدخول غير صالح أو منتهي." });
+    res
+      .status(401)
+      .json({ message: "رمز الدخول غير صالح أو منتهي.", error: error.message });
   }
 };
 
-// ✅ التحقق من الدور (ADMIN فقط)
+// ✅ صلاحية الإدارة فقط
 export const adminOnly = (req, res, next) => {
   if (!req.user || req.user.role !== "ADMIN") {
     return res.status(403).json({ message: "صلاحيات الإدارة مطلوبة." });
@@ -48,7 +54,7 @@ export const adminOnly = (req, res, next) => {
   next();
 };
 
-// ✅ التحقق من الطالب (الافتراضي)
+// ✅ صلاحية الطالب فقط
 export const studentOnly = (req, res, next) => {
   if (!req.user || req.user.role !== "STUDENT") {
     return res.status(403).json({ message: "هذه العملية متاحة للطلاب فقط." });
