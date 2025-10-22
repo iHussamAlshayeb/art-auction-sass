@@ -1,5 +1,6 @@
 import axios from "axios";
 
+// 🧩 إعداد العميل الأساسي للـ API
 const apiClient = axios.create({
   baseURL: "https://api.fanan3.com/api/v1",
   headers: {
@@ -8,119 +9,160 @@ const apiClient = axios.create({
   timeout: 30000,
 });
 
-// هذا الكود سيعمل قبل إرسال أي طلب
+// ✅ إضافة التوكن تلقائيًا قبل كل طلب (Interceptor)
 apiClient.interceptors.request.use(
   (config) => {
-    // احصل على التوكن من localStorage
     const token = localStorage.getItem("token");
-    if (token) {
-      // إذا كان التوكن موجودًا، أضفه إلى رأس Authorization
-      config.headers["Authorization"] = `Bearer ${token}`;
-    }
+    if (token) config.headers["Authorization"] = `Bearer ${token}`;
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-export const fetchAllAuctions = (params) => {
-  // params = { search, sortBy, page }
-  return apiClient.get("/auctions", { params });
-};
+//
+// ======================== 🧍‍♂️ المستخدمون & التسجيل ========================
+//
 
-export const registerUser = (userData) => {
-  return apiClient.post("/auth/register", userData);
-};
-export const loginUser = (credentials) => {
-  return apiClient.post("/auth/login", credentials);
-};
+// تسجيل مستخدم جديد
+export const registerUser = (userData) =>
+  apiClient.post("/auth/register", userData);
 
-export const createArtwork = (artworkData) => {
-  return apiClient.post("/artworks", artworkData);
-};
+// تسجيل الدخول
+export const loginUser = (credentials) =>
+  apiClient.post("/auth/login", credentials);
 
-// دالة لجلب أعمال الطالب المسجل دخوله
-export const getMyArtworks = () => {
-  return apiClient.get("/users/me/artworks");
-};
+// تسجيل الخروج (اختياري في الواجهة)
+export const logoutUser = () => localStorage.removeItem("token");
 
-// دالة لإنشاء مزاد جديد
-export const createAuction = (auctionData) => {
-  // auctionData هو كائن يحتوي على artworkId, startPrice, endTime
-  return apiClient.post("/auctions", auctionData);
-};
-
-export const fetchAuctionById = (id) => {
-  return apiClient.get(`/auctions/${id}`);
-};
-
-export const placeBid = (id, amount) => {
-  return apiClient.post(`/auctions/${id}/bids`, { amount });
-};
-
-export const getMyActiveBids = () => apiClient.get("/users/me/bids");
-export const getMyWonArtworks = () => apiClient.get("/users/me/wins");
-export const createPayment = (auctionId) =>
-  apiClient.post(`/auctions/${auctionId}/checkout`);
-
-export const uploadImage = (file) => {
-  const formData = new FormData();
-  formData.append("image", file); // 'image' يجب أن تطابق الاسم في الخادم
-
-  return apiClient.post("/upload", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data", // مهم جدًا لرفع الملفات
-    },
-  });
-};
-
-export const fetchAuctionBids = (id) => {
-  return apiClient.get(`/auctions/${id}/bids`);
-};
-
-export const cancelAuction = (auctionId) => {
-  return apiClient.delete(`/auctions/${auctionId}`);
-};
-
+// جلب بيانات الحساب الشخصي
 export const getMyProfile = () => apiClient.get("/users/me");
 
+// تحديث بيانات الحساب الشخصي
 export const updateMyProfile = (profileData) =>
   apiClient.put("/users/me", profileData);
 
+// تحديث كلمة المرور
 export const updateMyPassword = (passwordData) =>
   apiClient.put("/users/me/password", passwordData);
 
-export const getAdminStats = () => apiClient.get("/admin/stats");
+//
+// ======================== 🎨 الأعمال الفنية ========================
+//
 
-export const getAllUsers = () => apiClient.get("/admin/users");
+// إنشاء عمل فني جديد
+export const createArtwork = (artworkData) =>
+  apiClient.post("/artworks", artworkData);
 
-export const updateUserRole = (userId, role) =>
-  apiClient.put(`/admin/users/${userId}/role`, { role });
+// جلب أعمال الطالب المسجل دخوله
+export const getMyArtworks = () => apiClient.get("/users/me/artworks");
 
-export const deleteUser = (userId) =>
-  apiClient.delete(`/admin/users/${userId}`);
+// جلب جميع الأعمال الفنية (المعرض العام)
+export const fetchAllArtworks = (params = {}) => {
+  // params يمكن أن تحتوي على { page, search, sortBy }
+  return apiClient.get("/artworks", { params });
+};
 
-export const getAdminArtworks = () => apiClient.get("/admin/artworks");
-export const deleteArtworkByAdmin = (artworkId) =>
-  apiClient.delete(`/admin/artworks/${artworkId}`);
-
+// جلب أعمال طالب معين (لصفحة بروفايل طالب)
 export const getStudentProfile = (studentId) =>
   apiClient.get(`/students/${studentId}`);
 
-export const fetchAllArtworks = (page = 1) => {
-  return apiClient.get("/artworks/public", { params: { page } });
+// رفع صورة (لأعمال فنية أو بروفايل)
+export const uploadImage = (file) => {
+  const formData = new FormData();
+  formData.append("image", file);
+  return apiClient.post("/upload", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 };
 
-export const fetchAllStudents = (page = 1) => {
-  return apiClient.get("/students", { params: { page } });
-};
+//
+// ======================== 🏆 المزادات ========================
+//
 
+// جلب جميع المزادات
+export const fetchAllAuctions = (params) =>
+  apiClient.get("/auctions", { params });
+
+// إنشاء مزاد جديد
+export const createAuction = (auctionData) =>
+  apiClient.post("/auctions", auctionData);
+
+// جلب مزاد محدد
+export const fetchAuctionById = (id) => apiClient.get(`/auctions/${id}`);
+
+// تقديم مزايدة
+export const placeBid = (id, amount) =>
+  apiClient.post(`/auctions/${id}/bids`, { amount });
+
+// جلب مزايدات مزاد معين
+export const fetchAuctionBids = (id) => apiClient.get(`/auctions/${id}/bids`);
+
+// إلغاء مزاد (خاص بصاحب العمل فقط)
+export const cancelAuction = (auctionId) =>
+  apiClient.delete(`/auctions/${auctionId}`);
+
+// إنشاء دفع (Moyasar)
+export const createPayment = (auctionId) =>
+  apiClient.post(`/auctions/${auctionId}/checkout`);
+
+//
+// ======================== 📈 لوحة الطالب ========================
+//
+
+// المزايدات النشطة الخاصة بالطالب
+export const getMyActiveBids = () => apiClient.get("/users/me/bids");
+
+// الأعمال التي فاز بها المستخدم
+export const getMyWonArtworks = () => apiClient.get("/users/me/wins");
+
+//
+// ======================== 🛠️ لوحة الإدارة ========================
+//
+
+// إحصائيات لوحة التحكم
+export const getAdminStats = () => apiClient.get("/admin/stats");
+
+// جلب كل المستخدمين
+export const getAllUsers = () => apiClient.get("/admin/users");
+
+// تحديث صلاحية مستخدم
+export const updateUserRole = (userId, role) =>
+  apiClient.put(`/admin/users/${userId}/role`, { role });
+
+// حذف مستخدم
+export const deleteUser = (userId) =>
+  apiClient.delete(`/admin/users/${userId}`);
+
+// جلب كل الأعمال الفنية للإدارة
+export const getAdminArtworks = () => apiClient.get("/admin/artworks");
+
+// حذف عمل فني بواسطة الإدارة
+export const deleteArtworkByAdmin = (artworkId) =>
+  apiClient.delete(`/admin/artworks/${artworkId}`);
+
+//
+// ======================== 🧑‍🎓 الطلاب ========================
+//
+
+// جلب قائمة الطلاب
+export const fetchAllStudents = (params = {}) =>
+  apiClient.get("/students", { params });
+
+//
+// ======================== 🔔 الإشعارات ========================
+//
+
+// جلب الإشعارات
 export const getNotifications = () => apiClient.get("/notifications");
+
+// تعليم كل الإشعارات كمقروءة
 export const markAllNotificationsRead = () =>
   apiClient.post("/notifications/mark-read");
+
+// حذف إشعار
 export const deleteNotificationById = (notificationId) =>
   apiClient.delete(`/notifications/${notificationId}`);
 
+// عدد الإشعارات غير المقروءة
 export const getUnreadNotifCount = () =>
   apiClient.get("/notifications/unread-count");
