@@ -6,10 +6,14 @@ import {
   endAuctionManually,
   getAllNotifications,
   deleteNotification,
+  getAdminStats, // ✅ أضف هذا
 } from "./admin.controller.js";
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
+
+// 📊 إحصائيات لوحة التحكم
+router.get("/stats", protect, adminOnly, getAdminStats); // ✅ المسار الجديد
 
 // 👥 إدارة المستخدمين
 router.get("/users", protect, adminOnly, getAllUsers);

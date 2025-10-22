@@ -95,3 +95,42 @@ export const deleteNotification = async (req, res) => {
       .json({ message: "فشل في حذف الإشعار", error: error.message });
   }
 };
+
+// ---== إحصائيات لوحة التحكم (Admin Stats) ==---
+export const getAdminStats = async (req, res) => {
+  try {
+    // 📊 احسب كل القيم دفعة واحدة
+    const [usersCount, artworksCount, auctionsCount] = await Promise.all([
+      User.countDocuments(),
+      Artwork.countDocuments(),
+      Auction.countDocuments(),
+    ]);
+
+    // 🎨 عدد الأعمال المباعة فقط
+    const soldArtworks = await Artwork.countDocuments({ status: "SOLD" });
+
+    // 🔔 عدد الإشعارات الكلية
+    const notificationsCount = await Notification.countDocuments();
+
+    res.status(200).json({
+      users: usersCount,
+      artworks: artworksCount,
+      auctions: auctionsCount,
+      soldArtworks,
+      notifications: notificationsCount,
+      activeAuctions: await Auction.countDocuments({
+        endTime: { $gt: new Date() },
+      }),
+      totalRevenue: await Auction.aggregate([
+        { $match: { highestBidder: { $ne: null } } },
+        { $group: { _id: null, total: { $sum: "$currentPrice" } } },
+      ]).then((r) => r[0]?.total || 0),
+    });
+  } catch (error) {
+    console.error("Error fetching admin stats:", error);
+    res.status(500).json({
+      message: "فشل في جلب الإحصائيات",
+      error: error.message,
+    });
+  }
+};
