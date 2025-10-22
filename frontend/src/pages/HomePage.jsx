@@ -116,7 +116,7 @@ function HomePage() {
             <img
               src="https://res.cloudinary.com/dguzwf5zd/image/upload/v1761166659/logo_wqfkdb.png"
               alt="Art Showcase"
-              className="rounded-3xl shadow-lg object-cover w-full h-[400px]"
+              className="rounded-3xl shadow-lg object-cover w-cover h-[400px]"
             />
             <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
           </motion.div>
