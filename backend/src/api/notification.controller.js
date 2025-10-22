@@ -71,17 +71,12 @@ export const deleteNotification = async (req, res) => {
 // 🧹 حذف جميع الإشعارات للمستخدم الحالي
 export const deleteAllNotifications = async (req, res) => {
   try {
-    const result = await Notification.deleteMany({ user: req.user.id });
-    res.status(200).json({
-      message: "تم حذف جميع الإشعارات بنجاح.",
-      deletedCount: result.deletedCount,
-    });
+    await Notification.deleteMany({ user: req.user.id });
+    res.status(200).json({ message: "تم حذف جميع الإشعارات بنجاح." });
   } catch (error) {
-    console.error("deleteAllNotifications error:", error);
-    res.status(500).json({
-      message: "فشل في حذف جميع الإشعارات",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ message: "فشل في حذف جميع الإشعارات", error: error.message });
   }
 };
 

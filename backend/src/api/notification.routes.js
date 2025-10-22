@@ -5,6 +5,7 @@ import {
   deleteNotification,
   deleteAllNotifications,
   getUnreadNotificationsCount,
+  deleteAllNotifications,
 } from "./notification.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 
@@ -19,10 +20,9 @@ router.get("/unread-count", protect, getUnreadNotificationsCount);
 // 📖 تعليم جميع الإشعارات كمقروءة
 router.post("/mark-read", protect, markAllAsRead);
 
-// 🧹 حذف جميع الإشعارات
-router.delete("/", protect, deleteAllNotifications);
-
 // 🗑️ حذف إشعار محدد
 router.delete("/:id", protect, deleteNotification);
 
+// 🧹 حذف جميع الإشعارات
+router.delete("/all", protect, deleteAllNotifications);
 export default router;

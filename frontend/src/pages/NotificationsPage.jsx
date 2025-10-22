@@ -1,14 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
     getNotifications,
     markAllNotificationsRead,
     deleteNotificationById,
-} from '../services/api';
-import { Link } from 'react-router-dom';
-import Spinner from '../components/Spinner';
-import toast from 'react-hot-toast';
-import { FiX } from 'react-icons/fi';
-import { useAuth } from '../context/AuthContext';
+    deleteAllNotifications, // ✅ أضفها في ملف api.js
+} from "../services/api";
+import { Link } from "react-router-dom";
+import Spinner from "../components/Spinner";
+import toast from "react-hot-toast";
+import { FiX, FiTrash2 } from "react-icons/fi"; // 🗑️ أيقونة الحذف الكلي
+import { useAuth } from "../context/AuthContext";
 
 function NotificationsPage() {
     const [notifications, setNotifications] = useState([]);
@@ -23,11 +24,10 @@ function NotificationsPage() {
         setLoading(true);
         getNotifications()
             .then((res) => {
-                // ✅ ضمان وجود _id
                 const notifs = res.data.notifications || [];
                 setNotifications(notifs);
             })
-            .catch(() => toast.error('فشل في تحميل الإشعارات'))
+            .catch(() => toast.error("فشل في تحميل الإشعارات"))
             .finally(() => setLoading(false));
     };
 
@@ -38,9 +38,9 @@ function NotificationsPage() {
                 prev.map((n) => ({ ...n, isRead: true }))
             );
             setUnreadCount(0);
-            toast.success('تم تحديد الكل كمقروء');
+            toast.success("تم تحديد الكل كمقروء");
         } catch {
-            toast.error('فشل في تحديث الإشعارات');
+            toast.error("فشل في تحديث الإشعارات");
         }
     };
 
@@ -49,12 +49,11 @@ function NotificationsPage() {
         e.stopPropagation();
 
         if (!notificationId) {
-            console.error('❌ Notification ID is undefined');
-            toast.error('فشل حذف الإشعار (رقم المعرف مفقود)');
+            console.error("❌ Notification ID is undefined");
+            toast.error("فشل حذف الإشعار (رقم المعرف مفقود)");
             return;
         }
 
-        // Optimistic UI
         const original = [...notifications];
         setNotifications((prev) =>
             prev.filter((n) => n._id !== notificationId)
@@ -62,10 +61,32 @@ function NotificationsPage() {
 
         try {
             await deleteNotificationById(notificationId);
-            toast.success('تم حذف الإشعار');
+            toast.success("تم حذف الإشعار");
         } catch {
-            toast.error('فشل حذف الإشعار، تمت استعادته.');
+            toast.error("فشل حذف الإشعار، تمت استعادته.");
             setNotifications(original);
+        }
+    };
+
+    // ✅ ميزة حذف الكل
+    const handleDeleteAll = async () => {
+        if (notifications.length === 0) {
+            toast("لا توجد إشعارات للحذف");
+            return;
+        }
+
+        const confirmDelete = window.confirm(
+            "هل أنت متأكد أنك تريد حذف جميع الإشعارات؟"
+        );
+        if (!confirmDelete) return;
+
+        try {
+            await deleteAllNotifications();
+            setNotifications([]); // تفريغ الواجهة
+            setUnreadCount(0);
+            toast.success("تم حذف جميع الإشعارات بنجاح");
+        } catch (error) {
+            toast.error("فشل في حذف جميع الإشعارات");
         }
     };
 
@@ -74,25 +95,41 @@ function NotificationsPage() {
     return (
         <div className="max-w-4xl mx-auto">
             <div className="bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-xl border border-neutral-200">
-                <div className="flex justify-between items-center mb-6 border-b border-neutral-200 pb-4">
+                {/* ===== رأس الصفحة ===== */}
+                <div className="flex flex-wrap justify-between items-center gap-3 mb-6 border-b border-neutral-200 pb-4">
                     <h1 className="text-3xl font-bold text-neutral-900">الإشعارات</h1>
-                    {unreadCount > 0 && (
-                        <button
-                            onClick={handleMarkAllRead}
-                            className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
-                        >
-                            تحديد الكل كمقروء ({unreadCount})
-                        </button>
-                    )}
+
+                    <div className="flex gap-3">
+                        {unreadCount > 0 && (
+                            <button
+                                onClick={handleMarkAllRead}
+                                className="text-sm font-semibold text-primary hover:text-primary-dark transition-colors"
+                            >
+                                تحديد الكل كمقروء ({unreadCount})
+                            </button>
+                        )}
+
+                        {/* 🗑️ زر حذف الكل */}
+                        {notifications.length > 0 && (
+                            <button
+                                onClick={handleDeleteAll}
+                                className="flex items-center gap-1 text-sm font-semibold text-red-500 hover:text-red-600 transition-colors"
+                            >
+                                <FiTrash2 size={16} />
+                                حذف الكل
+                            </button>
+                        )}
+                    </div>
                 </div>
 
+                {/* ===== قائمة الإشعارات ===== */}
                 {loading ? (
                     <Spinner />
                 ) : notifications.length > 0 ? (
                     <div className="space-y-4">
                         {notifications.map((notif) => (
                             <Link
-                                to={notif.link || '#'}
+                                to={notif.link || "#"}
                                 key={notif._id || notif.id}
                                 className="relative block p-4 rounded-lg hover:bg-primary/5 transition-colors border-b border-neutral-100 last:border-b-0"
                             >
@@ -107,18 +144,18 @@ function NotificationsPage() {
                                     <div className="flex-grow">
                                         <p
                                             className={`font-semibold ${notif.isRead
-                                                    ? 'text-neutral-700'
-                                                    : 'text-neutral-900'
+                                                    ? "text-neutral-700"
+                                                    : "text-neutral-900"
                                                 }`}
                                         >
                                             {notif.message}
                                         </p>
                                         <span className="text-xs text-neutral-500">
-                                            {new Date(notif.createdAt).toLocaleString('ar-SA')}
+                                            {new Date(notif.createdAt).toLocaleString("ar-SA")}
                                         </span>
                                     </div>
 
-                                    {/* زر الحذف */}
+                                    {/* زر حذف فردي */}
                                     <button
                                         onClick={(e) =>
                                             handleDelete(e, notif._id || notif.id)

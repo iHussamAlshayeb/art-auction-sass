@@ -167,3 +167,7 @@ export const deleteNotificationById = (notificationId) =>
 // عدد الإشعارات غير المقروءة
 export const getUnreadNotifCount = () =>
   apiClient.get("/notifications/unread-count");
+
+// 🧹 حذف جميع الإشعارات
+export const deleteAllNotifications = () =>
+  apiClient.delete("/notifications/all");
