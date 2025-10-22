@@ -10,94 +10,82 @@ import { sendAuctionWonEmail, sendArtworkSoldEmail } from "./email.service.js";
  * وتحديث حالات الأعمال الفنية والمزادات.
  */
 export const processFinishedAuctions = async (io, userSocketMap) => {
-  console.log(`Running auction job at ${new Date().toISOString()}`);
+  console.log(`[Cron] Running job at ${new Date().toISOString()}`);
 
   try {
-    const finishedAuctions = await Auction.find({
+    const finished = await Auction.find({
       endTime: { $lte: new Date() },
-      status: { $ne: "PROCESSED" },
+      status: { $nin: ["PROCESSED"] },
     }).populate("artwork");
 
-    for (const auction of finishedAuctions) {
-      let finalStatus;
-      const winnerId = auction.highestBidder;
-
-      if (winnerId) {
-        finalStatus = "SOLD";
-
+    for (const auction of finished) {
+      try {
         console.log(
-          `✅ Auction "${auction.artwork.title}" has a winner (${winnerId}).`
+          `Processing auction ${auction._id}, status=${auction.status}`
         );
 
-        const winner = await User.findById(winnerId);
-        const artist = await User.findById(auction.artwork.student);
+        const winnerId = auction.highestBidder;
+        const artistId = auction.artwork.student.toString();
 
-        // 🧩 تحديث حالة العمل الفني
+        let finalStatus = winnerId ? "SOLD" : "ENDED";
+
+        // تحديث حالة العمل الفني أولًا لضمان الاتساق
         await Artwork.findByIdAndUpdate(auction.artwork._id, {
           status: finalStatus,
         });
 
-        // 🧩 إشعار الفائز
-        if (winner) {
-          await Notification.create({
-            user: winnerId,
-            message: `🎉 تهانينا! لقد فزت بمزاد "${auction.artwork.title}"`,
-            link: `/dashboard/won-auctions`,
-          });
-
-          if (winner.email) {
-            await sendAuctionWonEmail(winner, auction.artwork, auction);
-          }
-
-          const socketId = userSocketMap.get(winnerId.toString());
-          if (socketId) {
-            io.to(socketId).emit("auctionWon", {
-              message: `🎉 لقد فزت بمزاد "${auction.artwork.title}"!`,
-              auctionId: auction._id,
-              finalPrice: auction.currentPrice,
+        if (winnerId) {
+          // إشعار الفائز
+          const winner = await User.findById(winnerId);
+          if (winner) {
+            await Notification.create({
+              user: winnerId,
+              message: `...`,
+              link: `...`,
             });
+            if (winner.email)
+              await sendAuctionWonEmail(winner, auction.artwork, auction);
+            const socketId = userSocketMap.get(winnerId.toString());
+            if (socketId)
+              io.to(socketId).emit("auctionWon", {
+                auctionId: auction._id,
+                finalPrice: auction.currentPrice,
+              });
           }
+
+          // إشعار صاحب العمل
+          const artist = await User.findById(artistId);
+          if (artist) {
+            await Notification.create({
+              user: artistId,
+              message: `تم بيع عملك...`,
+              link: `/dashboard/sold-artworks`,
+            });
+            if (artist.email)
+              await sendArtworkSoldEmail(artist, auction.artwork, auction);
+            const artistSocket = userSocketMap.get(artistId.toString());
+            if (artistSocket)
+              io.to(artistSocket).emit("artworkSold", {
+                artworkId: auction.artwork._id,
+                auctionId: auction._id,
+                finalPrice: auction.currentPrice,
+              });
+          }
+        } else {
+          console.log(`No bids for auction ${auction._id}, marking ENDED.`);
         }
 
-        // 🧩 إشعار صاحب العمل الفني (الطالب)
-        if (artist) {
-          await Notification.create({
-            user: artist._id,
-            message: `💰 تم بيع عملك الفني "${auction.artwork.title}" بنجاح بسعر ${auction.currentPrice} ر.س`,
-            link: `/dashboard/sold-artworks`,
-          });
-
-          // ✉️ إرسال بريد إلكتروني لصاحب العمل
-          if (artist.email) {
-            await sendArtworkSoldEmail(artist, auction.artwork, auction);
-          }
-
-          // 💬 إرسال إشعار Socket مباشر للطالب
-          const artistSocketId = userSocketMap.get(artist._id.toString());
-          if (artistSocketId) {
-            io.to(artistSocketId).emit("artworkSold", {
-              message: `🎨 تم بيع عملك "${auction.artwork.title}" بمبلغ ${auction.currentPrice} ر.س`,
-              artworkId: auction.artwork._id,
-              auctionId: auction._id,
-            });
-          }
-        }
-      } else {
-        // ❌ في حالة عدم وجود مزايدات
-        finalStatus = "ENDED";
-        console.log(
-          `⚪ Auction "${auction.artwork.title}" ended without bids.`
-        );
-
-        await Artwork.findByIdAndUpdate(auction.artwork._id, {
-          status: finalStatus,
+        // أخيرًا: اجعل المزاد مُعالج
+        await Auction.findByIdAndUpdate(auction._id, {
+          status: "PROCESSED",
         });
+
+        console.log(`Auction ${auction._id} processed successfully.`);
+      } catch (innerErr) {
+        console.error(`Error processing auction ${auction._id}:`, innerErr);
       }
-
-      // ✅ تعليم المزاد بأنه تمت معالجته
-      await Auction.findByIdAndUpdate(auction._id, { status: "PROCESSED" });
     }
-  } catch (error) {
-    console.error("❌ Error in processFinishedAuctions:", error);
+  } catch (err) {
+    console.error("[Cron] Error processing auctions:", err);
   }
 };
