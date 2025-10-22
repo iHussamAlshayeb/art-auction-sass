@@ -5,7 +5,7 @@ import AuctionCardTimer from "../components/AuctionCardTimer";
 import Pagination from "../components/Pagination";
 import Spinner from "../components/Spinner";
 import { motion } from "framer-motion";
-import { Search, Heart, TrendingUp, Clock } from "lucide-react";
+import { Search, Heart, TrendingUp, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
 
 function HomePage() {
@@ -14,7 +14,6 @@ function HomePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [liked, setLiked] = useState({});
-
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [currentPage, setCurrentPage] = useState(1);
@@ -25,7 +24,6 @@ function HomePage() {
       setLoading(true);
       const params = { sortBy, search: searchTerm, page: currentPage };
       const response = await fetchAllAuctions(params);
-
       setAuctions(response.data.auctions || []);
       setPagination(response.data.pagination || null);
       setError(null);
@@ -57,21 +55,73 @@ function HomePage() {
   const handlePageChange = (page) => setCurrentPage(page);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10 space-y-16">
-      {/* 🎨 قسم المقدمة */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
+    <div className="max-w-7xl mx-auto px-4 py-10 space-y-20">
+      {/* 🎨 قسم الترحيب (Hero Section) */}
+      <motion.section
+        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-white to-secondary/10 shadow-lg"
+        initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-center space-y-4"
+        transition={{ duration: 0.8 }}
       >
-        <h1 className="text-5xl font-extrabold text-primary-dark tracking-tight">
-          المزادات الفنيـة 🎨
-        </h1>
-        <p className="text-neutral-700 text-lg md:text-xl max-w-2xl mx-auto">
-          استكشف، ساهم، وكن جزءًا من رحلة دعم الفن والإبداع الطلابي حول العالم.
-        </p>
-      </motion.div>
+        <div className="grid md:grid-cols-2 items-center gap-10 p-10">
+          {/* النصوص */}
+          <div className="space-y-6 text-center md:text-right">
+            <motion.h1
+              className="text-5xl md:text-6xl font-extrabold text-primary-dark leading-tight"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              اكتشف، ادعم، <br /> وشارك في <span className="text-secondary">المزادات الفنية</span>
+            </motion.h1>
+            <motion.p
+              className="text-neutral-700 text-lg md:text-xl max-w-md mx-auto md:mx-0"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              منصة تجمع بين الإبداع والدعم، حيث يمكن للطلاب عرض أعمالهم وبيعها
+              لعشّاق الفن في جميع أنحاء العالم.
+            </motion.p>
+
+            <motion.div
+              className="flex justify-center md:justify-start gap-4 pt-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+            >
+              <Link
+                to="/gallery"
+                className="px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-primary-dark transition-all flex items-center gap-2 shadow-md"
+              >
+                تصفح المعرض
+                <ArrowRight size={18} />
+              </Link>
+              <Link
+                to="/register"
+                className="px-6 py-3 bg-secondary/10 text-secondary font-semibold rounded-lg hover:bg-secondary/20 transition-all"
+              >
+                انضم كفنان
+              </Link>
+            </motion.div>
+          </div>
+
+          {/* الصورة */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.5 }}
+            className="relative"
+          >
+            <img
+              src="https://images.unsplash.com/photo-1529101091764-c3526daf38fe?auto=format&fit=crop&q=80&w=900"
+              alt="Art Showcase"
+              className="rounded-3xl shadow-lg object-cover w-full h-[400px]"
+            />
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+          </motion.div>
+        </div>
+      </motion.section>
 
       {/* 🔍 شريط البحث والفلاتر */}
       <motion.div
