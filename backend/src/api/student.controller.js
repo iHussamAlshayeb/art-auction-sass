@@ -124,10 +124,9 @@ export const getStudentById = async (req, res) => {
       return res.status(404).json({ message: "الطالب غير موجود." });
     }
 
-    // ✅ تحويل المعرف إلى ObjectId للتطابق التام
-    const studentId = new mongoose.Types.ObjectId(student._id);
-
-    const artworks = await Artwork.find({ student: studentId })
+    // ❌ لا تقم بتحويل المعرف مرة ثانية
+    // ✅ استخدمه كما هو
+    const artworks = await Artwork.find({ student: req.params.id })
       .select("title imageUrl status")
       .sort({ createdAt: -1 })
       .lean();

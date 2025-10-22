@@ -6,11 +6,12 @@ const auctionSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "Artwork",
-      unique: true, // يضمن أن العمل الفني له مزاد واحد فقط
+      unique: true, // كل عمل فني له مزاد واحد فقط
     },
     startTime: {
       type: Date,
       required: true,
+      default: Date.now,
     },
     endTime: {
       type: Date,
@@ -19,19 +20,28 @@ const auctionSchema = new mongoose.Schema(
     startPrice: {
       type: Number,
       required: true,
+      min: 0,
     },
     currentPrice: {
       type: Number,
       required: true,
+      min: 0,
     },
     highestBidder: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      default: null, // يعادل القيمة ? في Prisma
+      default: null,
+    },
+    // ✅ هذا الحقل هو المفتاح لحل مشكلة الإشعارات المتكررة
+    status: {
+      type: String,
+      enum: ["ACTIVE", "ENDED", "SOLD", "PROCESSED"],
+      default: "ACTIVE",
+      index: true,
     },
   },
   {
-    timestamps: true, // سيضيف createdAt و updatedAt
+    timestamps: true,
   }
 );
 
