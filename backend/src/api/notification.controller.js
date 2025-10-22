@@ -1,15 +1,13 @@
 import Notification from "../models/notification.model.js";
 
-/* ================================
-   📩 جلب إشعارات المستخدم الحالي
-================================ */
+/* ======================================================
+   🔔 جلب كل الإشعارات الخاصة بالمستخدم
+====================================================== */
 export const getNotifications = async (req, res) => {
-  const userId = req.user.id;
   try {
-    const notifications = await Notification.find({ user: userId })
-      .sort({ createdAt: -1 })
-      .limit(30);
-
+    const notifications = await Notification.find({ user: req.user.id }).sort({
+      createdAt: -1,
+    });
     res.status(200).json({ notifications });
   } catch (error) {
     res.status(500).json({
@@ -19,114 +17,146 @@ export const getNotifications = async (req, res) => {
   }
 };
 
-/* ================================
-   ✅ تحديد كل الإشعارات كمقروءة
-================================ */
+/* ======================================================
+   ✅ تحديد جميع الإشعارات كمقروءة
+====================================================== */
 export const markAllAsRead = async (req, res) => {
-  const userId = req.user.id;
   try {
-    await Notification.updateMany(
-      { user: userId, isRead: false },
-      { $set: { isRead: true } }
-    );
-
-    res.status(200).json({ message: "تم تحديد الكل كمقروء." });
+    await Notification.updateMany({ user: req.user.id }, { read: true });
+    res.status(200).json({ message: "تم تحديد جميع الإشعارات كمقروءة." });
   } catch (error) {
     res.status(500).json({
-      message: "فشل في تحديث الإشعارات",
+      message: "فشل في تحديد جميع الإشعارات كمقروءة.",
       error: error.message,
     });
   }
 };
 
-/* ================================
-   ❌ حذف إشعار محدد
-================================ */
+/* ======================================================
+   ✅ تحديد إشعار واحد كمقروء
+====================================================== */
+export const markAsRead = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const notif = await Notification.findOneAndUpdate(
+      { _id: id, user: req.user.id },
+      { read: true },
+      { new: true }
+    );
+
+    if (!notif) {
+      return res.status(404).json({ message: "الإشعار غير موجود." });
+    }
+
+    res.status(200).json({ message: "تم تحديد الإشعار كمقروء." });
+  } catch (error) {
+    res.status(500).json({
+      message: "فشل في تحديد الإشعار كمقروء.",
+      error: error.message,
+    });
+  }
+};
+
+/* ======================================================
+   🗑️ حذف إشعار واحد أو الكل
+====================================================== */
 export const deleteNotification = async (req, res) => {
-  const userId = req.user.id;
-  const { id: notificationId } = req.params;
+  const { id } = req.params;
 
   try {
-    const notification = await Notification.findById(notificationId);
+    // 🧹 حذف الكل
+    if (id === "all") {
+      await Notification.deleteMany({ user: req.user.id });
+      return res.status(200).json({ message: "تم حذف جميع الإشعارات." });
+    }
 
-    if (!notification)
+    // ❌ حذف واحد
+    const notif = await Notification.findOneAndDelete({
+      _id: id,
+      user: req.user.id,
+    });
+
+    if (!notif) {
       return res.status(404).json({ message: "الإشعار غير موجود." });
-
-    if (notification.user.toString() !== userId)
-      return res.status(403).json({ message: "غير مصرح لك بحذف هذا الإشعار." });
-
-    await Notification.findByIdAndDelete(notificationId);
+    }
 
     res.status(200).json({ message: "تم حذف الإشعار بنجاح." });
   } catch (error) {
     res.status(500).json({
-      message: "فشل في حذف الإشعار",
+      message: "فشل في حذف الإشعار.",
       error: error.message,
     });
   }
 };
 
-/* ================================
-   🧹 حذف جميع الإشعارات
-================================ */
+/* ======================================================
+   🧹 حذف جميع الإشعارات (عند استدعاء DELETE /)
+====================================================== */
 export const deleteAllNotifications = async (req, res) => {
-  const userId = req.user.id;
   try {
-    await Notification.deleteMany({ user: userId });
-    res.status(200).json({ message: "تم حذف جميع الإشعارات بنجاح." });
+    await Notification.deleteMany({ user: req.user.id });
+    res.status(200).json({ message: "تم حذف جميع الإشعارات." });
   } catch (error) {
     res.status(500).json({
-      message: "فشل في حذف جميع الإشعارات",
+      message: "فشل في حذف جميع الإشعارات.",
       error: error.message,
     });
   }
 };
 
-/* ================================
-   🔔 إنشاء إشعار جديد (بث لحظي)
-================================ */
+/* ======================================================
+   🆕 إنشاء إشعار جديد (مثلاً عند بيع عمل فني)
+====================================================== */
 export const createNotification = async (req, res) => {
-  const { userId, message, link } = req.body;
   try {
+    const { userId, title, message, type } = req.body;
+
     if (!userId || !message) {
-      return res.status(400).json({ message: "الحقول مطلوبة." });
+      return res.status(400).json({ message: "الحقول المطلوبة ناقصة." });
     }
 
-    const notification = await Notification.create({
+    const newNotif = await Notification.create({
       user: userId,
+      title: title || "إشعار جديد",
       message,
-      link: link || null,
+      type: type || "info",
     });
 
-    // ⚡️ بثّ الإشعار للمستخدم عبر Socket.io
+    // 🧠 إرسال إشعار لحظي عبر Socket.io
     const io = req.app.get("io");
-    if (io) {
-      io.to(`user-${userId}`).emit("notification:new", notification);
+    const userSocketMap = req.app.get("userSocketMap");
+    const socketId = userSocketMap.get(userId.toString());
+
+    if (io && socketId) {
+      io.to(socketId).emit("notification:new", newNotif);
     }
 
-    res.status(201).json({ message: "تم إرسال الإشعار.", notification });
+    res.status(201).json({
+      message: "تم إنشاء الإشعار بنجاح.",
+      notification: newNotif,
+    });
   } catch (error) {
     res.status(500).json({
-      message: "فشل في إنشاء الإشعار",
+      message: "فشل في إنشاء الإشعار.",
       error: error.message,
     });
   }
 };
 
-/* ================================
+/* ======================================================
    🔢 عدد الإشعارات غير المقروءة
-================================ */
+====================================================== */
 export const getUnreadNotificationsCount = async (req, res) => {
-  const userId = req.user.id;
   try {
     const count = await Notification.countDocuments({
-      user: userId,
-      isRead: false,
+      user: req.user.id,
+      read: false,
     });
     res.status(200).json({ count });
   } catch (error) {
     res.status(500).json({
-      message: "فشل في جلب عدد الإشعارات",
+      message: "فشل في جلب عدد الإشعارات غير المقروءة.",
       error: error.message,
     });
   }
