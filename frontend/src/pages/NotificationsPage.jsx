@@ -17,30 +17,27 @@ function NotificationsPage() {
     const [loading, setLoading] = useState(true);
     const { setUnreadCount, user } = useAuth();
 
-    // 🔌 إعداد Socket.io client
+    // ✅ تهيئة Socket.io client
     useEffect(() => {
         if (!user?.id) return;
 
-        // ✅ إنشاء اتصال Socket.io
         const socket = io(import.meta.env.VITE_API_URL || "https://api.fanan3.com", {
             auth: { token: localStorage.getItem("token") },
             transports: ["websocket"],
         });
 
-        // 🎧 استقبال الإشعارات الجديدة
+        // 🧠 استقبال إشعارات جديدة من السيرفر
         socket.on("notification:new", (newNotif) => {
             setNotifications((prev) => [newNotif, ...prev]);
             setUnreadCount((prev) => prev + 1);
             toast.success("🔔 إشعار جديد!");
         });
 
-        // تنظيف عند مغادرة الصفحة
-        return () => {
-            socket.disconnect();
-        };
+        // 🧹 تنظيف الاتصال عند مغادرة الصفحة
+        return () => socket.disconnect();
     }, [user?.id, setUnreadCount]);
 
-    // 🔄 جلب الإشعارات أول مرة
+    // 📦 تحميل الإشعارات عند فتح الصفحة
     useEffect(() => {
         fetchNotifications();
     }, []);
@@ -57,10 +54,11 @@ function NotificationsPage() {
         }
     };
 
+    // ✅ تحديد الكل كمقروء
     const handleMarkAllRead = async () => {
         try {
             await markAllNotificationsRead();
-            setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+            setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
             setUnreadCount(0);
             toast.success("تم تحديد الكل كمقروء.");
         } catch (error) {
@@ -68,6 +66,7 @@ function NotificationsPage() {
         }
     };
 
+    // 🗑️ حذف إشعار واحد
     const handleDelete = async (e, notificationId) => {
         e.preventDefault();
         e.stopPropagation();
@@ -84,6 +83,7 @@ function NotificationsPage() {
         }
     };
 
+    // 🧹 حذف جميع الإشعارات
     const handleDeleteAll = async () => {
         if (!window.confirm("هل أنت متأكد من حذف جميع الإشعارات؟")) return;
         try {
@@ -96,7 +96,8 @@ function NotificationsPage() {
         }
     };
 
-    const unreadCount = notifications.filter((n) => !n.isRead).length;
+    // 📊 حساب الإشعارات غير المقروءة
+    const unreadCount = notifications.filter((n) => !n.read).length;
 
     return (
         <div className="max-w-4xl mx-auto">
@@ -133,13 +134,13 @@ function NotificationsPage() {
                             <Link
                                 to={notif.link || "#"}
                                 key={notif._id}
-                                className={`relative block p-4 rounded-lg transition-colors border ${notif.isRead
+                                className={`relative block p-4 rounded-lg transition-colors border ${notif.read
                                         ? "bg-white border-neutral-100"
                                         : "bg-primary/5 border-primary/30"
                                     } hover:bg-primary/10`}
                             >
                                 <div className="flex items-center gap-4">
-                                    {!notif.isRead && (
+                                    {!notif.read && (
                                         <div
                                             className="w-3 h-3 bg-primary rounded-full flex-shrink-0"
                                             title="غير مقروء"
@@ -147,7 +148,7 @@ function NotificationsPage() {
                                     )}
                                     <div className="flex-grow">
                                         <p
-                                            className={`font-semibold ${notif.isRead
+                                            className={`font-semibold ${notif.read
                                                     ? "text-neutral-700"
                                                     : "text-neutral-900"
                                                 }`}
