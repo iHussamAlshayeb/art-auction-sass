@@ -1,23 +1,19 @@
-import { useState, useEffect } from 'react';
-import { getMyWonArtworks, createPayment } from '../services/api';
-import toast from 'react-hot-toast';
-import Spinner from './Spinner';
+import { useEffect, useState } from "react";
+import { getMyWonArtworks } from "../services/api";
+import Spinner from "../components/Spinner";
+import { motion } from "framer-motion";
 
 function WonArtworks() {
-  const [wins, setWins] = useState([]);
+  const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchWins = async () => {
       try {
-        setLoading(true);
         const res = await getMyWonArtworks();
-        setWins(res.data.wonAuctions);
-        setError(null);
-      } catch (err) {
-        setError("فشل في تحميل المزادات الفائزة.");
-        console.error("Failed to fetch won artworks", err);
+        setArtworks(res.data.wins || []);
+      } catch {
+        console.error("Failed to fetch won artworks");
       } finally {
         setLoading(false);
       }
@@ -25,48 +21,47 @@ function WonArtworks() {
     fetchWins();
   }, []);
 
-  const handlePay = async (auctionId) => {
-    try {
-      const response = await createPayment(auctionId);
-      window.location.href = response.data.url;
-    } catch (error) {
-      toast.error(error.response?.data?.message || "فشل إنشاء عملية الدفع");
-    }
-  };
-
   if (loading) return <Spinner />;
-  if (error) return <p className="text-center text-red-500 py-4">{error}</p>;
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm p-6 sm:p-8 rounded-2xl shadow-xl border border-neutral-200">
-      <h3 className="text-2xl font-bold text-neutral-900 mb-4 border-b border-neutral-200 pb-3">
-        الأعمال الفنية التي فزت بها
-      </h3>
-      {wins.length === 0 ? (
-        <p className="text-neutral-700 text-center py-4">لم تفز بأي مزادات بعد.</p>
+    <motion.div
+      className="max-w-5xl mx-auto px-4 py-10 space-y-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <h1 className="text-3xl font-bold text-primary-dark text-center">
+        أعمالي الفائزة 🏆
+      </h1>
+
+      {artworks.length === 0 ? (
+        <p className="text-center text-neutral-500">لم تفز بأي عمل بعد.</p>
       ) : (
-        <div className="space-y-4">
-          {wins.map(auction => (
-            <div key={auction.id} className="bg-primary/5 p-4 rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-              <div>
-                <h5 className="font-bold text-neutral-900">{auction.artwork.title}</h5>
-                <p className="text-sm text-neutral-700">السعر النهائي: <span className="font-semibold">{auction.currentPrice} ريال</span></p>
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {artworks.map((art) => (
+            <div
+              key={art._id}
+              className="bg-white rounded-2xl shadow-md overflow-hidden border border-neutral-200 hover:shadow-lg transition-all"
+            >
+              <img
+                src={art.imageUrl}
+                alt={art.title}
+                className="w-full h-48 object-cover"
+              />
+              <div className="p-4">
+                <h3 className="font-semibold text-neutral-900">{art.title}</h3>
+                <p className="text-sm text-neutral-700 mt-1">
+                  السعر النهائي:{" "}
+                  <span className="font-bold text-secondary">
+                    {art.finalPrice?.toLocaleString()} ر.س
+                  </span>
+                </p>
               </div>
-              {auction.payment ? (
-                <p className="text-sm font-bold text-primary-dark px-4">✓ مدفوع</p>
-              ) : (
-                <button
-                  onClick={() => handlePay(auction._id)}
-                  className="w-full sm:w-auto bg-secondary hover:bg-secondary-dark text-white font-bold py-2 px-4 rounded-lg transition-colors text-sm shadow-sm"
-                >
-                  ادفع الآن
-                </button>
-              )}
             </div>
           ))}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
+
 export default WonArtworks;
