@@ -123,10 +123,10 @@ export const getStudentById = async (req, res) => {
       return res.status(404).json({ message: "الطالب غير موجود." });
     }
 
-    // ✅ استعلام مرن للتعامل مع اختلاف أسماء الحقول
-    const artworks = await Artwork.find({
-      $or: [{ student: student._id }, { studentId: student._id }],
-    })
+    // ✅ تحويل المعرف إلى ObjectId للتطابق التام
+    const studentId = new mongoose.Types.ObjectId(student._id);
+
+    const artworks = await Artwork.find({ student: studentId })
       .select("title imageUrl status")
       .sort({ createdAt: -1 })
       .lean();
