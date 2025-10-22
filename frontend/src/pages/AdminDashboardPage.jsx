@@ -1,15 +1,28 @@
+// src/pages/AdminDashboardPage.jsx
 import { useState, useEffect } from 'react';
+import { io } from 'socket.io-client';
 import {
   getAdminStats,
   getAllUsers,
   updateUserRole,
   deleteUser,
   getAdminArtworks,
-  deleteArtworkByAdmin
+  deleteArtworkByAdmin,
 } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import Spinner from '../components/Spinner';
+
+// ⚡ أنشئ Socket عميل
+const socket = io('https://api.fanan3.com', {
+  transports: ['websocket'],
+  autoConnect: true,
+  auth: () => {
+    // أرسل التوكن حتى يسمح السيرفر بالانضمام إلى غرفة admins
+    const token = localStorage.getItem('token');
+    return { token };
+  },
+});
 
 function AdminDashboardPage() {
   const { user: adminUser } = useAuth();
@@ -24,16 +37,16 @@ function AdminDashboardPage() {
       const [statsRes, usersRes, artworksRes] = await Promise.all([
         getAdminStats(),
         getAllUsers(),
-        getAdminArtworks()
+        getAdminArtworks(),
       ]);
 
-      // ✅ تهيئة البيانات بحيث تكون متوافقة مع الباكند
+      // يدعم شكلين: {stats: {...}} أو {...} مباشرة
       setStats(statsRes.data.stats || statsRes.data);
-      setUsers(usersRes.data.users);
-      setArtworks(artworksRes.data.artworks);
+      setUsers(usersRes.data.users || []);
+      setArtworks(artworksRes.data.artworks || []);
     } catch (error) {
-      console.error("Failed to load admin data", error);
-      toast.error("فشل في تحميل البيانات الإدارية.");
+      console.error('Failed to load admin data', error);
+      toast.error('فشل في تحميل البيانات الإدارية.');
     } finally {
       setLoading(false);
     }
@@ -41,14 +54,40 @@ function AdminDashboardPage() {
 
   useEffect(() => {
     fetchData();
+
+    // 🎧 الاستماع لتحديثات المشرفين
+    socket.on('admin:update', (payload) => {
+      // console.log('SOCKET admin:update', payload);
+      switch (payload?.type) {
+        case 'ARTWORK_DELETED':
+          setArtworks((prev) => prev.filter((a) => (a._id || a.id) !== payload.artworkId));
+          toast('🖼️ تم حذف عمل فني', { icon: '⚡' });
+          break;
+        case 'USER_DELETED':
+          setUsers((prev) => prev.filter((u) => (u._id || u.id) !== payload.userId));
+          toast('👤 تم حذف مستخدم', { icon: '⚡' });
+          break;
+        case 'AUCTION_ENDED':
+          // نعيد تحميل الإحصائيات فقط
+          getAdminStats().then((res) => setStats(res.data.stats || res.data));
+          break;
+        default:
+          break;
+      }
+    });
+
+    return () => {
+      socket.off('admin:update');
+    };
   }, []);
 
   const handleDeleteUser = async (userId) => {
-    if (window.confirm('هل أنت متأكد من أنك تريد حذف هذا المستخدم نهائيًا؟')) {
+    if (window.confirm('هل أنت متأكد من حذف هذا المستخدم نهائيًا؟')) {
       try {
         await deleteUser(userId);
+        // بقية المشرفين سيُحدّثون عبر socket، وأنت كذلك نحدّث مباشرة
+        setUsers((prev) => prev.filter((u) => (u._id || u.id) !== userId));
         toast.success('تم حذف المستخدم بنجاح!');
-        fetchData();
       } catch (error) {
         toast.error(error.response?.data?.message || 'فشل في حذف المستخدم.');
       }
@@ -59,7 +98,9 @@ function AdminDashboardPage() {
     try {
       await updateUserRole(userId, newRole);
       toast.success('تم تحديث دور المستخدم!');
-      fetchData();
+      setUsers((prev) =>
+        prev.map((u) => (u._id === userId ? { ...u, role: newRole } : u))
+      );
     } catch (error) {
       toast.error('فشل في تغيير دور المستخدم.');
     }
@@ -69,8 +110,8 @@ function AdminDashboardPage() {
     if (window.confirm('هل أنت متأكد من حذف هذا العمل الفني؟ سيتم حذف أي مزاد مرتبط به.')) {
       try {
         await deleteArtworkByAdmin(artworkId);
+        setArtworks((prev) => prev.filter((a) => (a._id || a.id) !== artworkId));
         toast.success('تم حذف العمل الفني بنجاح!');
-        fetchData();
       } catch (error) {
         toast.error(error.response?.data?.message || 'فشل في حذف العمل الفني.');
       }
@@ -86,7 +127,7 @@ function AdminDashboardPage() {
         <>
           <h1 className="text-3xl font-bold text-center text-primary-dark">لوحة التحكم الإدارية</h1>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
-            <StatCard label="المستخدمين" value={stats.users} icon="👥" color="bg-teal-50 text-teal-600" />
+            <StatCard label="المستخدمون" value={stats.users} icon="👥" color="bg-teal-50 text-teal-600" />
             <StatCard label="الأعمال الفنية" value={stats.artworks} icon="🎨" color="bg-orange-50 text-orange-600" />
             <StatCard label="المزادات" value={stats.auctions} icon="🔨" color="bg-yellow-50 text-yellow-600" />
             <StatCard label="الأعمال المباعة" value={stats.soldArtworks} icon="🖼️" color="bg-green-50 text-green-600" />
@@ -118,7 +159,7 @@ function AdminDashboardPage() {
               </thead>
               <tbody>
                 {artworks.map((art) => (
-                  <tr key={art._id} className="hover:bg-orange-50/30 border-b border-orange-100">
+                  <tr key={art._id || art.id} className="hover:bg-orange-50/30 border-b border-orange-100">
                     <td className="py-2 px-4">
                       <img src={art.imageUrl} alt={art.title} className="h-12 w-12 object-cover rounded-md" />
                     </td>
@@ -138,7 +179,7 @@ function AdminDashboardPage() {
                     </td>
                     <td className="py-2 px-4">
                       <button
-                        onClick={() => handleDeleteArtwork(art._id)}
+                        onClick={() => handleDeleteArtwork(art._id || art.id)}
                         className="text-red-600 hover:text-red-900 text-xs font-semibold"
                       >
                         حذف
@@ -170,38 +211,38 @@ function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
-                  <tr key={user._id} className="hover:bg-orange-50/30 border-b border-orange-100">
-                    <td className="py-3 px-4">{user.name}</td>
-                    <td className="py-3 px-4">{user.email}</td>
+                {users.map((u) => (
+                  <tr key={u._id || u.id} className="hover:bg-orange-50/30 border-b border-orange-100">
+                    <td className="py-3 px-4">{u.name}</td>
+                    <td className="py-3 px-4">{u.email}</td>
                     <td className="py-3 px-4">
                       <span
-                        className={`px-2.5 py-1 text-xs font-semibold rounded-full ${user.role === 'ADMIN'
+                        className={`px-2.5 py-1 text-xs font-semibold rounded-full ${u.role === 'ADMIN'
                             ? 'bg-red-100 text-red-800'
-                            : user.role === 'STUDENT'
+                            : u.role === 'STUDENT'
                               ? 'bg-green-100 text-green-800'
                               : 'bg-blue-100 text-blue-800'
                           }`}
                       >
-                        {user.role}
+                        {u.role}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-500">
-                      {new Date(user.createdAt).toLocaleDateString('ar-SA')}
+                      {new Date(u.createdAt).toLocaleDateString('ar-SA')}
                     </td>
                     <td className="py-3 px-4">
-                      {user._id !== adminUser.id ? (
+                      {(u._id || u.id) !== adminUser?.id ? (
                         <div className="flex items-center gap-2">
                           <select
-                            value={user.role}
-                            onChange={(e) => handleRoleChange(user._id, e.target.value)}
+                            value={u.role}
+                            onChange={(e) => handleRoleChange(u._id || u.id, e.target.value)}
                             className="text-xs p-1.5 border border-gray-300 rounded-md focus:ring-orange-500 focus:border-orange-500"
                           >
                             <option value="STUDENT">STUDENT</option>
                             <option value="ADMIN">ADMIN</option>
                           </select>
                           <button
-                            onClick={() => handleDeleteUser(user._id)}
+                            onClick={() => handleDeleteUser(u._id || u.id)}
                             className="text-red-600 hover:text-red-900 text-xs font-semibold"
                           >
                             حذف
@@ -224,7 +265,6 @@ function AdminDashboardPage() {
   );
 }
 
-// 🔹 مكون بطاقة الإحصائيات
 function StatCard({ label, value, icon, color }) {
   return (
     <div className={`p-5 rounded-2xl shadow-md text-center border border-white/20 ${color}`}>

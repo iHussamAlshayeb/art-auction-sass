@@ -3,6 +3,7 @@ import Artwork from "../models/artwork.model.js";
 import Auction from "../models/auction.model.js";
 import User from "../models/user.model.js";
 import Notification from "../models/notification.model.js";
+import { sendUserNotification } from "../utils/notify.js";
 
 export const processFinishedAuctions = async (io, userSocketMap) => {
   console.log(`🔁 Running job at: ${new Date().toISOString()}`);
@@ -34,19 +35,29 @@ export const processFinishedAuctions = async (io, userSocketMap) => {
 
         // 🎉 إشعار الفائز
         if (winner) {
-          await Notification.create({
-            user: winnerId,
-            message: `🎉 تهانينا! لقد فزت بمزاد "${auction.artwork.title}"`,
-            link: `/dashboard/won-auctions`,
-          });
+          await sendUserNotification(
+            io,
+            userSocketMap,
+            {
+              userId: winnerId,
+              message: `🎉 تهانينا! لقد فزت بمزاد "${auction.artwork.title}"`,
+              link: `/dashboard/won-auctions`,
+            },
+            { dedupeKey: true }
+          );
 
           // ✅ إشعار الفنان (صاحب العمل)
           if (artistId && artistId.toString() !== winnerId.toString()) {
-            await Notification.create({
-              user: artistId,
-              message: `🎉 تم بيع عملك الفني "${auction.artwork.title}" بنجاح!`,
-              link: `/dashboard/sold-artworks`,
-            });
+            await sendUserNotification(
+              io,
+              userSocketMap,
+              {
+                userId: artistId,
+                message: `🎉 تم بيع عملك الفني "${auction.artwork.title}" بنجاح!`,
+                link: `/dashboard/sold-artworks`,
+              },
+              { dedupeKey: true }
+            );
           }
 
           // ✉️ إرسال البريد الإلكتروني مرة واحدة فقط

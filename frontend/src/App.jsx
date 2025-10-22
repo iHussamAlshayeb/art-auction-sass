@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import { Toaster } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { connectSocket, getSocket } from "./socket";
 
 // استيراد المكونات والتخطيطات
 import Header from './components/Header';

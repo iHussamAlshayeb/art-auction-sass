@@ -171,3 +171,7 @@ export const getUnreadNotifCount = () =>
 // 🧹 حذف جميع الإشعارات
 export const deleteAllNotifications = () =>
   apiClient.delete("/notifications/all");
+
+export const getAllAuctionsAdmin = () => apiClient.get("/admin/auctions");
+export const endAuctionManually = (auctionId) =>
+  apiClient.post(`/admin/auctions/${auctionId}/end`);

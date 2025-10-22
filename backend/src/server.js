@@ -25,7 +25,7 @@ const io = new Server(httpServer, {
       "https://www.fanan3.com",
       "https://fanan3.com",
     ],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   },
 });
@@ -40,33 +40,44 @@ io.on("connection", (socket) => {
   console.log(`🟢 User connected: ${socket.id}`);
 
   const token = socket.handshake.auth?.token;
+
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.id || decoded.userId;
-      if (userId) {
-        userSocketMap.set(userId.toString(), socket.id);
-        console.log(`✅ User ${userId} authenticated via socket ${socket.id}`);
+      const userId = decoded.userId || decoded.id; // دعم كلا المفتاحين
+      const role = decoded.role || "STUDENT";
+
+      userSocketMap.set(userId.toString(), socket.id);
+      console.log(`✅ User ${userId} authenticated (${role})`);
+
+      // 🧩 إنشاء غرفة خاصة بكل مستخدم للإشعارات
+      socket.join(`user-${userId}`);
+      console.log(`🔔 User ${userId} joined room user-${userId}`);
+
+      // ✅ إذا كان إداريًا، ضمّه إلى غرفة "admins"
+      if (role === "ADMIN") {
+        socket.join("admins");
+        console.log(`🧑‍💼 Admin ${userId} joined 'admins' room`);
       }
     } catch (err) {
-      console.warn("⚠️ Invalid token on socket connection:", err.message);
+      console.log("❌ Token verification failed:", err.message);
     }
   }
 
-  // انضمام المستخدم لغرفة مزاد معينة
+  // 📦 الانضمام لغرفة مزاد
   socket.on("joinAuctionRoom", (auctionId) => {
     const roomName = `auction-${auctionId}`;
     socket.join(roomName);
-    console.log(`📦 Socket ${socket.id} joined room ${roomName}`);
+    console.log(`🏷️ User ${socket.id} joined room ${roomName}`);
   });
 
-  // مغادرة المستخدم
+  // 📴 عند قطع الاتصال
   socket.on("disconnect", () => {
-    console.log(`🔴 Socket disconnected: ${socket.id}`);
-    for (const [userId, socketId] of userSocketMap.entries()) {
+    console.log(`🔴 Disconnected: ${socket.id}`);
+    for (let [userId, socketId] of userSocketMap.entries()) {
       if (socketId === socket.id) {
         userSocketMap.delete(userId);
-        console.log(`❎ User ${userId} removed from socket map.`);
+        console.log(`❎ User ${userId} removed from map`);
         break;
       }
     }
