@@ -1,72 +1,97 @@
-import Notification from "../models/notification.model.js"; // 1. استيراد نموذج Mongoose
+import Notification from "../models/notification.model.js";
 
-// ---== دالة جلب الإشعارات (نسخة Mongoose) ==---
+/**
+ * 🔔 جلب إشعارات المستخدم الحالي (مع دعم التصفح)
+ * query: page, limit
+ */
 export const getNotifications = async (req, res) => {
-  const userId = req.user.id;
   try {
-    const notifications = await Notification.find({ user: userId })
-      .sort({ createdAt: -1 }) // -1 تعادل 'desc'
-      .limit(30); // .limit تعادل 'take'
+    const page = Math.max(parseInt(req.query.page || "1"), 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit || "20"), 1), 50);
+    const skip = (page - 1) * limit;
 
-    res.status(200).json({ notifications });
+    const [notifications, total] = await Promise.all([
+      Notification.find({ user: req.user.id })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Notification.countDocuments({ user: req.user.id }),
+    ]);
+
+    res.status(200).json({
+      notifications,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit) || 1,
+        total,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: "فشل في جلب الإشعارات" });
+    console.error("getNotifications error:", error);
+    res
+      .status(500)
+      .json({ message: "فشل في جلب الإشعارات", error: error.message });
   }
 };
 
-// ---== دالة تحديد الكل كمقروء (نسخة Mongoose) ==---
+/**
+ * 📖 تعليم جميع الإشعارات كمقروءة
+ * POST /notifications/mark-read
+ */
 export const markAllAsRead = async (req, res) => {
-  const userId = req.user.id;
   try {
-    // 2. استخدام updateMany مع $set
     await Notification.updateMany(
-      { user: userId, isRead: false }, // الشرط
-      { $set: { isRead: true } } // التحديث
+      { user: req.user.id, isRead: false },
+      { $set: { isRead: true } }
     );
-    res.status(200).json({ message: "تم تحديد الكل كمقروء." });
+    res.status(200).json({ message: "تم تعليم جميع الإشعارات كمقروءة." });
   } catch (error) {
-    res.status(500).json({ message: "فشل في تحديث الإشعارات" });
+    console.error("markAllAsRead error:", error);
+    res
+      .status(500)
+      .json({ message: "فشل في تحديث الإشعارات", error: error.message });
   }
 };
 
-// ---== دالة حذف إشعار (نسخة Mongoose) ==---
+/**
+ * 🗑️ حذف إشعار واحد
+ * DELETE /notifications/:id
+ */
 export const deleteNotification = async (req, res) => {
-  const userId = req.user.id;
-  const { id: notificationId } = req.params;
   try {
-    // 3. العثور على الإشعار
-    const notification = await Notification.findById(notificationId);
+    const notif = await Notification.findOneAndDelete({
+      _id: req.params.id,
+      user: req.user.id,
+    });
 
-    if (!notification) {
+    if (!notif) {
       return res.status(404).json({ message: "الإشعار غير موجود." });
     }
-
-    // 4. فحص أمني: التأكد من أن المستخدم يملك هذا الإشعار
-    // Mongoose IDs هي objects، لذا نستخدم .toString() للمقارنة
-    if (notification.user.toString() !== userId) {
-      return res.status(403).json({ message: "غير مصرح لك" });
-    }
-
-    // 5. حذف الإشعار
-    await Notification.findByIdAndDelete(notificationId);
-
-    res.status(200).json({ message: "تم حذف الإشعار." });
+    res.status(200).json({ message: "تم حذف الإشعار بنجاح." });
   } catch (error) {
-    res.status(500).json({ message: "فشل في حذف الإشعار" });
+    console.error("deleteNotification error:", error);
+    res
+      .status(500)
+      .json({ message: "فشل في حذف الإشعار", error: error.message });
   }
 };
 
-// ---== دالة جلب عدد الإشعارات غير المقروءة (نسخة Mongoose) ==---
+/**
+ * 🔢 عدد الإشعارات غير المقروءة
+ * GET /notifications/unread-count
+ */
 export const getUnreadNotificationsCount = async (req, res) => {
-  const userId = req.user.id;
   try {
-    // 6. استخدام countDocuments
     const count = await Notification.countDocuments({
-      user: userId,
+      user: req.user.id,
       isRead: false,
     });
     res.status(200).json({ count });
   } catch (error) {
-    res.status(500).json({ message: "فشل في جلب عدد الإشعارات" });
+    console.error("getUnreadNotificationsCount error:", error);
+    res
+      .status(500)
+      .json({ message: "فشل في جلب عدد الإشعارات", error: error.message });
   }
 };
