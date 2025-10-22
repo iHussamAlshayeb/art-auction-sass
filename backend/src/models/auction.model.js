@@ -39,6 +39,7 @@ const auctionSchema = new mongoose.Schema(
       default: "ACTIVE",
       index: true,
     },
+    payment: { type: mongoose.Schema.Types.ObjectId, ref: "Payment" },
   },
   {
     timestamps: true,
