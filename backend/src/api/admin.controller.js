@@ -113,18 +113,14 @@ export const getAdminStats = async (req, res) => {
     const notificationsCount = await Notification.countDocuments();
 
     res.status(200).json({
-      users: usersCount,
-      artworks: artworksCount,
-      auctions: auctionsCount,
-      soldArtworks,
-      notifications: notificationsCount,
-      activeAuctions: await Auction.countDocuments({
-        endTime: { $gt: new Date() },
-      }),
-      totalRevenue: await Auction.aggregate([
-        { $match: { highestBidder: { $ne: null } } },
-        { $group: { _id: null, total: { $sum: "$currentPrice" } } },
-      ]).then((r) => r[0]?.total || 0),
+      message: "تم جلب الإحصائيات بنجاح",
+      stats: {
+        users: usersCount,
+        artworks: artworksCount,
+        auctions: auctionsCount,
+        soldArtworks,
+        notifications: notificationsCount,
+      },
     });
   } catch (error) {
     console.error("Error fetching admin stats:", error);
