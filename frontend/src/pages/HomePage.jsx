@@ -114,7 +114,7 @@ function HomePage() {
             className="relative"
           >
             <img
-              src="../assets/logo.png"
+              src="https://res.cloudinary.com/dguzwf5zd/image/upload/v1761166659/logo_wqfkdb.png"
               alt="Art Showcase"
               className="rounded-3xl shadow-lg object-cover w-full h-[400px]"
             />
