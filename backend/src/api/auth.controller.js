@@ -1,16 +1,16 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
-// 🧩 دالة إنشاء التوكن (JWT)
+// 🔹 دالة مساعدة لإنشاء JWT Token
 const generateToken = (id, role) => {
   return jwt.sign({ userId: id, role }, process.env.JWT_SECRET, {
-    expiresIn: "7d", // صلاحية التوكن أسبوع
+    expiresIn: "7d", // صلاحية التوكن أسبوع كامل
   });
 };
 
-// ===============================
-// 🧑‍🎓 دالة التسجيل (Register)
-// ===============================
+// =====================================================
+// 🧩 دالة التسجيل (Register)
+// =====================================================
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -22,8 +22,11 @@ export const register = async (req, res) => {
       });
     }
 
-    // ✅ التحقق من عدم وجود مستخدم بنفس البريد
-    const existingUser = await User.findOne({ email });
+    // ✅ تنظيف البريد الإلكتروني
+    const cleanEmail = email.trim().toLowerCase();
+
+    // ✅ التحقق من وجود المستخدم مسبقًا
+    const existingUser = await User.findOne({ email: cleanEmail });
     if (existingUser) {
       return res
         .status(409)
@@ -34,7 +37,7 @@ export const register = async (req, res) => {
     // (كلمة المرور ستُشفّر تلقائيًا بفضل pre('save') في user.model.js)
     const user = await User.create({
       name,
-      email,
+      email: cleanEmail,
       password,
       role: "STUDENT", // الافتراضي
     });
@@ -42,7 +45,7 @@ export const register = async (req, res) => {
     // ✅ إنشاء JWT token
     const token = generateToken(user._id, user.role);
 
-    // ✅ الاستجابة
+    // ✅ إرسال الاستجابة
     res.status(201).json({
       message: "تم إنشاء الحساب بنجاح",
       token,
@@ -62,26 +65,31 @@ export const register = async (req, res) => {
   }
 };
 
-// ===============================
+// =====================================================
 // 🔑 دالة تسجيل الدخول (Login)
-// ===============================
+// =====================================================
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // ✅ تحقق من وجود الحقول
+    // ✅ التحقق من الحقول
     if (!email || !password) {
       return res
         .status(400)
         .json({ message: "البريد الإلكتروني وكلمة المرور مطلوبان." });
     }
 
-    // ✅ العثور على المستخدم
-    const user = await User.findOne({ email }).select("+password");
+    // ✅ تنظيف البريد الإلكتروني لتفادي الأخطاء بسبب المسافات أو الحروف الكبيرة
+    const cleanEmail = email.trim().toLowerCase();
+
+    // ✅ جلب المستخدم مع كلمة المرور (لأنها select:false في الموديل)
+    const user = await User.findOne({ email: cleanEmail }).select("+password");
+
     if (!user) {
       return res.status(401).json({ message: "المستخدم غير موجود." });
     }
 
+    // ✅ التحقق من كلمة المرور
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: "كلمة المرور غير صحيحة." });
@@ -90,7 +98,7 @@ export const login = async (req, res) => {
     // ✅ إنشاء JWT
     const token = generateToken(user._id, user.role);
 
-    // ✅ إرسال الاستجابة
+    // ✅ الاستجابة الناجحة
     res.status(200).json({
       message: "تم تسجيل الدخول بنجاح",
       token,
@@ -110,16 +118,24 @@ export const login = async (req, res) => {
   }
 };
 
-// ===============================
+// =====================================================
 // 🚪 تسجيل الخروج (Logout)
-// ===============================
+// =====================================================
 export const logout = async (req, res) => {
   try {
-    res.clearCookie("token");
+    // إذا كنت تستخدم كوكيز JWT
+    res.clearCookie("token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+    });
+
     res.status(200).json({ message: "تم تسجيل الخروج بنجاح." });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "فشل في تسجيل الخروج", error: error.message });
+    console.error("Logout Error:", error);
+    res.status(500).json({
+      message: "فشل في تسجيل الخروج",
+      error: error.message,
+    });
   }
 };
