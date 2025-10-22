@@ -3,17 +3,19 @@ import {
     getNotifications,
     markAllNotificationsRead,
     deleteNotificationById,
-    deleteAllNotifications, // ✅ أضفها في ملف api.js
+    deleteAllNotifications,
 } from "../services/api";
 import { Link } from "react-router-dom";
 import Spinner from "../components/Spinner";
 import toast from "react-hot-toast";
-import { FiX, FiTrash2 } from "react-icons/fi"; // 🗑️ أيقونة الحذف الكلي
+import { FiX, FiTrash2 } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 function NotificationsPage() {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showConfirmModal, setShowConfirmModal] = useState(false); // ✅ للحذف الكلي
     const { setUnreadCount } = useAuth();
 
     useEffect(() => {
@@ -49,7 +51,6 @@ function NotificationsPage() {
         e.stopPropagation();
 
         if (!notificationId) {
-            console.error("❌ Notification ID is undefined");
             toast.error("فشل حذف الإشعار (رقم المعرف مفقود)");
             return;
         }
@@ -68,24 +69,14 @@ function NotificationsPage() {
         }
     };
 
-    // ✅ ميزة حذف الكل
-    const handleDeleteAll = async () => {
-        if (notifications.length === 0) {
-            toast("لا توجد إشعارات للحذف");
-            return;
-        }
-
-        const confirmDelete = window.confirm(
-            "هل أنت متأكد أنك تريد حذف جميع الإشعارات؟"
-        );
-        if (!confirmDelete) return;
-
+    const handleConfirmDeleteAll = async () => {
         try {
             await deleteAllNotifications();
-            setNotifications([]); // تفريغ الواجهة
+            setNotifications([]);
             setUnreadCount(0);
+            setShowConfirmModal(false);
             toast.success("تم حذف جميع الإشعارات بنجاح");
-        } catch (error) {
+        } catch {
             toast.error("فشل في حذف جميع الإشعارات");
         }
     };
@@ -109,10 +100,9 @@ function NotificationsPage() {
                             </button>
                         )}
 
-                        {/* 🗑️ زر حذف الكل */}
                         {notifications.length > 0 && (
                             <button
-                                onClick={handleDeleteAll}
+                                onClick={() => setShowConfirmModal(true)} // ✅ فتح المودال
                                 className="flex items-center gap-1 text-sm font-semibold text-red-500 hover:text-red-600 transition-colors"
                             >
                                 <FiTrash2 size={16} />
@@ -175,6 +165,46 @@ function NotificationsPage() {
                     </p>
                 )}
             </div>
+
+            {/* ===== نافذة تأكيد الحذف الكلي ===== */}
+            <AnimatePresence>
+                {showConfirmModal && (
+                    <motion.div
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <motion.div
+                            className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm text-center"
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                        >
+                            <h2 className="text-xl font-bold text-neutral-900 mb-2">
+                                تأكيد الحذف
+                            </h2>
+                            <p className="text-neutral-600 mb-6">
+                                هل أنت متأكد أنك تريد حذف <b>جميع الإشعارات؟</b>
+                            </p>
+                            <div className="flex justify-center gap-4">
+                                <button
+                                    onClick={() => setShowConfirmModal(false)}
+                                    className="px-4 py-2 rounded-lg bg-neutral-200 text-neutral-800 hover:bg-neutral-300 transition-all"
+                                >
+                                    إلغاء
+                                </button>
+                                <button
+                                    onClick={handleConfirmDeleteAll}
+                                    className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-all"
+                                >
+                                    حذف الكل
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
