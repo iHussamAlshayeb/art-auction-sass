@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { getStudentProfile } from '../services/api';
-import AuctionCardTimer from '../components/AuctionCardTimer';
-import Spinner from '../components/Spinner';
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { getStudentProfile } from "../services/api";
+import AuctionCardTimer from "../components/AuctionCardTimer";
+import Spinner from "../components/Spinner";
 
 function StudentProfilePage() {
     const { id } = useParams();
     const [student, setStudent] = useState(null);
+    const [artworks, setArtworks] = useState([]); // ✅ إضافة state للأعمال
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -15,12 +16,15 @@ function StudentProfilePage() {
             try {
                 setLoading(true);
                 setError(null);
+
                 if (!id) {
                     setError("معرّف الفنان غير صالح.");
                     return;
                 }
+
                 const res = await getStudentProfile(id);
                 setStudent(res.data.student || null);
+                setArtworks(res.data.artworks || []); // ✅ تخزين الأعمال بشكل منفصل
             } catch (error) {
                 console.error("Failed to fetch student profile", error);
                 setError("فشل في جلب بيانات الفنان. تأكد من صحة الرابط.");
@@ -28,13 +32,12 @@ function StudentProfilePage() {
                 setLoading(false);
             }
         };
+
         fetchProfile();
     }, [id]);
 
     // حالة التحميل
-    if (loading) {
-        return <Spinner />;
-    }
+    if (loading) return <Spinner />;
 
     // حالة الخطأ أو عدم وجود الطالب
     if (error || !student) {
@@ -90,65 +93,62 @@ function StudentProfilePage() {
             <div>
                 <h2 className="text-3xl font-bold text-gray-800 mb-6">معرض الأعمال</h2>
 
-                {!student.artworks || student.artworks.length === 0 ? (
+                {artworks.length === 0 ? (
                     <p className="text-center text-gray-500 text-lg">
                         لا توجد أعمال فنية لهذا الفنان بعد.
                     </p>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {student.artworks
-                            .filter((art) => art && (art._id || art.id))
-                            .map((artwork) => {
-                                const artworkId = artwork._id || artwork.id;
-                                const auction = artwork.auction;
-                                const auctionId = auction?._id || auction?.id;
+                        {artworks.map((artwork) => {
+                            const artworkId = artwork._id || artwork.id;
+                            const auction = artwork.auction;
+                            const auctionId = auction?._id || auction?.id;
 
-                                const ArtworkCard = (
-                                    <div
-                                        key={artworkId}
-                                        className="bg-white rounded-3xl overflow-hidden border border-orange-100 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group h-full"
-                                    >
-                                        <img
-                                            src={
-                                                artwork.imageUrl ||
-                                                "https://via.placeholder.com/400x300?text=No+Image"
-                                            }
-                                            alt={artwork.title || "عمل فني"}
-                                            className="w-full h-60 object-cover"
-                                        />
-                                        <div className="p-5">
-                                            <h3 className="text-lg font-bold text-gray-800 truncate">
-                                                {artwork.title || "عمل فني بدون عنوان"}
-                                            </h3>
+                            const ArtworkCard = (
+                                <div
+                                    key={artworkId}
+                                    className="bg-white rounded-3xl overflow-hidden border border-orange-100 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group h-full"
+                                >
+                                    <img
+                                        src={
+                                            artwork.imageUrl ||
+                                            "https://via.placeholder.com/400x300?text=No+Image"
+                                        }
+                                        alt={artwork.title || "عمل فني"}
+                                        className="w-full h-60 object-cover"
+                                    />
+                                    <div className="p-5">
+                                        <h3 className="text-lg font-bold text-gray-800 truncate">
+                                            {artwork.title || "عمل فني بدون عنوان"}
+                                        </h3>
 
-                                            {auction ? (
-                                                <div className="mt-4">
-                                                    <p className="text-xs text-gray-500">السعر الحالي</p>
-                                                    <p className="text-2xl font-extrabold text-orange-600">
-                                                        {auction.currentPrice} ر.س
-                                                    </p>
-                                                    <div className="mt-2">
-                                                        <AuctionCardTimer endTime={auction.endTime} />
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <p className="mt-4 text-sm font-semibold text-gray-500 bg-gray-100 p-2 rounded-md text-center">
-                                                    غير معروض في مزاد
+                                        {auction ? (
+                                            <div className="mt-4">
+                                                <p className="text-xs text-gray-500">السعر الحالي</p>
+                                                <p className="text-2xl font-extrabold text-orange-600">
+                                                    {auction.currentPrice} ر.س
                                                 </p>
-                                            )}
-                                        </div>
+                                                <div className="mt-2">
+                                                    <AuctionCardTimer endTime={auction.endTime} />
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p className="mt-4 text-sm font-semibold text-gray-500 bg-gray-100 p-2 rounded-md text-center">
+                                                غير معروض في مزاد
+                                            </p>
+                                        )}
                                     </div>
-                                );
+                                </div>
+                            );
 
-                                // إذا العمل في مزاد، نخلي الكرت قابل للنقر
-                                return auctionId ? (
-                                    <Link key={artworkId} to={`/auctions/${auctionId}`}>
-                                        {ArtworkCard}
-                                    </Link>
-                                ) : (
-                                    <div key={artworkId}>{ArtworkCard}</div>
-                                );
-                            })}
+                            return auctionId ? (
+                                <Link key={artworkId} to={`/auctions/${auctionId}`}>
+                                    {ArtworkCard}
+                                </Link>
+                            ) : (
+                                <div key={artworkId}>{ArtworkCard}</div>
+                            );
+                        })}
                     </div>
                 )}
             </div>
