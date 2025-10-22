@@ -114,7 +114,7 @@ function HomePage() {
             className="relative"
           >
             <img
-              src="../assets/logo.svg"
+              src="../assets/logo.png"
               alt="Art Showcase"
               className="rounded-3xl shadow-lg object-cover w-full h-[400px]"
             />
