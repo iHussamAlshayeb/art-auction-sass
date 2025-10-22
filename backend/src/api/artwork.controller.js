@@ -5,7 +5,7 @@ import Auction from "../models/auction.model.js";
 export const createArtwork = async (req, res) => {
   try {
     const { title, description, imageUrl } = req.body;
-    const studentId = req.user._id;
+    const studentId = req.user.id; // ✅ تم التعديل هنا
 
     if (!title || !description || !imageUrl) {
       return res.status(400).json({ message: "جميع الحقول مطلوبة." });
@@ -15,15 +15,20 @@ export const createArtwork = async (req, res) => {
       title,
       description,
       imageUrl,
-      student: studentId,
+      student: studentId, // ✅ سيرسل معرف الطالب الصحيح الآن
       status: "DRAFT",
     });
 
-    res.status(201).json({ message: "تم إنشاء العمل الفني بنجاح", artwork });
+    res.status(201).json({
+      message: "تم إنشاء العمل الفني بنجاح",
+      artwork,
+    });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "فشل في إنشاء العمل الفني", error: error.message });
+    console.error("❌ Artwork Error:", error.message);
+    res.status(500).json({
+      message: "فشل في إنشاء العمل الفني",
+      error: error.message,
+    });
   }
 };
 
@@ -31,12 +36,13 @@ export const createArtwork = async (req, res) => {
 export const updateArtwork = async (req, res) => {
   const { id } = req.params;
   const { title, description, imageUrl } = req.body;
-  const studentId = req.user._id;
+  const studentId = req.user.id; // ✅ تم التعديل هنا
 
   try {
     const artwork = await Artwork.findById(id);
     if (!artwork)
       return res.status(404).json({ message: "العمل الفني غير موجود" });
+
     if (artwork.student.toString() !== studentId.toString()) {
       return res.status(403).json({ message: "غير مصرح بتعديل هذا العمل." });
     }
@@ -48,21 +54,23 @@ export const updateArtwork = async (req, res) => {
 
     res.status(200).json({ message: "تم تحديث العمل الفني بنجاح", artwork });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "فشل في تحديث العمل الفني", error: error.message });
+    res.status(500).json({
+      message: "فشل في تحديث العمل الفني",
+      error: error.message,
+    });
   }
 };
 
 // 🗑️ حذف عمل فني (إن لم يكن في مزاد)
 export const deleteArtwork = async (req, res) => {
   const { id } = req.params;
-  const studentId = req.user._id;
+  const studentId = req.user.id; // ✅ تم التعديل هنا
 
   try {
     const artwork = await Artwork.findById(id);
     if (!artwork)
       return res.status(404).json({ message: "العمل الفني غير موجود" });
+
     if (artwork.student.toString() !== studentId.toString()) {
       return res.status(403).json({ message: "غير مصرح بحذف هذا العمل." });
     }
@@ -75,9 +83,10 @@ export const deleteArtwork = async (req, res) => {
     await artwork.deleteOne();
     res.status(200).json({ message: "تم حذف العمل الفني بنجاح." });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "فشل في حذف العمل الفني", error: error.message });
+    res.status(500).json({
+      message: "فشل في حذف العمل الفني",
+      error: error.message,
+    });
   }
 };
 
@@ -92,9 +101,10 @@ export const getAllPublicArtworks = async (req, res) => {
 
     res.status(200).json({ artworks });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "فشل في جلب الأعمال الفنية", error: error.message });
+    res.status(500).json({
+      message: "فشل في جلب الأعمال الفنية",
+      error: error.message,
+    });
   }
 };
 
@@ -107,8 +117,9 @@ export const getStudentArtworks = async (req, res) => {
     });
     res.status(200).json({ artworks });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "فشل في جلب أعمال الطالب", error: error.message });
+    res.status(500).json({
+      message: "فشل في جلب أعمال الطالب",
+      error: error.message,
+    });
   }
 };
