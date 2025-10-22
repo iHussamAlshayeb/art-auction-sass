@@ -64,4 +64,46 @@ function GalleryPage() {
                 </p>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:gr
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                {!loading &&
+                    artworks.map((artwork) => (
+                        <div
+                            key={artwork._id}
+                            className="bg-white rounded-2xl overflow-hidden border border-neutral-200 shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group"
+                        >
+                            <img
+                                src={artwork.imageUrl}
+                                alt={artwork.title}
+                                className="w-full h-60 object-cover"
+                            />
+                            <div className="p-5 flex flex-col">
+                                <h3 className="text-lg font-bold text-neutral-900 truncate mb-1">
+                                    {artwork.title}
+                                </h3>
+                                {artwork.student && (
+                                    <Link to={`/students/${artwork.student._id}`}>
+                                        <p className="text-sm text-neutral-700 hover:text-primary transition-colors">
+                                            بواسطة {artwork.student.name}
+                                        </p>
+                                    </Link>
+                                )}
+                                <div className="mt-auto pt-3">
+                                    <ArtworkStatusBadge artwork={artwork} />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+            </div>
+
+            {!loading && pagination && (
+                <Pagination
+                    currentPage={pagination.currentPage}
+                    totalPages={pagination.totalPages}
+                    onPageChange={handlePageChange}
+                />
+            )}
+        </div>
+    );
+}
+
+export default GalleryPage;
