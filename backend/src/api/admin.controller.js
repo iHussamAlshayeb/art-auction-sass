@@ -130,3 +130,19 @@ export const getAdminStats = async (req, res) => {
     });
   }
 };
+
+// ---== جلب كل الأعمال الفنية (للمشرف) ==---
+export const getAllArtworks = async (req, res) => {
+  try {
+    const artworks = await Artwork.find()
+      .populate("student", "name email schoolName")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({ artworks });
+  } catch (error) {
+    res.status(500).json({
+      message: "فشل في جلب الأعمال الفنية",
+      error: error.message,
+    });
+  }
+};

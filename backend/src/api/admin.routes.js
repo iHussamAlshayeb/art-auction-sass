@@ -6,7 +6,8 @@ import {
   endAuctionManually,
   getAllNotifications,
   deleteNotification,
-  getAdminStats, // ✅ أضف هذا
+  getAdminStats,
+  getAllArtworks, // ✅ أضف هذا
 } from "./admin.controller.js";
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
 
@@ -26,5 +27,8 @@ router.post("/auctions/:id/end", protect, adminOnly, endAuctionManually);
 // 🔔 إدارة الإشعارات
 router.get("/notifications", protect, adminOnly, getAllNotifications);
 router.delete("/notifications/:id", protect, adminOnly, deleteNotification);
+
+// 🎨 إدارة الأعمال الفنية
+router.get("/artworks", protect, adminOnly, getAllArtworks);
 
 export default router;
