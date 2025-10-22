@@ -1,17 +1,28 @@
 import sgMail from "@sendgrid/mail";
 
-// إعداد مفتاح SendGrid API من البيئة
+// 🧩 تعيين مفتاح SendGrid API
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-// عنوان المرسل الافتراضي
+// 💌 البريد الافتراضي الذي تُرسل منه الرسائل
 const FROM_EMAIL =
   process.env.EMAIL_FROM || "Fanan Auctions <no-reply@fanan3.com>";
 
-// --- دالة أساسية لإرسال البريد ---
+/**
+ * 📨 دالة عامة لإرسال بريد إلكتروني
+ * @param {Object} options - إعدادات البريد
+ * @param {string} options.to - البريد المرسل إليه
+ * @param {string} options.subject - عنوان الرسالة
+ * @param {string} options.html - محتوى HTML
+ */
 export const sendEmail = async ({ to, subject, html }) => {
-  try {
-    if (!to) throw new Error("البريد الإلكتروني المستلم مفقود.");
+  if (!to) {
+    console.warn(
+      "⚠️ محاولة إرسال بريد بدون عنوان مستقبل (to). تم تجاهل الطلب."
+    );
+    return;
+  }
 
+  try {
     const msg = {
       to,
       from: FROM_EMAIL,
@@ -20,114 +31,80 @@ export const sendEmail = async ({ to, subject, html }) => {
     };
 
     await sgMail.send(msg);
-    console.log(`📤 Email sent successfully to ${to}`);
+    console.log(`📧 Email sent successfully to ${to} (${subject})`);
   } catch (error) {
     console.error(
-      "❌ SendGrid Email Error:",
+      "❌ Failed to send email:",
       error.response?.body || error.message
     );
   }
 };
 
-// --- بريد فوز المستخدم بالمزاد ---
-export const sendAuctionWonEmail = async (user, artwork, auction) => {
-  if (!user?.email) return;
+/**
+ * 🎉 إرسال بريد للفائز بالمزاد
+ * @param {Object} winner - كائن المستخدم الفائز
+ * @param {Object} artwork - كائن العمل الفني
+ * @param {Object} auction - كائن المزاد
+ */
+export const sendAuctionWonEmail = async (winner, artwork, auction) => {
+  if (!winner?.email) return;
 
-  const subject = `🎉 تهانينا ${user.name || ""}! لقد فزت بمزاد "${
-    artwork.title
-  }"`;
-
+  const subject = `🎉 تهانينا! لقد فزت بمزاد "${artwork.title}"`;
   const html = `
-    <div style="font-family:'Cairo', sans-serif; direction:rtl; text-align:right;">
-      <h2 style="color:#008080;">🎉 مبروك الفوز!</h2>
-      <p>مرحبًا <strong>${user.name}</strong>،</p>
-      <p>لقد فزت بمزاد العمل الفني <strong>"${artwork.title}"</strong> بسعر نهائي قدره <strong>${auction.currentPrice} ر.س</strong>.</p>
-      <p>يمكنك إتمام الدفع عبر لوحة التحكم الخاصة بك:</p>
-      <a href="http://app.fanan3.com/dashboard/won-auctions"
-         style="display:inline-block; background:#008080; color:#fff; padding:10px 20px; text-decoration:none; border-radius:8px;">
-         الانتقال إلى لوحة التحكم
-      </a>
-      <hr style="margin:20px 0;">
-      <small>فنّان — نُقدّر دعمك للمواهب الطلابية 🎨</small>
+    <div style="font-family:'Cairo',sans-serif;direction:rtl;text-align:right;">
+      <h2 style="color:#10b981;">🎉 تهانينا!</h2>
+      <p>مرحبًا <strong>${winner.name}</strong>،</p>
+      <p>لقد فزت بالمزاد على العمل الفني <strong>"${artwork.title}"</strong>.</p>
+      <p>السعر النهائي: <strong>${auction.currentPrice} ر.س</strong></p>
+      <p>سيتم التواصل معك قريبًا بخصوص الدفع والتسليم.</p>
+      <hr style="margin:20px 0;border:none;border-top:1px solid #eee;">
+      <p style="font-size:14px;color:#555;">فنّان — نُقدّر إبداعك 💫</p>
     </div>
   `;
 
-  await sendEmail({ to: user.email, subject, html });
+  await sendEmail({ to: winner.email, subject, html });
 };
 
-// --- بريد إعلام المالك ببيع عمله ---
-export const sendArtworkSoldEmail = async (owner, artwork, auction) => {
-  if (!owner?.email) return;
+/**
+ * 💰 إرسال بريد لصاحب العمل (الطالب) عند بيع عمله الفني
+ * @param {Object} artist - كائن الطالب
+ * @param {Object} artwork - كائن العمل الفني
+ * @param {Object} auction - كائن المزاد
+ */
+export const sendArtworkSoldEmail = async (artist, artwork, auction) => {
+  if (!artist?.email) return;
 
   const subject = `💰 تم بيع عملك الفني "${artwork.title}" بنجاح!`;
-
   const html = `
-    <div style="font-family:'Cairo', sans-serif; direction:rtl; text-align:right;">
+    <div style="font-family:'Cairo',sans-serif;direction:rtl;text-align:right;">
       <h2 style="color:#f97316;">💰 تهانينا!</h2>
-      <p>مرحبًا <strong>${owner.name}</strong>،</p>
-      <p>تم بيع عملك الفني <strong>"${artwork.title}"</strong> عبر المزاد بسعر نهائي قدره <strong>${auction.currentPrice} ر.س</strong>.</p>
-      <p>سيتم التواصل معك قريبًا بخصوص تفاصيل التسليم.</p>
-      <hr style="margin:20px 0;">
-      <small>فنّان — نُقدّر إبداعك 💫</small>
+      <p>مرحبًا <strong>${artist.name}</strong>،</p>
+      <p>تم بيع عملك الفني <strong>"${artwork.title}"</strong> في المزاد بسعر نهائي قدره <strong>${auction.currentPrice} ر.س</strong>.</p>
+      <p>سيتم التواصل معك قريبًا بخصوص تفاصيل التسليم أو عرض العمل القادم.</p>
+      <hr style="margin:20px 0;border:none;border-top:1px solid #eee;">
+      <p style="font-size:14px;color:#555;">فنّان — نُقدّر إبداعك 💫</p>
     </div>
   `;
 
-  await sendEmail({ to: owner.email, subject, html });
+  await sendEmail({ to: artist.email, subject, html });
 };
 
-// --- بريد تأكيد الدفع ---
-export const sendPaymentConfirmationEmail = async (user, auction) => {
-  if (!user?.email) return;
-
-  const subject = `✅ تم استلام دفعتك بنجاح لمزاد "${auction.artwork?.title}"`;
-
+/**
+ * 🧾 إرسال بريد إشعار عام (يمكن استخدامه لأي تنبيه إداري)
+ * @param {string} to - البريد المرسل إليه
+ * @param {string} title - عنوان الإشعار
+ * @param {string} message - نص الإشعار
+ */
+export const sendGenericNotificationEmail = async (to, title, message) => {
+  const subject = title;
   const html = `
-    <div style="font-family:'Cairo', sans-serif; direction:rtl; text-align:right;">
-      <h2 style="color:#16a34a;">✅ تم الدفع بنجاح</h2>
-      <p>مرحبًا <strong>${user.name}</strong>،</p>
-      <p>تم استلام دفعتك بنجاح بمبلغ <strong>${auction.currentPrice} ر.س</strong> لمزاد <strong>"${auction.artwork?.title}"</strong>.</p>
-      <p>شكرًا لدعمك للفن والمواهب!</p>
-      <hr style="margin:20px 0;">
-      <small>فنّان — معًا نرتقي بالإبداع 🎨</small>
-    </div>
-  `;
-
-  await sendEmail({ to: user.email, subject, html });
-};
-
-// --- بريد فشل الدفع ---
-export const sendPaymentFailedEmail = async (user, auction) => {
-  if (!user?.email) return;
-
-  const subject = `⚠️ فشل في معالجة الدفع لمزاد "${auction.artwork?.title}"`;
-
-  const html = `
-    <div style="font-family:'Cairo', sans-serif; direction:rtl; text-align:right;">
-      <h2 style="color:#dc2626;">⚠️ فشل الدفع</h2>
-      <p>مرحبًا <strong>${user.name}</strong>،</p>
-      <p>يبدو أن هناك مشكلة أثناء محاولة معالجة الدفع لمزاد <strong>"${auction.artwork?.title}"</strong>.</p>
-      <p>يمكنك المحاولة مرة أخرى من لوحة التحكم.</p>
-      <a href="http://app.fanan3.com/dashboard/won-auctions"
-         style="display:inline-block; background:#dc2626; color:#fff; padding:10px 20px; text-decoration:none; border-radius:8px;">
-         إعادة المحاولة
-      </a>
-      <hr style="margin:20px 0;">
-      <small>فنّان — معك دائمًا ✨</small>
-    </div>
-  `;
-
-  await sendEmail({ to: user.email, subject, html });
-};
-
-// --- بريد عام (احتياطي) ---
-export const sendGenericEmail = async (to, subject, message) => {
-  const html = `
-    <div style="font-family:'Cairo', sans-serif; direction:rtl; text-align:right;">
-      <h3>${subject}</h3>
+    <div style="font-family:'Cairo',sans-serif;direction:rtl;text-align:right;">
+      <h2 style="color:#0ea5e9;">${title}</h2>
       <p>${message}</p>
-      <hr>
-      <small>فنّان — منصة المزادات التعليمية 🎨</small>
+      <hr style="margin:20px 0;border:none;border-top:1px solid #eee;">
+      <p style="font-size:14px;color:#555;">فنّان — منصة المزادات الفنية</p>
     </div>
   `;
+
   await sendEmail({ to, subject, html });
 };
