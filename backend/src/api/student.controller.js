@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import Artwork from "../models/artwork.model.js";
 import Auction from "../models/auction.model.js";
+import mongoose from "mongoose";
 
 // ============================================================
 // 🧍‍♂️ بيانات الطالب الشخصية (محميّة)
