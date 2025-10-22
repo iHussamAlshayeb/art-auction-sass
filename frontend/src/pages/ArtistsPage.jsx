@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { fetchAllStudents } from '../services/api';
-import { Link } from 'react-router-dom';
-import Spinner from '../components/Spinner';
-import Pagination from '../components/Pagination';
+import { useState, useEffect } from "react";
+import { fetchAllStudents } from "../services/api";
+import { Link } from "react-router-dom";
+import Spinner from "../components/Spinner";
+import Pagination from "../components/Pagination";
 
 function ArtistsPage() {
     const [artists, setArtists] = useState([]);
@@ -15,17 +15,25 @@ function ArtistsPage() {
         const getArtists = async () => {
             try {
                 setLoading(true);
-                const response = await fetchAllStudents(currentPage);
-                setArtists(response.data.students || []); // ✅ تأكد أنه مصفوفة
-                setPagination(response.data.pagination || null);
+
+                // ✅ تمرير الكائن الصحيح (params)
+                const response = await fetchAllStudents({ page: currentPage });
+
+                // ✅ استخدم fallback آمن حتى لا يتسبب في خطأ إذا لم تكن القيمة موجودة
+                const students = response.data.students || response.data.artists || [];
+                const paginationData = response.data.pagination || null;
+
+                setArtists(students);
+                setPagination(paginationData);
                 setError(null);
             } catch (err) {
+                console.error("❌ Failed to fetch artists:", err);
                 setError("فشل في تحميل قائمة الفنانين.");
-                console.error("Failed to fetch artists", err);
             } finally {
                 setLoading(false);
             }
         };
+
         getArtists();
     }, [currentPage]);
 
@@ -61,9 +69,9 @@ function ArtistsPage() {
                     )}
 
                     {artists
-                        .filter((artist) => artist && (artist._id || artist.id)) // ✅ تجاهل البيانات الناقصة
+                        .filter((artist) => artist && (artist._id || artist.id))
                         .map((artist) => {
-                            const artistId = artist._id || artist.id; // دعم أي شكل للمعرف
+                            const artistId = artist._id || artist.id;
                             return (
                                 <Link
                                     key={artistId}
@@ -84,8 +92,13 @@ function ArtistsPage() {
                                         <h3 className="font-bold text-neutral-900 group-hover:text-primary transition-colors">
                                             {artist.name || "فنان غير معروف"}
                                         </h3>
+                                        {artist.schoolName && (
+                                            <p className="text-xs text-neutral-700">
+                                                {artist.schoolName}
+                                            </p>
+                                        )}
                                         <p className="text-xs text-neutral-700">
-                                            {artist._count?.artworks || 0} عمل فني
+                                            {artist.artworksCount || artist._count?.artworks || 0} عمل فني
                                         </p>
                                     </div>
                                 </Link>
