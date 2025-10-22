@@ -77,19 +77,14 @@ export const login = async (req, res) => {
     }
 
     // ✅ العثور على المستخدم
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select("+password");
     if (!user) {
-      return res
-        .status(401)
-        .json({ message: "البريد الإلكتروني أو كلمة المرور غير صحيحة." });
+      return res.status(401).json({ message: "المستخدم غير موجود." });
     }
 
-    // ✅ التحقق من كلمة المرور (بالمقارنة مع المشفرة)
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
-      return res
-        .status(401)
-        .json({ message: "البريد الإلكتروني أو كلمة المرور غير صحيحة." });
+      return res.status(401).json({ message: "كلمة المرور غير صحيحة." });
     }
 
     // ✅ إنشاء JWT
