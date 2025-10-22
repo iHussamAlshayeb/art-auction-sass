@@ -114,7 +114,7 @@ function HomePage() {
             className="relative"
           >
             <img
-              src="https://images.unsplash.com/photo-1529101091764-c3526daf38fe?auto=format&fit=crop&q=80&w=900"
+              src="../assets/logo.svg"
               alt="Art Showcase"
               className="rounded-3xl shadow-lg object-cover w-full h-[400px]"
             />
@@ -199,8 +199,8 @@ function HomePage() {
                     <button
                       onClick={() => handleLike(auctionId)}
                       className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-sm border ${liked[auctionId]
-                          ? "bg-red-500 text-white border-red-500"
-                          : "bg-white/80 text-neutral-700 border-neutral-200"
+                        ? "bg-red-500 text-white border-red-500"
+                        : "bg-white/80 text-neutral-700 border-neutral-200"
                         } hover:scale-110 transition-all`}
                       title={liked[auctionId] ? "إزالة الإعجاب" : "إعجاب"}
                     >
