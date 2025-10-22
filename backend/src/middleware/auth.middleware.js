@@ -19,10 +19,20 @@ export const protect = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.id).select("-password");
-    if (!user) return res.status(401).json({ message: "المستخدم غير موجود." });
 
-    req.user = user;
+    // ✅ هنا التعديل الحقيقي
+    const user = await User.findById(decoded.userId).select("-password");
+
+    if (!user) {
+      return res.status(401).json({ message: "المستخدم غير موجود." });
+    }
+
+    // ✅ ضمان وجود كل القيم بشكل متناسق
+    req.user = {
+      ...user.toObject(),
+      id: user._id.toString(), // لتفادي أخطاء المقارنة مستقبلاً
+    };
+
     next();
   } catch (error) {
     console.error("Auth Error:", error.message);

@@ -1,104 +1,84 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
-// 🔹 دالة مساعدة لإنشاء JWT Token
+// 🎟️ إنشاء التوكن
 const generateToken = (id, role) => {
   return jwt.sign({ userId: id, role }, process.env.JWT_SECRET, {
-    expiresIn: "7d", // صلاحية التوكن أسبوع كامل
+    expiresIn: "7d",
   });
 };
 
-// =====================================================
-// 🧩 دالة التسجيل (Register)
-// =====================================================
+// 🧍‍♂️ التسجيل
 export const register = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // ✅ التحقق من الحقول المطلوبة
     if (!name || !email || !password) {
-      return res.status(400).json({
-        message: "الاسم، البريد الإلكتروني، وكلمة المرور مطلوبة.",
-      });
+      return res.status(400).json({ message: "جميع الحقول مطلوبة." });
     }
 
-    // ✅ تنظيف البريد الإلكتروني
+    // 🔍 تنظيف البريد الإلكتروني
     const cleanEmail = email.trim().toLowerCase();
 
-    // ✅ التحقق من وجود المستخدم مسبقًا
-    const existingUser = await User.findOne({ email: cleanEmail });
-    if (existingUser) {
+    const existing = await User.findOne({ email: cleanEmail });
+    if (existing) {
       return res
         .status(409)
-        .json({ message: "البريد الإلكتروني مستخدم بالفعل." });
+        .json({ message: "البريد الإلكتروني مستخدم مسبقًا." });
     }
 
-    // ✅ إنشاء المستخدم الجديد
-    // (كلمة المرور ستُشفّر تلقائيًا بفضل pre('save') في user.model.js)
     const user = await User.create({
       name,
       email: cleanEmail,
       password,
-      role: "STUDENT", // الافتراضي
+      role: "STUDENT",
     });
 
-    // ✅ إنشاء JWT token
-    const token = generateToken(user._id, user.role);
-
-    // ✅ إرسال الاستجابة
     res.status(201).json({
       message: "تم إنشاء الحساب بنجاح",
-      token,
       user: {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
       },
     });
   } catch (error) {
-    console.error("Register Error:", error);
-    res.status(500).json({
-      message: "حدث خطأ أثناء إنشاء الحساب",
-      error: error.message,
-    });
+    console.error("Register error:", error);
+    res
+      .status(500)
+      .json({ message: "حدث خطأ أثناء إنشاء الحساب", error: error.message });
   }
 };
 
-// =====================================================
-// 🔑 دالة تسجيل الدخول (Login)
-// =====================================================
+// 🔑 تسجيل الدخول
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    let { email, password } = req.body;
 
-    // ✅ التحقق من الحقول
     if (!email || !password) {
       return res
         .status(400)
         .json({ message: "البريد الإلكتروني وكلمة المرور مطلوبان." });
     }
 
-    // ✅ تنظيف البريد الإلكتروني لتفادي الأخطاء بسبب المسافات أو الحروف الكبيرة
+    // 🧼 تنظيف البريد (حل المشكلة الفعلية)
     const cleanEmail = email.trim().toLowerCase();
 
-    // ✅ جلب المستخدم مع كلمة المرور (لأنها select:false في الموديل)
+    // 🧠 تأكد من جلب كلمة المرور
     const user = await User.findOne({ email: cleanEmail }).select("+password");
 
     if (!user) {
-      return res.status(401).json({ message: "المستخدم غير موجود." });
+      return res.status(404).json({ message: "المستخدم غير موجود." });
     }
 
-    // ✅ التحقق من كلمة المرور
+    // 🔒 تحقق من كلمة المرور
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: "كلمة المرور غير صحيحة." });
     }
 
-    // ✅ إنشاء JWT
     const token = generateToken(user._id, user.role);
 
-    // ✅ الاستجابة الناجحة
     res.status(200).json({
       message: "تم تسجيل الدخول بنجاح",
       token,
@@ -110,32 +90,21 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({
-      message: "حدث خطأ أثناء تسجيل الدخول",
-      error: error.message,
-    });
+    console.error("Login error:", error);
+    res
+      .status(500)
+      .json({ message: "حدث خطأ أثناء تسجيل الدخول", error: error.message });
   }
 };
 
-// =====================================================
-// 🚪 تسجيل الخروج (Logout)
-// =====================================================
+// 🚪 تسجيل الخروج
 export const logout = async (req, res) => {
   try {
-    // إذا كنت تستخدم كوكيز JWT
-    res.clearCookie("token", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "none",
-    });
-
+    res.clearCookie("token");
     res.status(200).json({ message: "تم تسجيل الخروج بنجاح." });
   } catch (error) {
-    console.error("Logout Error:", error);
-    res.status(500).json({
-      message: "فشل في تسجيل الخروج",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ message: "فشل في تسجيل الخروج", error: error.message });
   }
 };
