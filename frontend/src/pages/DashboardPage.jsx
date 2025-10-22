@@ -1,36 +1,59 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { getMyProfile } from "../services/api";
+import { io } from "socket.io-client";
+import { getMyProfile, getUnreadNotifCount } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import Spinner from "../components/Spinner";
 import MyArtworksList from "../components/MyArtworksList";
 import ActiveBids from "../components/ActiveBids";
 import WonArtworks from "../components/WonArtworks";
-import { Palette, Award, ClipboardCheck } from "lucide-react";
+import { Palette, Award, ClipboardCheck, Bell } from "lucide-react";
 
 function DashboardPage() {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
 
-  // 🧠 جلب بيانات الطالب
+  // 🧠 جلب بيانات المستخدم
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
-        const res = await getMyProfile();
-        setProfile(res.data.user);
+        const [profileRes, notifRes] = await Promise.all([
+          getMyProfile(),
+          getUnreadNotifCount(),
+        ]);
+        setProfile(profileRes.data.user);
+        setUnreadCount(notifRes.data.count || 0);
       } catch (err) {
-        console.error("فشل في جلب الملف الشخصي:", err);
+        console.error("فشل في جلب البيانات:", err);
       } finally {
         setLoading(false);
       }
     };
-    fetchProfile();
+    fetchData();
   }, []);
 
+  // 🔔 Socket.io: تحديث عداد الإشعارات لحظيًا
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const socket = io(import.meta.env.VITE_API_URL || "https://api.fanan3.com", {
+      auth: { token: localStorage.getItem("token") },
+      transports: ["websocket"],
+    });
+
+    socket.on("notification:new", () => {
+      setUnreadCount((prev) => prev + 1);
+    });
+
+    return () => socket.disconnect();
+  }, [user?.id]);
+
   if (loading) return <Spinner />;
-  if (!profile) return <p className="text-center text-gray-500 mt-10">حدث خطأ أثناء تحميل البيانات.</p>;
+  if (!profile)
+    return <p className="text-center text-gray-500 mt-10">حدث خطأ أثناء تحميل البيانات.</p>;
 
   const isProfileComplete = profile.schoolName && profile.gradeLevel;
 
@@ -41,18 +64,37 @@ function DashboardPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* ===== قسم الترحيب ===== */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50 via-white to-teal-50 rounded-3xl border border-orange-100 shadow-md p-8 text-center">
-        <motion.h2
-          className="text-4xl md:text-5xl font-extrabold text-orange-600 tracking-tight"
-          initial={{ y: -10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-        >
-          مرحبًا بعودتك، {profile.name} 👋
-        </motion.h2>
-        <p className="text-neutral-600 text-lg mt-2">
-          يسعدنا استمرارك معنا في عرض إبداعاتك الفنية 🌟
-        </p>
+      {/* ===== العنوان العلوي + الإشعارات ===== */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50 via-white to-teal-50 rounded-3xl border border-orange-100 shadow-md p-8">
+        <div className="flex flex-col sm:flex-row justify-between items-center text-center sm:text-right gap-6">
+          <div>
+            <motion.h2
+              className="text-4xl md:text-5xl font-extrabold text-orange-600 tracking-tight"
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+            >
+              مرحبًا بعودتك، {profile.name} 👋
+            </motion.h2>
+            <p className="text-neutral-600 text-lg mt-2">
+              يسعدنا استمرارك معنا في عرض إبداعاتك الفنية 🌟
+            </p>
+          </div>
+
+          {/* 🔔 الجرس */}
+          <Link
+            to="/notifications"
+            className="relative inline-flex items-center justify-center bg-white border border-orange-100 shadow-sm rounded-full w-14 h-14 hover:shadow-lg transition-all group"
+            title="عرض الإشعارات"
+          >
+            <Bell size={26} className="text-orange-500 group-hover:scale-110 transition-transform" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow-md">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </Link>
+        </div>
+
         <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-orange-100 rounded-full blur-2xl opacity-40" />
       </div>
 
@@ -88,7 +130,7 @@ function DashboardPage() {
             <MyArtworksList />
           </motion.div>
 
-          {/* ===== العروض النشطة ===== */}
+          {/* ===== مشاركاتي في المزادات ===== */}
           <motion.div
             className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl shadow-md border border-teal-100 hover:shadow-lg transition-all"
             whileHover={{ scale: 1.01 }}
