@@ -37,47 +37,47 @@ app.set("userSocketMap", userSocketMap);
 
 // 🎧 إعداد Socket.io
 io.on("connection", (socket) => {
-  console.log(`🟢 User connected: ${socket.id}`);
-
+  console.log(`✅ User connected: ${socket.id}`);
   const token = socket.handshake.auth?.token;
 
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.userId || decoded.id; // دعم كلا المفتاحين
-      const role = decoded.role || "STUDENT";
+      const userId = decoded.userId || decoded.id;
 
       userSocketMap.set(userId.toString(), socket.id);
-      console.log(`✅ User ${userId} authenticated (${role})`);
+      console.log(`🔗 Mapped user ${userId} → socket ${socket.id}`);
 
-      // 🧩 إنشاء غرفة خاصة بكل مستخدم للإشعارات
-      socket.join(`user-${userId}`);
-      console.log(`🔔 User ${userId} joined room user-${userId}`);
+      if (decoded.role === "ADMIN") socket.join("admins");
 
-      // ✅ إذا كان إداريًا، ضمّه إلى غرفة "admins"
-      if (role === "ADMIN") {
-        socket.join("admins");
-        console.log(`🧑‍💼 Admin ${userId} joined 'admins' room`);
-      }
+      /* ======================================
+         📡 NEW: مزامنة حالة الإشعارات لحظيًا
+         --------------------------------------
+         - عندما يقرأ المستخدم إشعارًا
+         - أو يتم حذف إشعار
+         - أو يتم حذف الكل
+         يتم بث التغيير لبقية الأجهزة
+      ====================================== */
+      socket.on("notifications:update", (data) => {
+        const { userId } = data;
+        if (userId) {
+          // إرسال التحديث لجميع أجهزة المستخدم نفسه
+          io.to(userSocketMap.get(userId.toString())).emit(
+            "notifications:refresh"
+          );
+          console.log(`🔄 إشعارات المستخدم ${userId} تم تحديثها لحظيًا`);
+        }
+      });
     } catch (err) {
-      console.log("❌ Token verification failed:", err.message);
+      console.log("❌ Socket Auth Error:", err.message);
     }
   }
 
-  // 📦 الانضمام لغرفة مزاد
-  socket.on("joinAuctionRoom", (auctionId) => {
-    const roomName = `auction-${auctionId}`;
-    socket.join(roomName);
-    console.log(`🏷️ User ${socket.id} joined room ${roomName}`);
-  });
-
-  // 📴 عند قطع الاتصال
   socket.on("disconnect", () => {
-    console.log(`🔴 Disconnected: ${socket.id}`);
+    console.log(`❌ User disconnected: ${socket.id}`);
     for (let [userId, socketId] of userSocketMap.entries()) {
       if (socketId === socket.id) {
         userSocketMap.delete(userId);
-        console.log(`❎ User ${userId} removed from map`);
         break;
       }
     }

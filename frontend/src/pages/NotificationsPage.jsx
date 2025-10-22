@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import {
     getNotifications,
@@ -16,28 +16,38 @@ function NotificationsPage() {
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const { setUnreadCount, user } = useAuth();
+    const socketRef = useRef(null);
 
-    // ✅ تهيئة Socket.io client
+    // ✅ إنشاء اتصال Socket.io لمرة واحدة فقط
     useEffect(() => {
         if (!user?.id) return;
 
-        const socket = io(import.meta.env.VITE_API_URL || "https://api.fanan3.com", {
+        socketRef.current = io(import.meta.env.VITE_API_URL || "https://api.fanan3.com", {
             auth: { token: localStorage.getItem("token") },
             transports: ["websocket"],
         });
 
-        // 🧠 استقبال إشعارات جديدة من السيرفر
+        const socket = socketRef.current;
+
+        // 🎧 استقبال إشعارات جديدة
         socket.on("notification:new", (newNotif) => {
             setNotifications((prev) => [newNotif, ...prev]);
             setUnreadCount((prev) => prev + 1);
             toast.success("🔔 إشعار جديد!");
         });
 
-        // 🧹 تنظيف الاتصال عند مغادرة الصفحة
-        return () => socket.disconnect();
+        // 🎧 استقبال تحديث إشعارات لحظي من السيرفر
+        socket.on("notifications:refresh", () => {
+            fetchNotifications();
+        });
+
+        // تنظيف الاتصال عند مغادرة الصفحة
+        return () => {
+            socket.disconnect();
+        };
     }, [user?.id, setUnreadCount]);
 
-    // 📦 تحميل الإشعارات عند فتح الصفحة
+    // 📦 تحميل الإشعارات عند الدخول
     useEffect(() => {
         fetchNotifications();
     }, []);
@@ -46,44 +56,56 @@ function NotificationsPage() {
         setLoading(true);
         try {
             const res = await getNotifications();
-            setNotifications(res.data.notifications);
-        } catch (error) {
+            setNotifications(res.data.notifications || []);
+        } catch {
             toast.error("فشل في جلب الإشعارات.");
         } finally {
             setLoading(false);
         }
     };
 
-    // ✅ تحديد الكل كمقروء
+    /* ======================================================
+       ✅ تحديد جميع الإشعارات كمقروءة
+       ====================================================== */
     const handleMarkAllRead = async () => {
         try {
             await markAllNotificationsRead();
             setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
             setUnreadCount(0);
             toast.success("تم تحديد الكل كمقروء.");
-        } catch (error) {
+
+            // 📡 إرسال تحديث لبقية الأجهزة
+            socketRef.current?.emit("notifications:update", { userId: user.id });
+        } catch {
             toast.error("حدث خطأ أثناء تحديث الإشعارات.");
         }
     };
 
-    // 🗑️ حذف إشعار واحد
+    /* ======================================================
+       ❌ حذف إشعار واحد
+       ====================================================== */
     const handleDelete = async (e, notificationId) => {
         e.preventDefault();
         e.stopPropagation();
 
         const original = [...notifications];
-        setNotifications((prev) => prev.filter((n) => n._id !== notificationId));
+        setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
 
         try {
             await deleteNotificationById(notificationId);
             toast.success("تم حذف الإشعار.");
-        } catch (error) {
+
+            // 📡 إرسال تحديث لبقية الأجهزة
+            socketRef.current?.emit("notifications:update", { userId: user.id });
+        } catch {
             setNotifications(original);
             toast.error("فشل في حذف الإشعار.");
         }
     };
 
-    // 🧹 حذف جميع الإشعارات
+    /* ======================================================
+       🧹 حذف جميع الإشعارات
+       ====================================================== */
     const handleDeleteAll = async () => {
         if (!window.confirm("هل أنت متأكد من حذف جميع الإشعارات؟")) return;
         try {
@@ -91,12 +113,14 @@ function NotificationsPage() {
             setNotifications([]);
             setUnreadCount(0);
             toast.success("تم حذف جميع الإشعارات.");
-        } catch (error) {
+
+            // 📡 إرسال تحديث لبقية الأجهزة
+            socketRef.current?.emit("notifications:update", { userId: user.id });
+        } catch {
             toast.error("فشل في حذف جميع الإشعارات.");
         }
     };
 
-    // 📊 حساب الإشعارات غير المقروءة
     const unreadCount = notifications.filter((n) => !n.read).length;
 
     return (
@@ -133,7 +157,7 @@ function NotificationsPage() {
                         {notifications.map((notif) => (
                             <Link
                                 to={notif.link || "#"}
-                                key={notif._id}
+                                key={notif.id}
                                 className={`relative block p-4 rounded-lg transition-colors border ${notif.read
                                         ? "bg-white border-neutral-100"
                                         : "bg-primary/5 border-primary/30"
@@ -148,9 +172,7 @@ function NotificationsPage() {
                                     )}
                                     <div className="flex-grow">
                                         <p
-                                            className={`font-semibold ${notif.read
-                                                    ? "text-neutral-700"
-                                                    : "text-neutral-900"
+                                            className={`font-semibold ${notif.read ? "text-neutral-700" : "text-neutral-900"
                                                 }`}
                                         >
                                             {notif.message}
@@ -160,7 +182,7 @@ function NotificationsPage() {
                                         </span>
                                     </div>
                                     <button
-                                        onClick={(e) => handleDelete(e, notif._id)}
+                                        onClick={(e) => handleDelete(e, notif.id)}
                                         className="p-1 rounded-full text-neutral-400 hover:bg-red-100 hover:text-red-600 transition-colors z-10"
                                         title="حذف الإشعار"
                                     >
