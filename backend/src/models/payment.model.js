@@ -14,7 +14,7 @@ const paymentSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Auction",
       required: true,
-      unique: true, // مزاد واحد = دفعة واحدة
+      unique: false, // مزاد واحد = دفعة واحدة
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,

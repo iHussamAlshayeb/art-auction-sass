@@ -9,7 +9,7 @@ import {
   cancelAuction,
 } from "./auction.controller.js";
 
-import { createMoyasarPayment } from "./payment.controller.js";
+import { createMoyasarInvoice } from "./payment.controller.js";
 const router = express.Router();
 
 // إنشاء مزاد جديد
@@ -29,5 +29,5 @@ router.get("/:id/bids", getAuctionBids);
 
 // إلغاء مزاد
 router.delete("/:id", protect, cancelAuction);
-router.post("/:id/checkout", protect, createMoyasarPayment);
+router.post("/:id/checkout", protect, createMoyasarInvoice);
 export default router;
