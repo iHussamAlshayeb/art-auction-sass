@@ -153,3 +153,75 @@ export async function getMyPayments(req, res) {
       .json({ message: "فشل في جلب المدفوعات", error: error.message });
   }
 }
+
+// ---== معالجة الكولباك من Moyasar ==---
+export async function handleMoyasarCallback(req, res) {
+  const { id, status } = req.query;
+  const auctionId = req.query.auction_id;
+
+  if (!auctionId || !mongoose.Types.ObjectId.isValid(auctionId)) {
+    return res.status(400).send("Invalid auction ID");
+  }
+
+  try {
+    // 🔹 التحقق من الدفع عبر API Moyasar
+    const moyasarApiKey = process.env.MOYASAR_SECRET_KEY;
+    const response = await axios.get(
+      `https://api.moyasar.com/v1/payments/${id}`,
+      {
+        auth: { username: moyasarApiKey, password: "" },
+      }
+    );
+
+    const paymentData = response.data;
+    if (paymentData.status !== "paid") {
+      return res.status(400).send("Payment not completed.");
+    }
+
+    // 🔹 تحديث أو إنشاء سجل الدفع في قاعدة البيانات
+    await Payment.findOneAndUpdate(
+      { gatewayPaymentId: id },
+      {
+        gatewayPaymentId: id,
+        amount: paymentData.amount / 100,
+        currency: paymentData.currency,
+        status: "PAID",
+        auction: auctionId,
+        user: paymentData.metadata?.userId || null,
+      },
+      { upsert: true, new: true }
+    );
+
+    // 🔹 تحديث حالة العمل الفني إلى "PAID"
+    const auction = await Auction.findById(auctionId).populate("artwork");
+    if (auction && auction.artwork) {
+      await Artwork.findByIdAndUpdate(auction.artwork._id, {
+        status: "PAID",
+      });
+    }
+
+    // 🔹 إشعار الطالب (صاحب العمل)
+    const io = req.app.get("io");
+    const userSocketMap = req.app.get("userSocketMap");
+    if (auction && io && userSocketMap) {
+      const artistId = auction.artwork?.student?.toString();
+      const socketId = userSocketMap.get(artistId);
+      if (socketId) {
+        io.to(socketId).emit("notification:new", {
+          title: "🎉 تم بيع عملك الفني!",
+          message: `تم دفع مبلغ ${paymentData.amount / 100} ر.س لعملك "${
+            auction.artwork.title
+          }"`,
+          link: `/auctions/${auctionId}`,
+        });
+      }
+    }
+
+    return res.redirect(
+      `https://app.fanan3.com/dashboard/won-auctions?status=paid`
+    );
+  } catch (error) {
+    console.error("❌ Moyasar callback error:", error.message);
+    return res.status(500).send("Error processing payment callback.");
+  }
+}

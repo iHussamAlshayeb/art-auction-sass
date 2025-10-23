@@ -24,6 +24,10 @@ function WonArtworks() {
         setLoading(false);
       }
     };
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("status") === "paid") {
+      toast.success("تم الدفع بنجاح ✅");
+    };
     fetchWins();
   }, []);
 

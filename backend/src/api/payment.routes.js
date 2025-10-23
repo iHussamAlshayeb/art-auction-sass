@@ -4,6 +4,7 @@ import {
   createMoyasarPayment,
   verifyMoyasarPayment,
   getMyPayments,
+  handleMoyasarCallback,
 } from "./payment.controller.js";
 
 const router = express.Router();
@@ -16,5 +17,7 @@ router.post("/payments/verify", verifyMoyasarPayment);
 
 // 📜 جلب مدفوعات المستخدم
 router.get("/payments/my", protect, getMyPayments);
+
+router.get("/payment/callback", handleMoyasarCallback);
 
 export default router;
