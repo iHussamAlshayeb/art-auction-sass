@@ -119,7 +119,7 @@ function WonArtworks() {
                     </div>
                   ) : (
                     <button
-                      onClick={() => handlePay(auction._id)}
+                      onClick={() => handlePay(auction._id || auction.id)}
                       disabled={payingId === auction._id}
                       className="flex items-center justify-center gap-2 bg-secondary hover:bg-secondary-dark text-white font-semibold py-2 px-5 rounded-xl text-sm shadow transition-all disabled:opacity-50"
                     >
