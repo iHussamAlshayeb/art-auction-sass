@@ -44,34 +44,51 @@ io.on("connection", (socket) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const userId = decoded.userId || decoded.id;
+      const role = decoded.role || "STUDENT";
 
       userSocketMap.set(userId.toString(), socket.id);
       console.log(`🔗 Mapped user ${userId} → socket ${socket.id}`);
 
-      if (decoded.role === "ADMIN") socket.join("admins");
+      // انضم لغرفة المستخدم الشخصية للإشعارات
+      socket.join(`user-${userId}`);
+      console.log(`🔔 Joined room user-${userId}`);
 
-      /* ======================================
-         📡 NEW: مزامنة حالة الإشعارات لحظيًا
-         --------------------------------------
-         - عندما يقرأ المستخدم إشعارًا
-         - أو يتم حذف إشعار
-         - أو يتم حذف الكل
-         يتم بث التغيير لبقية الأجهزة
-      ====================================== */
-      socket.on("notifications:update", (data) => {
-        const { userId } = data;
-        if (userId) {
-          // إرسال التحديث لجميع أجهزة المستخدم نفسه
-          io.to(userSocketMap.get(userId.toString())).emit(
-            "notifications:refresh"
-          );
-          console.log(`🔄 إشعارات المستخدم ${userId} تم تحديثها لحظيًا`);
-        }
-      });
+      if (role === "ADMIN") socket.join("admins");
     } catch (err) {
       console.log("❌ Socket Auth Error:", err.message);
     }
   }
+
+  /* ======================================
+     🔔 إشعارات لحظية
+  ====================================== */
+  socket.on("notifications:update", ({ userId }) => {
+    if (userId) {
+      io.to(`user-${userId}`).emit("notifications:refresh");
+      console.log(`🔄 إشعارات المستخدم ${userId} تم تحديثها لحظيًا`);
+    }
+  });
+
+  /* ======================================
+     🏷️ نظام غرف المزادات
+  ====================================== */
+  socket.on("joinAuctionRoom", (auctionId) => {
+    const roomName = `auction-${auctionId}`;
+    socket.join(roomName);
+    console.log(`🏷️ User ${socket.id} joined room ${roomName}`);
+  });
+
+  socket.on("leaveAuctionRoom", (auctionId) => {
+    socket.leave(`auction-${auctionId}`);
+    console.log(`🚪 User ${socket.id} left auction-${auctionId}`);
+  });
+
+  /* ✅ بث المزايدات الجديدة */
+  socket.on("bid:placed", ({ auctionId, bid }) => {
+    const roomName = `auction-${auctionId}`;
+    io.to(roomName).emit("bid:update", bid);
+    console.log(`📢 مزايدة جديدة في ${roomName}: ${bid.amount}`);
+  });
 
   socket.on("disconnect", () => {
     console.log(`❌ User disconnected: ${socket.id}`);
