@@ -78,7 +78,7 @@ export const verifyMoyasarPayment = async (req, res) => {
 
     const { auctionId, userId } = metadata;
 
-    // 🔹 حفظ أو تحديث الدفع
+    // ✅ 1. حفظ أو تحديث سجل الدفع
     const payment = await Payment.findOneAndUpdate(
       { gatewayPaymentId: id },
       {
@@ -92,15 +92,26 @@ export const verifyMoyasarPayment = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // 🔹 تحديث حالة العمل الفني إلى "PAID"
+    // ✅ 2. تحديث حالة العمل الفني
     const auction = await Auction.findById(auctionId).populate("artwork");
-    if (auction && auction.artwork) {
+    if (auction?.artwork) {
       await Artwork.findByIdAndUpdate(auction.artwork._id, { status: "PAID" });
     }
 
-    return res
-      .status(200)
-      .json({ message: "تم تأكيد الدفع وتحديث البيانات ✅", payment });
+    // ✅ 3. تحديث حالة المزاد نفسه
+    await Auction.findByIdAndUpdate(auctionId, { status: "PAID" });
+
+    // ✅ 4. إشعار المستخدم في حال أردت (اختياري)
+    // const io = req.app.get("io");
+    // const userSocketMap = req.app.get("userSocketMap");
+    // if (io && userSocketMap.has(userId.toString())) {
+    //   io.to(userSocketMap.get(userId.toString())).emit("notifications:refresh");
+    // }
+
+    return res.status(200).json({
+      message: "تم تأكيد الدفع وتحديث المزاد والبيانات بنجاح ✅",
+      payment,
+    });
   } catch (err) {
     console.error("❌ Moyasar Callback Error:", err.message);
     return res.status(500).json({ message: "فشل في التحقق من الدفع." });
