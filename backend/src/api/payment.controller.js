@@ -66,12 +66,19 @@ export const createMoyasarInvoice = async (req, res) => {
  */
 export const verifyMoyasarPayment = async (req, res) => {
   const { id, status, metadata } = req.body;
-
+  console.log(
+    "📦 Moyasar Callback Payload:",
+    JSON.stringify(req.body, null, 2)
+  );
   if (!id || !metadata?.auctionId) {
     return res.status(400).json({ message: "بيانات الدفع غير صالحة." });
   }
 
   try {
+    console.log(
+      "📦 Moyasar Callback Payload:",
+      JSON.stringify(req.body, null, 2)
+    );
     if (status !== "paid") {
       return res.status(400).json({ message: "عملية الدفع لم تكتمل." });
     }
@@ -94,6 +101,10 @@ export const verifyMoyasarPayment = async (req, res) => {
 
     // ✅ 2. تحديث حالة العمل الفني
     const auction = await Auction.findById(auctionId).populate("artwork");
+    console.log(
+      "📦 Moyasar Callback Payload:",
+      JSON.stringify(req.body, null, 2)
+    );
     if (auction?.artwork) {
       await Artwork.findByIdAndUpdate(auction.artwork._id, { status: "PAID" });
     }
