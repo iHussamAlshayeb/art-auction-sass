@@ -7,7 +7,7 @@ import {
   placeBid,
   getAuctionBids,
   cancelAuction,
-} from "../controllers/auction.controller.js";
+} from "./auction.controller.js";
 
 const router = express.Router();
 
