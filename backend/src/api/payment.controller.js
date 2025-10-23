@@ -65,33 +65,47 @@ export const createMoyasarInvoice = async (req, res) => {
  * 🧩 التحقق من حالة الدفع (Callback)
  */
 export const verifyMoyasarPayment = async (req, res) => {
-  const { id, status, metadata } = req.body;
   console.log(
-    "📦 Moyasar Callback Payload:",
-    JSON.stringify(req.body, null, 2)
+    "📩 [VERIFY] Callback Received from Moyasar ======================="
   );
-  if (!id || !metadata?.auctionId) {
-    return res.status(400).json({ message: "بيانات الدفع غير صالحة." });
+  console.log("📦 Payload:", JSON.stringify(req.body, null, 2));
+  console.log(
+    "================================================================="
+  );
+
+  const { id, status, metadata, amount, currency } = req.body || {};
+
+  if (!id) {
+    console.log("❌ Missing payment ID in payload");
+    return res
+      .status(400)
+      .json({ message: "بيانات الدفع غير صالحة (id مفقود)." });
+  }
+
+  if (!metadata || !metadata.auctionId) {
+    console.log("❌ Missing metadata.auctionId in payload");
+    return res
+      .status(400)
+      .json({ message: "بيانات الدفع غير صالحة (auctionId مفقود)." });
   }
 
   try {
-    console.log(
-      "📦 Moyasar Callback Payload:",
-      JSON.stringify(req.body, null, 2)
-    );
-    if (status !== "paid") {
-      return res.status(400).json({ message: "عملية الدفع لم تكتمل." });
+    console.log(`🧩 Processing payment ID: ${id} | Status: ${status}`);
+
+    if (status?.toLowerCase() !== "paid") {
+      console.log("⚠️ Payment not marked as 'paid'. Skipping update.");
+      return res.status(400).json({ message: "عملية الدفع لم تكتمل بعد." });
     }
 
     const { auctionId, userId } = metadata;
 
-    // ✅ 1. حفظ أو تحديث سجل الدفع
+    // 1️⃣ حفظ أو تحديث الدفع
     const payment = await Payment.findOneAndUpdate(
       { gatewayPaymentId: id },
       {
         gatewayPaymentId: id,
-        amount: req.body.amount / 100,
-        currency: req.body.currency,
+        amount: amount ? amount / 100 : 0,
+        currency: currency || "SAR",
         status: "PAID",
         auction: auctionId,
         user: userId,
@@ -99,32 +113,42 @@ export const verifyMoyasarPayment = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // ✅ 2. تحديث حالة العمل الفني
+    console.log("💾 Payment record updated/created:", payment?._id);
+
+    // 2️⃣ تحديث حالة العمل الفني
     const auction = await Auction.findById(auctionId).populate("artwork");
-    console.log(
-      "📦 Moyasar Callback Payload:",
-      JSON.stringify(req.body, null, 2)
-    );
     if (auction?.artwork) {
       await Artwork.findByIdAndUpdate(auction.artwork._id, { status: "PAID" });
+      console.log(`🎨 Artwork ${auction.artwork._id} → status: PAID`);
+    } else {
+      console.log("⚠️ Artwork not found for this auction.");
     }
 
-    // ✅ 3. تحديث حالة المزاد نفسه
-    await Auction.findByIdAndUpdate(auctionId, { status: "PAID" });
+    // 3️⃣ تحديث حالة المزاد
+    const updatedAuction = await Auction.findByIdAndUpdate(
+      auctionId,
+      { status: "PAID" },
+      { new: true }
+    );
 
-    // ✅ 4. إشعار المستخدم في حال أردت (اختياري)
-    // const io = req.app.get("io");
-    // const userSocketMap = req.app.get("userSocketMap");
-    // if (io && userSocketMap.has(userId.toString())) {
-    //   io.to(userSocketMap.get(userId.toString())).emit("notifications:refresh");
-    // }
+    if (updatedAuction) {
+      console.log(
+        `🏆 Auction ${auctionId} → status updated to: ${updatedAuction.status}`
+      );
+    } else {
+      console.log("⚠️ Auction not found during update.");
+    }
+
+    // 4️⃣ تأكيد الرد لمويصر
+    console.log("✅ Payment verification completed successfully.");
 
     return res.status(200).json({
-      message: "تم تأكيد الدفع وتحديث المزاد والبيانات بنجاح ✅",
+      message: "تم تأكيد الدفع وتحديث البيانات بنجاح ✅",
       payment,
+      updatedAuction,
     });
   } catch (err) {
-    console.error("❌ Moyasar Callback Error:", err.message);
-    return res.status(500).json({ message: "فشل في التحقق من الدفع." });
+    console.error("❌ Error verifying payment:", err);
+    return res.status(500).json({ message: "فشل في معالجة التحقق من الدفع." });
   }
 };
