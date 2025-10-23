@@ -1,38 +1,32 @@
 import express from "express";
+import { protect } from "../middleware/auth.middleware.js";
 import {
   createAuction,
   getAllAuctions,
   getAuctionById,
   placeBid,
-  createMoyasarPayment,
   getAuctionBids,
   cancelAuction,
-} from "./auction.controller.js";
-import {
-  protect,
-  studentOnly,
-  adminOnly,
-} from "../middleware/auth.middleware.js";
+} from "../controllers/auction.controller.js";
 
 const router = express.Router();
 
-// 👨‍🎓 إنشاء مزاد — الطلاب فقط
-router.post("/", protect, studentOnly, createAuction);
+// إنشاء مزاد جديد
+router.post("/", protect, createAuction);
 
-// 🟢 جلب كل المزادات (متاح للجميع)
+// جلب كل المزادات
 router.get("/", getAllAuctions);
 
-// 🔍 تفاصيل مزاد
+// جلب مزاد واحد
 router.get("/:id", getAuctionById);
 
-// 💰 المزايدات — الطلاب فقط
-router.post("/:id/bids", protect, studentOnly, placeBid);
+// تقديم مزايدة
+router.post("/:id/bids", protect, placeBid);
+
+// جلب المزايدات
 router.get("/:id/bids", getAuctionBids);
 
-// 💳 إنشاء عملية الدفع (للفائز فقط)
-router.post("/:id/checkout", protect, studentOnly, createMoyasarPayment);
-
-// ❌ إلغاء مزاد — للطالب المالك فقط
-router.delete("/:id", protect, studentOnly, cancelAuction);
+// إلغاء مزاد
+router.delete("/:id", protect, cancelAuction);
 
 export default router;

@@ -102,8 +102,11 @@ export const cancelAuction = (auctionId) =>
   apiClient.delete(`/auctions/${auctionId}`);
 
 // إنشاء دفع (Moyasar)
+// 💳 المدفوعات
 export const createPayment = (auctionId) =>
   apiClient.post(`/auctions/${auctionId}/checkout`);
+
+export const getMyPayments = () => apiClient.get("/payments/my");
 
 //
 // ======================== 📈 لوحة الطالب ========================

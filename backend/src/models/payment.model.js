@@ -2,38 +2,27 @@ import mongoose from "mongoose";
 
 const paymentSchema = new mongoose.Schema(
   {
-    amount: {
-      type: Number,
-      required: true,
-    },
-    currency: {
-      type: String,
-      required: true,
-    },
+    amount: { type: Number, required: true },
+    currency: { type: String, required: true, default: "SAR" },
     status: {
       type: String,
-      required: true,
+      enum: ["PENDING", "SUCCESS", "FAILED"],
+      default: "PENDING",
     },
-    gatewayPaymentId: {
-      type: String,
-      required: true,
-      unique: true,
-    },
+    gatewayPaymentId: { type: String, unique: true },
     auction: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
       ref: "Auction",
-      unique: true, // يضمن أن المزاد له دفعة واحدة فقط
+      required: true,
+      unique: true, // مزاد واحد = دفعة واحدة
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
       ref: "User",
+      required: true,
     },
   },
-  {
-    timestamps: { createdAt: true, updatedAt: false },
-  }
+  { timestamps: { createdAt: true, updatedAt: false } }
 );
 
 const Payment = mongoose.model("Payment", paymentSchema);
