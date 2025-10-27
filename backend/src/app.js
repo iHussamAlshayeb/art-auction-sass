@@ -19,7 +19,7 @@ const app = express();
 app.use(
   cors({
     origin: [
-      "http://localhost:5173",
+      "http://localhost:5174",
       "https://app.fanan3.com",
       "https://www.fanan3.com",
       "https://fanan3.com",
