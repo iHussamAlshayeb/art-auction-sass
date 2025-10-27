@@ -28,9 +28,9 @@ app.use(
   })
 );
 
-app.use(rateLimiter);
 app.use(express.json({ limit: "10mb" })); // زيادة الحد لتقبل صور base64
 app.use(express.urlencoded({ extended: true }));
+app.use(rateLimiter);
 
 // 🛣️ ربط المسارات مع الإصدارة v1
 app.use("/api/v1/auth", authRoutes);
