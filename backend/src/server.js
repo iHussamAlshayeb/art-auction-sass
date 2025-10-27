@@ -9,9 +9,6 @@ import { processFinishedAuctions } from "./services/auction.service.js";
 
 const PORT = process.env.PORT || 3000;
 
-// 🧩 الاتصال بقاعدة البيانات
-await connectDB();
-
 // 🔌 إعداد HTTP + Socket.io
 const httpServer = createServer(app);
 
@@ -111,6 +108,8 @@ cron.schedule("* * * * *", async () => {
 });
 
 // 🚀 تشغيل السيرفر
-httpServer.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+connectDB().then(() => {
+  httpServer.listen(PORT, () => {
+    console.log(`✅ Server running at http://localhost:${PORT}`);
+  });
 });
