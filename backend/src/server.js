@@ -108,7 +108,7 @@ cron.schedule("* * * * *", async () => {
 });
 
 // 🚀 تشغيل السيرفر
-connectDB().then(() => {
+await connectDB().then(() => {
   httpServer.listen(PORT, () => {
     console.log(`✅ Server running at http://localhost:${PORT}`);
   });
