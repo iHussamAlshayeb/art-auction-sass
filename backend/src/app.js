@@ -2,15 +2,16 @@ import express from "express";
 import cors from "cors";
 
 // 🧩 استيراد كل المسارات
-import authRoutes from "./api/auth.routes.js";
-import userRoutes from "./api/user.routes.js";
-import artworkRoutes from "./api/artwork.routes.js";
-import auctionRoutes from "./api/auction.routes.js";
-import uploadRoutes from "./api/upload.routes.js";
-import adminRoutes from "./api/admin.routes.js";
-import studentRoutes from "./api/student.routes.js";
-import notificationRoutes from "./api/notification.routes.js";
-// import webhookRoutes from "./api/webhook.routes.js"; // في حال أضفت الدفع لاحقًا
+import authRoutes from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
+import artworkRoutes from "./routes/artwork.routes.js";
+import auctionRoutes from "./routes/auction.routes.js";
+import uploadRoutes from "./routes/upload.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import studentRoutes from "./routes/student.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
+import rateLimiter from "./middleware/rateLimiter.js";
+// import webhookRoutes from "./routes/webhook.routes.js"; // في حال أضفت الدفع لاحقًا
 
 const app = express();
 
@@ -26,6 +27,8 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(rateLimiter);
 app.use(express.json({ limit: "10mb" })); // زيادة الحد لتقبل صور base64
 app.use(express.urlencoded({ extended: true }));
 

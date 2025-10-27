@@ -5,8 +5,7 @@ import Bid from "../models/bid.model.js";
 import bcrypt from "bcryptjs";
 
 // ---== دالة جلب بيانات الملف الشخصي (نسخة Mongoose) ==---
-
-export const getMyProfileData = async (req, res) => {
+export async function getMyProfileData(req, res) {
   const userId = req.user.id;
   try {
     const user = await User.findById(userId).select("-password"); // .select('-password') لتجنب إرسال كلمة المرور
@@ -18,10 +17,10 @@ export const getMyProfileData = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "فشل في جلب بيانات الملف الشخصي" });
   }
-};
+}
 
 // ---== دالة تحديث الملف الشخصي (نسخة Mongoose) ==---
-export const updateMyProfile = async (req, res) => {
+export async function updateMyProfile(req, res) {
   const userId = req.user.id;
   const { name, email, profileImageUrl, schoolName, gradeLevel, bio } =
     req.body;
@@ -57,10 +56,10 @@ export const updateMyProfile = async (req, res) => {
     }
     res.status(500).json({ message: "فشل في تحديث الملف الشخصي" });
   }
-};
+}
 
 // ---== دالة تحديث كلمة المرور (نسخة Mongoose) ==---
-export const updateMyPassword = async (req, res) => {
+export async function updateMyPassword(req, res) {
   const userId = req.user.id;
   const { currentPassword, newPassword } = req.body;
 
@@ -81,10 +80,10 @@ export const updateMyPassword = async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: "فشل في تحديث كلمة المرور" });
   }
-};
+}
 
 // ---== دالة جلب أعمال الطالب (نسخة Mongoose) ==---
-export const getMyArtworks = async (req, res) => {
+export async function getMyArtworks(req, res) {
   const studentId = req.user.id;
   try {
     const artworks = await Artwork.find({ student: studentId })
@@ -97,10 +96,10 @@ export const getMyArtworks = async (req, res) => {
       .status(500)
       .json({ message: "فشل في تحميل أعمالك الفنية", error: error.message });
   }
-};
+}
 
 // ---== دالة جلب العروض النشطة (نسخة Mongoose) ==---
-export const getMyActiveBids = async (req, res) => {
+export async function getMyActiveBids(req, res) {
   const userId = req.user.id;
   try {
     // 1. جلب كل المزايدات التي قام بها المستخدم
@@ -121,10 +120,10 @@ export const getMyActiveBids = async (req, res) => {
       .status(500)
       .json({ message: "Failed to fetch active bids", error: error.message });
   }
-};
+}
 
 // ---== دالة جلب المزادات الفائزة (نسخة Mongoose) ==---
-export const getMyWonArtworks = async (req, res) => {
+export async function getMyWonArtworks(req, res) {
   const userId = req.user.id;
   try {
     // 1. جلب المزادات التي فاز بها المستخدم
@@ -144,4 +143,4 @@ export const getMyWonArtworks = async (req, res) => {
       .status(500)
       .json({ message: "Failed to fetch won artworks", error: error.message });
   }
-};
+}

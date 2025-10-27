@@ -19,7 +19,7 @@ const ensureFutureDate = (dt) => {
 };
 
 // ---== إنشاء مزاد جديد ==---
-export const createAuction = async (req, res) => {
+export async function createAuction(req, res) {
   const { artworkId, startPrice, endTime } = req.body;
   const studentId = req.user?.id;
 
@@ -94,7 +94,7 @@ export const createAuction = async (req, res) => {
   } finally {
     session.endSession();
   }
-};
+}
 
 // ---== جلب جميع المزادات ==---
 export async function getAllAuctions(req, res) {
@@ -168,12 +168,10 @@ export async function getAuctionById(req, res) {
     if (!auction) return res.status(404).json({ message: "Auction not found" });
     return res.status(200).json({ auction });
   } catch (error) {
-    return res
-      .status(500)
-      .json({
-        message: "Failed to fetch auction details",
-        error: error?.message,
-      });
+    return res.status(500).json({
+      message: "Failed to fetch auction details",
+      error: error?.message,
+    });
   }
 }
 

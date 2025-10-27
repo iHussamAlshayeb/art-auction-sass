@@ -2,7 +2,7 @@ import Artwork from "../models/artwork.model.js";
 import Auction from "../models/auction.model.js";
 
 // 🖼️ إنشاء عمل فني جديد
-export const createArtwork = async (req, res) => {
+export async function createArtwork(req, res) {
   try {
     const { title, description, imageUrl } = req.body;
     const studentId = req.user.id; // ✅ تم التعديل هنا
@@ -30,10 +30,10 @@ export const createArtwork = async (req, res) => {
       error: error.message,
     });
   }
-};
+}
 
 // 🖋️ تعديل عمل فني
-export const updateArtwork = async (req, res) => {
+export async function updateArtwork(req, res) {
   const { id } = req.params;
   const { title, description, imageUrl } = req.body;
   const studentId = req.user.id; // ✅ تم التعديل هنا
@@ -59,10 +59,10 @@ export const updateArtwork = async (req, res) => {
       error: error.message,
     });
   }
-};
+}
 
 // 🗑️ حذف عمل فني (إن لم يكن في مزاد)
-export const deleteArtwork = async (req, res) => {
+export async function deleteArtwork(req, res) {
   const { id } = req.params;
   const studentId = req.user.id; // ✅ تم التعديل هنا
 
@@ -88,10 +88,10 @@ export const deleteArtwork = async (req, res) => {
       error: error.message,
     });
   }
-};
+}
 
 // 📚 جلب جميع الأعمال العامة (للعرض)
-export const getAllPublicArtworks = async (req, res) => {
+export async function getAllPublicArtworks(req, res) {
   try {
     const artworks = await Artwork.find({
       status: { $in: ["IN_AUCTION", "SOLD"] },
@@ -106,10 +106,10 @@ export const getAllPublicArtworks = async (req, res) => {
       error: error.message,
     });
   }
-};
+}
 
 // 👨‍🎓 جلب أعمال طالب محدد
-export const getStudentArtworks = async (req, res) => {
+export async function getStudentArtworks(req, res) {
   const { id } = req.params;
   try {
     const artworks = await Artwork.find({ student: id }).sort({
@@ -122,4 +122,4 @@ export const getStudentArtworks = async (req, res) => {
       error: error.message,
     });
   }
-};
+}

@@ -5,7 +5,7 @@ import {
   deleteArtwork,
   getAllPublicArtworks,
   getStudentArtworks,
-} from "./artwork.controller.js";
+} from "../controllers/artwork.controller.js";
 import { protect, studentOnly } from "../middleware/auth.middleware.js";
 
 const router = express.Router();

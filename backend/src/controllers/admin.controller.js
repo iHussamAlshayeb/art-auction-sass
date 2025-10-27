@@ -7,7 +7,7 @@ import Notification from "../models/notification.model.js";
 /* =========================
  *        الإحصائيات
  * ========================= */
-export const getAdminStats = async (req, res) => {
+export async function getAdminStats(req, res) {
   try {
     const [users, artworks, auctions, soldArtworks, notifications] =
       await Promise.all([
@@ -42,12 +42,12 @@ export const getAdminStats = async (req, res) => {
       .status(500)
       .json({ message: "فشل في جلب الإحصائيات", error: error.message });
   }
-};
+}
 
 /* =========================
  *     إدارة المستخدمين
  * ========================= */
-export const getAllUsers = async (_req, res) => {
+export async function getAllUsers(_req, res) {
   try {
     const users = await User.find().select("-password").sort({ createdAt: -1 });
     res.status(200).json({ users });
@@ -56,9 +56,9 @@ export const getAllUsers = async (_req, res) => {
       .status(500)
       .json({ message: "فشل في جلب المستخدمين", error: error.message });
   }
-};
+}
 
-export const deleteUser = async (req, res) => {
+export async function deleteUser(req, res) {
   const { id } = req.params;
   try {
     const deleted = await User.findByIdAndDelete(id);
@@ -75,12 +75,12 @@ export const deleteUser = async (req, res) => {
       .status(500)
       .json({ message: "فشل في حذف المستخدم", error: error.message });
   }
-};
+}
 
 /* =========================
  *    إدارة الأعمال الفنية
  * ========================= */
-export const getAllArtworks = async (_req, res) => {
+export async function getAllArtworks(_req, res) {
   try {
     const artworks = await Artwork.find()
       .populate("student", "name email schoolName")
@@ -91,9 +91,9 @@ export const getAllArtworks = async (_req, res) => {
       .status(500)
       .json({ message: "فشل في جلب الأعمال الفنية", error: error.message });
   }
-};
+}
 
-export const deleteArtworkByAdmin = async (req, res) => {
+export async function deleteArtworkByAdmin(req, res) {
   const { id } = req.params;
   try {
     const artwork = await Artwork.findById(id);
@@ -116,12 +116,12 @@ export const deleteArtworkByAdmin = async (req, res) => {
       .status(500)
       .json({ message: "فشل في حذف العمل الفني.", error: error.message });
   }
-};
+}
 
 /* =========================
  *        إدارة المزادات
  * ========================= */
-export const getAllAuctions = async (_req, res) => {
+export async function getAllAuctions(_req, res) {
   try {
     const auctions = await Auction.find()
       .populate({
@@ -136,9 +136,9 @@ export const getAllAuctions = async (_req, res) => {
       .status(500)
       .json({ message: "فشل في جلب المزادات", error: error.message });
   }
-};
+}
 
-export const endAuctionManually = async (req, res) => {
+export async function endAuctionManually(req, res) {
   const { id } = req.params;
   try {
     const auction = await Auction.findById(id).populate("artwork");
@@ -162,12 +162,12 @@ export const endAuctionManually = async (req, res) => {
       .status(500)
       .json({ message: "فشل في إنهاء المزاد", error: error.message });
   }
-};
+}
 
 /* =========================
  *      إدارة الإشعارات
  * ========================= */
-export const getAllNotifications = async (_req, res) => {
+export async function getAllNotifications(_req, res) {
   try {
     const notifications = await Notification.find()
       .populate("user", "name email")
@@ -178,9 +178,9 @@ export const getAllNotifications = async (_req, res) => {
       .status(500)
       .json({ message: "فشل في جلب الإشعارات", error: error.message });
   }
-};
+}
 
-export const deleteNotification = async (req, res) => {
+export async function deleteNotification(req, res) {
   const { id } = req.params;
   try {
     const notif = await Notification.findByIdAndDelete(id);
@@ -198,4 +198,4 @@ export const deleteNotification = async (req, res) => {
       .status(500)
       .json({ message: "فشل في حذف الإشعار", error: error.message });
   }
-};
+}

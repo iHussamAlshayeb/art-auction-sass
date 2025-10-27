@@ -7,7 +7,7 @@ import Artwork from "../models/artwork.model.js";
 /**
  * ✅ إنشاء فاتورة Moyasar (Invoice)
  */
-export const createMoyasarInvoice = async (req, res) => {
+export async function createMoyasarInvoice(req, res) {
   const { id: auctionId } = req.params;
   const userId = req.user?.id;
   const moyasarApiKey = process.env.MOYASAR_SECRET_KEY;
@@ -59,12 +59,12 @@ export const createMoyasarInvoice = async (req, res) => {
     );
     return res.status(500).json({ message: "فشل إنشاء الفاتورة." });
   }
-};
+}
 
 /**
  * 🧩 التحقق من حالة الدفع (Callback)
  */
-export const verifyMoyasarPayment = async (req, res) => {
+export async function verifyMoyasarPayment(req, res) {
   console.log("==========================================");
   console.log("📩 [VERIFY] Callback Received from Moyasar");
   console.log("Body:", JSON.stringify(req.body, null, 2));
@@ -131,4 +131,4 @@ export const verifyMoyasarPayment = async (req, res) => {
       .status(500)
       .json({ message: "Error saving payment", error: err.message });
   }
-};
+}

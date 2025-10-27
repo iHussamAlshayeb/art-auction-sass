@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 // ============================================================
 // 🧍‍♂️ بيانات الطالب الشخصية (محميّة)
 // ============================================================
-export const getMyProfile = async (req, res) => {
+export async function getMyProfile(req, res) {
   try {
     const user = await User.findById(req.user._id).select("-password");
     if (!user) return res.status(404).json({ message: "المستخدم غير موجود." });
@@ -18,12 +18,12 @@ export const getMyProfile = async (req, res) => {
       .status(500)
       .json({ message: "فشل في جلب الملف الشخصي", error: error.message });
   }
-};
+}
 
 // ============================================================
 // ✏️ تحديث الملف الشخصي (محميّة)
 // ============================================================
-export const updateMyProfile = async (req, res) => {
+export async function updateMyProfile(req, res) {
   try {
     const { name, schoolName, gradeLevel, avatarUrl } = req.body;
     const user = await User.findById(req.user._id);
@@ -44,12 +44,12 @@ export const updateMyProfile = async (req, res) => {
       .status(500)
       .json({ message: "فشل في تحديث الملف الشخصي", error: error.message });
   }
-};
+}
 
 // ============================================================
 // 📊 بيانات لوحة تحكم الطالب (الأعمال + المزادات)
 // ============================================================
-export const getMyDashboardData = async (req, res) => {
+export async function getMyDashboardData(req, res) {
   try {
     const artworks = await Artwork.find({ student: req.user._id });
     const auctions = await Auction.find({
@@ -65,12 +65,12 @@ export const getMyDashboardData = async (req, res) => {
       .status(500)
       .json({ message: "فشل في جلب بيانات لوحة التحكم", error: error.message });
   }
-};
+}
 
 // ============================================================
 // 🌍 جلب جميع الطلاب (عام — لصفحة الفنانون)
 // ============================================================
-export const getAllStudents = async (req, res) => {
+export async function getAllStudents(req, res) {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = 12;
@@ -109,12 +109,12 @@ export const getAllStudents = async (req, res) => {
       .status(500)
       .json({ message: "فشل في جلب قائمة الطلاب", error: error.message });
   }
-};
+}
 
 // ============================================================
 // 🌍 جلب طالب محدد مع أعماله (عام — لصفحة ملف فنان معين)
 // ============================================================
-export const getStudentById = async (req, res) => {
+export async function getStudentById(req, res) {
   try {
     const student = await User.findById(req.params.id)
       .select("name profileImageUrl schoolName gradeLevel bio")
@@ -139,4 +139,4 @@ export const getStudentById = async (req, res) => {
       error: error.message,
     });
   }
-};
+}

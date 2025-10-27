@@ -3,7 +3,7 @@ import Notification from "../models/notification.model.js";
 /* ======================================================
    🔔 جلب الإشعارات الخاصة بالمستخدم الحالي
 ====================================================== */
-export const getNotifications = async (req, res) => {
+export async function getNotifications(req, res) {
   try {
     const userId = req.user.id;
 
@@ -18,12 +18,12 @@ export const getNotifications = async (req, res) => {
       error: error.message,
     });
   }
-};
+}
 
 /* ======================================================
    ✅ تحديد إشعار واحد كمقروء
 ====================================================== */
-export const markAsRead = async (req, res) => {
+export async function markAsRead(req, res) {
   try {
     const { notificationId } = req.body;
     const userId = req.user.id;
@@ -49,12 +49,12 @@ export const markAsRead = async (req, res) => {
       error: error.message,
     });
   }
-};
+}
 
 /* ======================================================
    ✅ تحديد جميع الإشعارات كمقروءة
 ====================================================== */
-export const markAllAsRead = async (req, res) => {
+export async function markAllAsRead(req, res) {
   try {
     const userId = req.user.id;
     await Notification.updateMany(
@@ -68,12 +68,12 @@ export const markAllAsRead = async (req, res) => {
       error: error.message,
     });
   }
-};
+}
 
 /* ======================================================
    ❌ حذف إشعار واحد
 ====================================================== */
-export const deleteNotification = async (req, res) => {
+export async function deleteNotification(req, res) {
   try {
     const { id } = req.params;
     const userId = req.user.id;
@@ -94,12 +94,12 @@ export const deleteNotification = async (req, res) => {
       error: error.message,
     });
   }
-};
+}
 
 /* ======================================================
    🧹 حذف جميع الإشعارات للمستخدم الحالي
 ====================================================== */
-export const deleteAllNotifications = async (req, res) => {
+export async function deleteAllNotifications(req, res) {
   try {
     const userId = req.user.id;
     await Notification.deleteMany({ user: userId });
@@ -110,12 +110,12 @@ export const deleteAllNotifications = async (req, res) => {
       error: error.message,
     });
   }
-};
+}
 
 /* ======================================================
    🔢 عدد الإشعارات غير المقروءة
 ====================================================== */
-export const getUnreadNotificationsCount = async (req, res) => {
+export async function getUnreadNotificationsCount(req, res) {
   try {
     const userId = req.user.id;
     const count = await Notification.countDocuments({
@@ -129,13 +129,13 @@ export const getUnreadNotificationsCount = async (req, res) => {
       error: error.message,
     });
   }
-};
+}
 
 /* ======================================================
    🆕 إنشاء إشعار جديد (للمشرف أو النظام)
    ⚡ يدعم Socket.io — يرسل الإشعار للمستخدم مباشرة في الوقت الحقيقي
 ====================================================== */
-export const createNotification = async (req, res) => {
+export async function createNotification(req, res) {
   try {
     const { userId, message, link } = req.body;
     if (!userId || !message) {
@@ -167,4 +167,4 @@ export const createNotification = async (req, res) => {
       error: error.message,
     });
   }
-};
+}

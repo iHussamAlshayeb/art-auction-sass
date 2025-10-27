@@ -10,7 +10,7 @@ import {
   endAuctionManually,
   getAllNotifications,
   deleteNotification,
-} from "./admin.controller.js";
+} from "../controllers/admin.controller.js";
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
 
 const router = express.Router();

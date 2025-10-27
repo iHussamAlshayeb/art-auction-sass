@@ -9,7 +9,7 @@ const generateToken = (userId, role) => {
 };
 
 // 🧍‍♂️ دالة التسجيل
-export const register = async (req, res) => {
+export async function register(req, res) {
   try {
     const { name, email, password } = req.body;
 
@@ -51,10 +51,10 @@ export const register = async (req, res) => {
       error: error.message,
     });
   }
-};
+}
 
 // 🔑 دالة تسجيل الدخول
-export const login = async (req, res) => {
+export async function login(req, res) {
   try {
     let { email, password } = req.body;
 
@@ -96,10 +96,10 @@ export const login = async (req, res) => {
       .status(500)
       .json({ message: "حدث خطأ أثناء تسجيل الدخول", error: error.message });
   }
-};
+}
 
 // 🚪 تسجيل الخروج
-export const logout = async (req, res) => {
+export async function logout(req, res) {
   try {
     res.clearCookie("token");
     res.status(200).json({ message: "تم تسجيل الخروج بنجاح." });
@@ -108,4 +108,4 @@ export const logout = async (req, res) => {
       .status(500)
       .json({ message: "فشل في تسجيل الخروج", error: error.message });
   }
-};
+}

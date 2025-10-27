@@ -9,7 +9,7 @@ cloudinary.v2.config({
 });
 
 // 📸 رفع صورة
-export const uploadImage = async (req, res) => {
+export async function uploadImage(req, res) {
   try {
     if (!req.file?.path) {
       return res.status(400).json({ message: "لم يتم رفع أي ملف." });
@@ -28,4 +28,4 @@ export const uploadImage = async (req, res) => {
       .status(500)
       .json({ message: "فشل في رفع الصورة", error: error.message });
   }
-};
+}

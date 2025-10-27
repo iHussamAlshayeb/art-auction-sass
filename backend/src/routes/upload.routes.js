@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { uploadImage } from "./upload.controller.js";
+import { uploadImage } from "../controllers/upload.controller.js";
 import { protect, studentOnly } from "../middleware/auth.middleware.js";
 
 // حفظ مؤقت في مجلد "uploads/"

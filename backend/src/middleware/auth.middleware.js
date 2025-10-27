@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 
 // ✅ حماية المسارات (JWT)
-export const protect = async (req, res, next) => {
+export async function protect(req, res, next) {
   let token;
   try {
     // استخرج التوكن من الهيدر أو الكوكيز
@@ -44,20 +44,20 @@ export const protect = async (req, res, next) => {
       .status(401)
       .json({ message: "رمز الدخول غير صالح أو منتهي.", error: error.message });
   }
-};
+}
 
 // ✅ صلاحية الإدارة فقط
-export const adminOnly = (req, res, next) => {
+export async function adminOnly(req, res, next) {
   if (!req.user || req.user.role !== "ADMIN") {
     return res.status(403).json({ message: "صلاحيات الإدارة مطلوبة." });
   }
   next();
-};
+}
 
 // ✅ صلاحية الطالب فقط
-export const studentOnly = (req, res, next) => {
+export async function studentOnly(req, res, next) {
   if (!req.user || req.user.role !== "STUDENT") {
     return res.status(403).json({ message: "هذه العملية متاحة للطلاب فقط." });
   }
   next();
-};
+}

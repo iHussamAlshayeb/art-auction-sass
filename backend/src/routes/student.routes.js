@@ -5,7 +5,7 @@ import {
   getMyDashboardData,
   getAllStudents, // ✅ جديد
   getStudentById, // ✅ جديد
-} from "./student.controller.js";
+} from "../controllers/student.controller.js";
 import { protect, studentOnly } from "../middleware/auth.middleware.js";
 
 const router = express.Router();

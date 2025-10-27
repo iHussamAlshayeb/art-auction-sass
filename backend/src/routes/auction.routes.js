@@ -7,9 +7,9 @@ import {
   placeBid,
   getAuctionBids,
   cancelAuction,
-} from "./auction.controller.js";
+} from "../controllers/auction.controller.js";
 
-import { createMoyasarInvoice } from "./payment.controller.js";
+import { createMoyasarInvoice } from "../controllers/payment.controller.js";
 const router = express.Router();
 
 // إنشاء مزاد جديد
