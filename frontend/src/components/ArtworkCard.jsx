@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 
 const ArtworkCard = ({ artwork, handleLike, liked }) => {
     return (
-        <motion
+        <motion.div
             whileHover={{ scale: 1.03 }}
             transition={{ type: "spring", stiffness: 150 }}
             className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl border border-neutral-100 transition-all duration-300 group"
@@ -69,7 +69,7 @@ const ArtworkCard = ({ artwork, handleLike, liked }) => {
                     </div>
                 </div>
             </div>
-        </motion>
+        </motion.div>
 
     )
 }
