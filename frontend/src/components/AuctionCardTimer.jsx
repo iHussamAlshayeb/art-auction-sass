@@ -29,13 +29,15 @@ function AuctionCardTimer({ endTime }) {
   // 2. تحديث التنسيق والألوان
   return (
     <div className={`flex items-center gap-1.5 text-sm font-medium ${timeLeft === 'انتهى المزاد'
-        ? 'text-secondary' // اللون البرتقالي المحمر
-        : 'text-neutral-700' // اللون المحايد للنصوص
+      ? 'text-secondary' // اللون البرتقالي المحمر
+      : 'text-neutral-700' // اللون المحايد للنصوص
       }`}>
       <Clock size={14} />
       <span>{timeLeft}</span>
     </div>
   );
 }
+
+
 
 export default AuctionCardTimer;

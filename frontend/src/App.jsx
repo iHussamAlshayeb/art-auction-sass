@@ -66,8 +66,8 @@ function PaymentFailedPage() {
 }
 
 function App() {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
+  // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
 
   // ⚡️ تفعيل Socket.io عند تسجيل الدخول
@@ -117,12 +117,12 @@ function App() {
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setSidebarOpen} />
 
       {/* ===== القائمة الجانبية (الجوال) ===== */}
-      <MobileMenu isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />
+      {/* <MobileMenu isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} /> */}
 
       {/* ===== الهيدر للجوال ===== */}
       <header className="md:hidden bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-30">
         <div className="container mx-auto px-4 h-20 flex justify-between items-center">
-          <button onClick={() => setIsMobileMenuOpen(true)} className="p-2">
+          <button onClick={() => setSidebarOpen(true)} className="p-2">
             <FiMenu size={24} className="text-gray-600" />
           </button>
           <Link to="/">
