@@ -110,7 +110,7 @@ function App() {
   }, [user]);
 
   return (
-    <div data-theme="forest" className="bg-orange-50 min-h-screen" dir="rtl">
+    <div data-theme="emerald" className="bg-orange-50 min-h-screen" dir="rtl">
       <Toaster position="top-center" />
 
       {/* ===== الشريط الجانبي (سطح المكتب) ===== */}
