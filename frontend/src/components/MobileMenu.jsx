@@ -48,7 +48,9 @@ const MobileMenu = ({ isOpen, setIsOpen }) => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="md:hidden fixed inset-0 bg-black/50 z-40"
+                        // ✅ أعطيناه pointer-events-auto فقط لما القائمة مفتوحة
+                        className={`md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm transition-all duration-300 ${isOpen ? "pointer-events-auto opacity-100 z-[80]" : "pointer-events-none opacity-0"
+                            }`}
                         onClick={closeMenu}
                     />
 
@@ -57,7 +59,8 @@ const MobileMenu = ({ isOpen, setIsOpen }) => {
                         animate={{ x: 0 }}
                         exit={{ x: 300 }}
                         transition={{ type: "tween", duration: 0.3 }}
-                        className="md:hidden flex flex-col w-72 bg-white shadow-lg fixed right-0 top-0 bottom-0 z-60"
+                        // ✅ رفعنا z-index فوق أي عناصر أخرى
+                        className="md:hidden flex flex-col w-72 bg-white shadow-2xl fixed right-0 top-0 bottom-0 z-[100]"
                     >
                         <div className="flex flex-col h-full">
                             <div className="flex justify-between items-center p-4 border-b border-neutral-200">

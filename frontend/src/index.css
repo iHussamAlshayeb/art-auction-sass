@@ -43,4 +43,10 @@
     font-family: theme('fontFamily.heading');
     color: theme('colors.neutral.900');
   }
+
+  .drawer-overlay {
+    pointer-events: none !important;
+    background: transparent !important;
+    z-index: 0 !important;
+  }
 }
