@@ -67,7 +67,6 @@ function PaymentFailedPage() {
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth >= 768);
-  // const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
 
   // ⚡️ تفعيل Socket.io عند تسجيل الدخول
@@ -115,9 +114,6 @@ function App() {
 
       {/* ===== الشريط الجانبي (سطح المكتب) ===== */}
       <Sidebar isOpen={isSidebarOpen} setIsOpen={setSidebarOpen} />
-
-      {/* ===== القائمة الجانبية (الجوال) ===== */}
-      {/* <MobileMenu isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} /> */}
 
       {/* ===== الهيدر للجوال ===== */}
       <header className="md:hidden bg-white/80 backdrop-blur-md shadow-sm fixed top-0 left-0 right-0 z-30">
