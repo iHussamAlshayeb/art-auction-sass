@@ -1,15 +1,20 @@
 import { useState } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
     Home, Image, Users, LayoutDashboard, Shield, LogIn, UserPlus, ChevronDown, X,
-    User, Lock, Briefcase, Award, Tag, Menu
+    User, Lock, Briefcase, Award, Tag, Menu, LogOut
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
-import LogoutButton from "./LogoutButton";
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const handleLogout = () => {
+        logout();
+        navigate("/");
+        setIsOpen(false); // يغلق القائمة بعد تسجيل الخروج
+    };
     const location = useLocation();
     const [openMenus, setOpenMenus] = useState({});
 
@@ -158,15 +163,30 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
                                 </nav>
 
                                 {/* تسجيل الدخول / الخروج */}
-                                <div className="border-t border-neutral-200 p-4">
+                                {/* تسجيل الدخول / الخروج */}
+                                <div className="border-t border-neutral-200 p-4 mt-auto">
                                     {user ? (
-                                        <div onClick={closeMenu}><LogoutButton /></div>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-red-100 text-red-600 font-semibold py-2 px-5 rounded-full text-center transition-all"
+                                        >
+                                            <LogOut size={16} />
+                                            تسجيل الخروج
+                                        </button>
                                     ) : (
                                         <div className="flex flex-col gap-2">
-                                            <Link to="/login" onClick={closeMenu} className="flex items-center justify-center gap-2 text-neutral-700 hover:text-primary font-medium transition py-2 rounded-lg">
+                                            <Link
+                                                to="/login"
+                                                onClick={closeMenu}
+                                                className="flex items-center justify-center gap-2 text-neutral-700 hover:text-primary font-medium transition py-2 rounded-lg"
+                                            >
                                                 <LogIn size={16} /> تسجيل الدخول
                                             </Link>
-                                            <Link to="/register" onClick={closeMenu} className="flex items-center justify-center gap-2 bg-secondary hover:bg-secondary-dark text-white font-semibold py-2 px-5 rounded-full text-center shadow-md transition-all">
+                                            <Link
+                                                to="/register"
+                                                onClick={closeMenu}
+                                                className="flex items-center justify-center gap-2 bg-secondary hover:bg-secondary-dark text-white font-semibold py-2 px-5 rounded-full text-center shadow-md transition-all"
+                                            >
                                                 <UserPlus size={16} /> إنشاء حساب
                                             </Link>
                                         </div>
