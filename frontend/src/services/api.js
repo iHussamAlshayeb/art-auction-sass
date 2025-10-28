@@ -3,6 +3,7 @@ import axios from "axios";
 // 🧩 إعداد العميل الأساسي للـ API
 const apiClient = axios.create({
   baseURL: "https://api.fanan3.com/api/v1",
+  // baseURL: "http://localhost:3000/api/v1",
   headers: {
     "Content-Type": "application/json",
   },
@@ -61,6 +62,8 @@ export const fetchAllArtworks = (params = {}) => {
   // params يمكن أن تحتوي على { page, search, sortBy }
   return apiClient.get("/artworks", { params });
 };
+
+export const fetchArtworksById = (id) => apiClient.get(`/artworks/${id}`);
 
 // جلب أعمال طالب معين (لصفحة بروفايل طالب)
 export const getStudentProfile = (studentId) =>
