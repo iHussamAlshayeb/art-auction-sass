@@ -45,11 +45,10 @@ const MobileMenu = ({ isOpen, setIsOpen }) => {
             {isOpen && (
                 <>
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        // ✅ أعطيناه pointer-events-auto فقط لما القائمة مفتوحة
-                        className={`md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm transition-all duration-300 ${isOpen ? "pointer-events-auto opacity-100 z-[80]" : "pointer-events-none opacity-0"
+                        initial={false}
+                        animate={{ opacity: isOpen ? 1 : 0 }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
+                        className={`md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[80] ${isOpen ? "pointer-events-auto" : "pointer-events-none"
                             }`}
                         onClick={closeMenu}
                     />

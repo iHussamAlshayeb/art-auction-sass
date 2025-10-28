@@ -2,51 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 1. تعريف مكونات التصميم الجديدة باستخدام @theme */
-@theme {
-  --color-primary: #009688;
-  /* اللون الأساسي (الفيروزي) */
-  --color-primary-light: #4DB6AC;
-  --color-primary-dark: #00796B;
-
-  --color-secondary: #FF6F61;
-  /* اللون الثانوي (البرتقالي المحمر) */
-  --color-secondary-dark: #E64A19;
-
-  --color-neutral-100: #F5F5F5;
-  /* لون الخلفية */
-  --color-neutral-200: #EEEEEE;
-  /* لون الحدود */
-  --color-neutral-700: #616161;
-  /* لون النصوص */
-  --color-neutral-900: #212121;
-  /* لون العناوين */
-
-  --font-sans: "Cairo", "sans-serif";
-  --font-heading: "Tajawal", "sans-serif";
-}
-
-/* 2. تطبيق هذه المكونات على مستوى الموقع */
+/* 🎨 1. تعريف الألوان والخطوط العامة */
 @layer base {
-  body {
-    font-family: theme('fontFamily.sans');
-    background-color: theme('colors.neutral.100');
-    color: theme('colors.neutral.700');
+  :root {
+    /* ألوان فنان */
+    --color-primary: #009F9D;
+    --color-primary-light: #5CD4D2;
+    --color-primary-dark: #007C7A;
+
+    --color-secondary: #FF6B35;
+    --color-secondary-dark: #C14B1E;
+
+    --color-neutral-50: #F8F9FA;
+    --color-neutral-100: #F3F4F6;
+    --color-neutral-200: #E5E7EB;
+    --color-neutral-700: #616161;
+    --color-neutral-900: #212121;
+
+    --font-sans: "Cairo", "sans-serif";
+    --font-heading: "Tajawal", "sans-serif";
   }
 
+  /* 🌿 خلفية الموقع والخط الافتراضي */
+  body {
+    @apply bg-[var(--color-neutral-50)] text-[var(--color-neutral-700)];
+    font-family: var(--font-sans);
+  }
+
+  /* 🧠 العناوين */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
-    font-family: theme('fontFamily.heading');
-    color: theme('colors.neutral.900');
+    font-family: var(--font-heading);
+    color: var(--color-neutral-900);
   }
 
+  /* 🪟 إصلاح مشكلة الـ overlay من DaisyUI */
   .drawer-overlay {
     pointer-events: none !important;
     background: transparent !important;
     z-index: 0 !important;
+  }
+}
+
+/* ✨ 2. مكونات أو تعديلات إضافية مخصصة */
+@layer components {
+
+  /* زر رئيسي متناسق مع ألوان فنان */
+  .btn-fanan {
+    @apply bg-[var(--color-primary)] text-white font-semibold rounded-lg px-4 py-2 transition hover:bg-[var(--color-primary-dark)];
+  }
+
+  /* زر ثانوي */
+  .btn-fanan-secondary {
+    @apply bg-[var(--color-secondary)] text-white font-semibold rounded-lg px-4 py-2 transition hover:bg-[var(--color-secondary-dark)];
   }
 }
