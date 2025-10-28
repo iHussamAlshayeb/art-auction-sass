@@ -16,7 +16,7 @@ function StudentProfilePage() {
                 const res = await getStudentProfile(id);
                 setArtist(res.data.student || res.data);
                 setArtowrks(res.data.artworks);
-                console.log(res.data.artworks);
+                // console.log(res.data.artworks);
             } catch (err) {
                 console.error("❌ Failed to fetch artist:", err);
             } finally {
