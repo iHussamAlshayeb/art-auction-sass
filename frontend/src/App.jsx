@@ -16,11 +16,13 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // 🖼️ الصفحات العامة
 import HomePage from "./pages/HomePage";
 import GalleryPage from "./pages/GalleryPage";
+import ArtworkDetailsPage from "./pages/ArtworkDetailsPage";
 import ArtistsPage from "./pages/ArtistsPage";
 import StudentProfilePage from "./pages/StudentProfilePage";
 import AuctionDetailPage from "./pages/AuctionDetailPage";
 import RegisterPage from "./pages/RegisterPage";
 import LoginPage from "./pages/LoginPage";
+
 
 // 🎨 الصفحات المحمية (الطالب)
 import DashboardPage from "./pages/DashboardPage";
@@ -153,6 +155,7 @@ function App() {
             {/* 🏠 المسارات العامة */}
             <Route path="/" element={<HomePage />} />
             <Route path="/gallery" element={<GalleryPage />} />
+            <Route path="/artwork/:id" element={<ArtworkDetailsPage />} />
             <Route path="/artists" element={<ArtistsPage />} />
             <Route path="/students/:id" element={<StudentProfilePage />} />
             <Route path="/auctions/:id" element={<AuctionDetailPage />} />
