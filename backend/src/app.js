@@ -16,17 +16,7 @@ import rateLimiter from "./middleware/rateLimiter.js";
 const app = express();
 
 // 🔧 إعداد الـ Middleware
-app.use(
-  cors({
-    origin: [
-      "http://localhost:5174",
-      "https://app.fanan3.com",
-      "https://www.fanan3.com",
-      "https://fanan3.com",
-    ],
-    credentials: true,
-  })
-);
+app.use(cors());
 
 app.use(express.json({ limit: "10mb" })); // زيادة الحد لتقبل صور base64
 app.use(express.urlencoded({ extended: true }));
