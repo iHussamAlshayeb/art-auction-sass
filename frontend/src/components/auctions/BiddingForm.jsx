@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { placeBid } from '../services/api';
+import { placeBid } from '../../services/api';
 import toast from 'react-hot-toast';
 
 function BiddingForm({ auctionId, currentPrice }) {

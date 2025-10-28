@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { FiMenu, FiSearch, FiPlusCircle } from 'react-icons/fi';
 
 function Header({ toggleSidebar, onMenuClick }) {

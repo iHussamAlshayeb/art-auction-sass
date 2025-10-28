@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { getMyWonArtworks, createPayment } from "../services/api";
+import { getMyWonArtworks, createPayment } from "../../services/api";
 import toast from "react-hot-toast";
-import Spinner from "./Spinner";
+// import Spinner from "./Spinner";
 import { FiCreditCard, FiCheckCircle, FiRefreshCcw } from "react-icons/fi";
+import { Spinner } from "../";
 
 function WonArtworks() {
   const [wins, setWins] = useState([]);

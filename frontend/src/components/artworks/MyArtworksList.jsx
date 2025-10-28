@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { getMyArtworks, cancelAuction } from '../services/api';
-import StartAuctionModal from './StartAuctionModal';
+import { getMyArtworks, cancelAuction } from '../../services/api';
+// import StartAuctionModal from './StartAuctionModal';
 import { Link } from 'react-router-dom';
-import Spinner from '../components/Spinner';
+// import Spinner from '../components/Spinner';
 import toast from 'react-hot-toast';
+import { Spinner, StartAuctionModal } from "../";
 
 function MyArtworksList() {
   const [artworks, setArtworks] = useState([]);

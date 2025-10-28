@@ -1,8 +1,9 @@
 import React from 'react'
 import { Link } from 'react-router'
 import { Heart, Palette } from 'lucide-react'
-import ArtworkStatusBadge from "../components/ArtworkStatusBadge";
+// import ArtworkStatusBadge from "../components/ArtworkStatusBadge";
 import { motion } from "framer-motion";
+import { ArtworkStatusBadge } from "../";
 
 const ArtworkCard = ({ artwork, handleLike, liked }) => {
     return (

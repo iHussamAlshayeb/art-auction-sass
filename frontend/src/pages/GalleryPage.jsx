@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { fetchAllArtworks } from "../services/api";
 import { Link } from "react-router-dom";
-import Spinner from "../components/Spinner";
-import Pagination from "../components/Pagination";
-import ArtworkStatusBadge from "../components/ArtworkStatusBadge";
+// import Spinner from "../components/ui/Spinner";
+// import Pagination from "../components/ui/Pagination";
+import ArtworkStatusBadge from "../components/artworks/ArtworkStatusBadge";
 import { motion } from "framer-motion";
 import { Search, Heart, Palette } from "lucide-react";
 import toast from "react-hot-toast";
-import ArtworkCard from "../components/ArtworkCard";
+// import ArtworkCard from "../components/ArtworkCard";
+import { ArtworkCard, Pagination, Spinner } from "../components";
 
 function GalleryPage() {
     const [artworks, setArtworks] = useState([]);

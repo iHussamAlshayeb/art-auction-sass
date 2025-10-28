@@ -1,7 +1,8 @@
 import { NavLink, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../context/AuthContext';
 import { FiHome, FiGrid, FiBell, FiPlus, FiUser } from 'react-icons/fi';
 import { MdOutlineDesignServices } from "react-icons/md";
+
 
 function BottomNav() {
     const { user, unreadCount } = useAuth();

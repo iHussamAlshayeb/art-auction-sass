@@ -6,11 +6,12 @@ import toast from "react-hot-toast";
 import { useAuth } from "./context/AuthContext";
 import { connectSocket, getSocket } from "./socket";
 
+
 // 🧩 استيراد المكونات والتخطيطات
-import Sidebar from "./components/Sidebar";
-import BottomNav from "./components/BottomNav";
-import FloatingActionButton from "./components/FloatingActionButton";
-import ProtectedRoute from "./components/ProtectedRoute";
+// import Sidebar from "./components/layout/Sidebar";
+// import BottomNav from "./components/BottomNav";
+// import FloatingActionButton from "./components/FloatingActionButton";
+// import ProtectedRoute from "./components/ProtectedRoute";
 
 // 🖼️ الصفحات العامة
 import HomePage from "./pages/HomePage";
@@ -26,15 +27,19 @@ import LoginPage from "./pages/LoginPage";
 // 🎨 الصفحات المحمية (الطالب)
 import DashboardPage from "./pages/DashboardPage";
 import CreateArtworkPage from "./pages/CreateArtworkPage";
-import ProfileEditor from "./components/ProfileEditor";
-import PasswordEditor from "./components/PasswordEditor";
-import MyArtworksList from "./components/MyArtworksList";
-import WonArtworks from "./components/WonArtworks";
-import ActiveBids from "./components/ActiveBids";
+// import ProfileEditor from "./components/ProfileEditor";
+// import PasswordEditor from "./components/PasswordEditor";
+// import MyArtworksList from "./components/MyArtworksList";
+// import WonArtworks from "./components/WonArtworks";
+// import ActiveBids from "./components/ActiveBids";
 import NotificationsPage from "./pages/NotificationsPage";
+
 
 // 🧑‍💼 صفحة المسؤول
 import AdminDashboardPage from "./pages/AdminDashboardPage";
+
+import { Sidebar, BottomNav, FloatingActionButton, ProtectedRoute, ProfileEditor, PasswordEditor, MyArtworksList, WonArtworks, ActiveBids } from "./components";
+
 
 // 💳 صفحات الدفع (جديدة)
 function PaymentSuccessPage() {

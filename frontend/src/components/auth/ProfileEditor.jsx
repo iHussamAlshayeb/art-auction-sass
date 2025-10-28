@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { getMyProfile, updateMyProfile, uploadImage } from '../services/api';
+import { getMyProfile, updateMyProfile, uploadImage } from '../../services/api';
 import toast from 'react-hot-toast';
-import Spinner from './Spinner';
+// import Spinner from './Spinner';
+import { Spinner } from "../";
 
 function ProfileEditor() {
   const [formData, setFormData] = useState(null);

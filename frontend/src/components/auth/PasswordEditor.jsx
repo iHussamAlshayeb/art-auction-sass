@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { updateMyPassword } from '../services/api';
+import { updateMyPassword } from '../../services/api';
 import toast from 'react-hot-toast';
 
 function PasswordEditor() {

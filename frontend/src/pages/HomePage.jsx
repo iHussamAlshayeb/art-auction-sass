@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchAllAuctions } from "../services/api";
 import { Link } from "react-router-dom";
-import AuctionCardTimer from "../components/AuctionCardTimer";
-import Pagination from "../components/Pagination";
-import Spinner from "../components/Spinner";
+// import AuctionCardTimer from "../components/auctions/AuctionCardTimer";
+// import Pagination from "../components/ui/Pagination";
+// import Spinner from "../components/ui/Spinner";
 import { motion } from "framer-motion";
 import { Search, Heart, TrendingUp, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
+import { Pagination, AuctionCardTimer, Spinner } from "../components";
 
 function HomePage() {
   const [auctions, setAuctions] = useState([]);

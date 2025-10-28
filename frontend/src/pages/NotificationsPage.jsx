@@ -7,7 +7,7 @@ import {
     deleteAllNotifications,
 } from "../services/api";
 import { Link } from "react-router-dom";
-import Spinner from "../components/Spinner";
+import Spinner from "../components/ui/Spinner";
 import toast from "react-hot-toast";
 import { FiX, FiTrash2 } from "react-icons/fi";
 import { useAuth } from "../context/AuthContext";
@@ -159,8 +159,8 @@ function NotificationsPage() {
                                 to={notif.link || "#"}
                                 key={notif.id}
                                 className={`relative block p-4 rounded-lg transition-colors border ${notif.read
-                                        ? "bg-white border-neutral-100"
-                                        : "bg-primary/5 border-primary/30"
+                                    ? "bg-white border-neutral-100"
+                                    : "bg-primary/5 border-primary/30"
                                     } hover:bg-primary/10`}
                             >
                                 <div className="flex items-center gap-4">

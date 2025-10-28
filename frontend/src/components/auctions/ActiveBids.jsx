@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
-import { getMyActiveBids } from '../services/api';
+import { getMyActiveBids } from '../../services/api';
 import { Link } from 'react-router-dom';
-import Spinner from './Spinner';
+// import Spinner from './Spinner';
+// import { Spinner } from "../components";
+import { Spinner } from "../";
+
 
 function ActiveBids() {
   const [bids, setBids] = useState([]);

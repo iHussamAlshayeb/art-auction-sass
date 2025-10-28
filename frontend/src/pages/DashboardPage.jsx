@@ -4,11 +4,14 @@ import { motion } from "framer-motion";
 import { io } from "socket.io-client";
 import { getMyProfile, getUnreadNotifCount } from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import Spinner from "../components/Spinner";
-import MyArtworksList from "../components/MyArtworksList";
-import ActiveBids from "../components/ActiveBids";
-import WonArtworks from "../components/WonArtworks";
+// import Spinner from "../components/ui/Spinner";
+// import MyArtworksList from "../components/MyArtworksList";
+// import ActiveBids from "../components/ActiveBids";
+// import WonArtworks from "../components/WonArtworks";
 import { Palette, Award, ClipboardCheck, Bell } from "lucide-react";
+
+
+import { MyArtworksList, WonArtworks, ActiveBids, Spinner } from "../components";
 
 function DashboardPage() {
   const { user } = useAuth();

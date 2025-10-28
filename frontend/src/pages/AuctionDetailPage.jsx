@@ -4,10 +4,11 @@ import { io } from 'socket.io-client';
 import { fetchAuctionById, fetchAuctionBids } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import BiddingForm from '../components/BiddingForm';
-import CountdownTimer from '../components/CountdownTimer';
-import BidHistory from '../components/BidHistory';
-import Spinner from '../components/Spinner';
+// import BiddingForm from '../components/BiddingForm';
+import { CountdownTimer, BiddingForm, Spinner, BidHistory } from "../components";
+// import CountdownTimer from '../components/auctions/CountdownTimer';
+// import BidHistory from '../components/auctions/BidHistory';
+// import Spinner from '../components/ui/Spinner';
 
 const SOCKET_URL = import.meta.env.VITE_API_BASE_URL;
 

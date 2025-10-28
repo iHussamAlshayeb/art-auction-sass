@@ -1,6 +1,6 @@
 import Modal from 'react-modal';
 import { useState } from 'react';
-import { createAuction } from '../services/api';
+import { createAuction } from '../../services/api';
 import toast from 'react-hot-toast';
 
 Modal.setAppElement('#root');
