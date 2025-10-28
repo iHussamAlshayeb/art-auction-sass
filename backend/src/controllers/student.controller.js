@@ -130,7 +130,6 @@ export async function getStudentById(req, res) {
       .select("title imageUrl status")
       .sort({ createdAt: -1 })
       .lean();
-
     res.status(200).json({ student, artworks });
   } catch (error) {
     console.error("Error fetching student:", error);

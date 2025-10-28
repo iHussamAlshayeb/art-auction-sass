@@ -172,8 +172,8 @@ function ArtistsPage() {
                                             <button
                                                 onClick={() => toggleFollow(artistId)}
                                                 className={`px-3 py-1.5 rounded-lg text-sm font-semibold flex items-center gap-1 transition-all ${isFollowing
-                                                        ? "bg-red-100 text-red-600 hover:bg-red-200"
-                                                        : "bg-secondary/10 text-secondary hover:bg-secondary/20"
+                                                    ? "bg-red-100 text-red-600 hover:bg-red-200"
+                                                    : "bg-secondary/10 text-secondary hover:bg-secondary/20"
                                                     }`}
                                             >
                                                 <Heart

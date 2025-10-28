@@ -5,6 +5,7 @@ import {
   deleteArtwork,
   getAllPublicArtworks,
   getStudentArtworks,
+  getArtworksById,
 } from "../controllers/artwork.controller.js";
 import { protect, studentOnly } from "../middleware/auth.middleware.js";
 
@@ -21,6 +22,7 @@ router.delete("/:id", protect, studentOnly, deleteArtwork);
 
 // 🖼️ عرض جميع الأعمال العامة
 router.get("/", getAllPublicArtworks);
+router.get("/:id", getArtworksById);
 
 // 👨‍🎓 جلب أعمال طالب محدد
 router.get("/student/:id", getStudentArtworks);

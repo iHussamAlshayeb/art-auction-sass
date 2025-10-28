@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { fetchAuctionById } from "../services/api";
+import { fetchArtworksById } from "../services/api";
 import Spinner from "../components/Spinner";
 import { motion } from "framer-motion";
 import { Clock, ArrowRight } from "lucide-react";
@@ -13,8 +13,9 @@ function ArtworkDetailsPage() {
     useEffect(() => {
         const loadArtwork = async () => {
             try {
-                const res = await fetchAuctionById(id); // يمكن تغييره لدالة artwork مخصصة
-                setArtwork(res.data.artwork || res.data);
+                const res = await fetchArtworksById(id); // يمكن تغييره لدالة artwork مخصصة
+                setArtwork(res.data.artworks || res.data);
+                // console.log(res.data.artworks);
             } catch {
                 console.error("Failed to fetch artwork");
             } finally {

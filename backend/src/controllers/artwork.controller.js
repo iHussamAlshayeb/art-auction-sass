@@ -123,3 +123,20 @@ export async function getStudentArtworks(req, res) {
     });
   }
 }
+
+export async function getArtworksById(req, res) {
+  try {
+    const { id } = req.params;
+    const artworks = await Artwork.findById(id).populate({
+      path: "student",
+      select: "name schoolName gradeLevel",
+    });
+
+    res.status(200).json({ artworks });
+  } catch (error) {
+    res.status(500).json({
+      message: "فشل في جلب الأعمال الفنية",
+      error: error.message,
+    });
+  }
+}

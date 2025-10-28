@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 function StudentProfilePage() {
     const { id } = useParams();
     const [artist, setArtist] = useState(null);
+    const [artworks, setArtowrks] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -14,6 +15,8 @@ function StudentProfilePage() {
             try {
                 const res = await getStudentProfile(id);
                 setArtist(res.data.student || res.data);
+                setArtowrks(res.data.artworks);
+                console.log(res.data.artworks);
             } catch (err) {
                 console.error("❌ Failed to fetch artist:", err);
             } finally {
@@ -64,9 +67,9 @@ function StudentProfilePage() {
                 <h2 className="text-2xl font-bold text-neutral-900 mb-6">
                     أعمال {artist.name}
                 </h2>
-                {artist.artworks?.length ? (
+                {artworks?.length ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                        {artist.artworks.map((art) => (
+                        {artworks.map((art) => (
                             <motion.div
                                 key={art._id}
                                 whileHover={{ scale: 1.03 }}
