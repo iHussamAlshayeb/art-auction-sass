@@ -1,119 +1,149 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { createArtwork, uploadImage } from '../services/api.js';
 import toast from 'react-hot-toast';
+import RateLimitedUI from '../components/ui/RateLimitedUI'
+import { ArrowLeftIcon } from 'lucide-react';
+
+
+
 
 function CreateArtworkPage() {
-  const [formData, setFormData] = useState({ title: '', description: '' });
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [imageFile, setImageFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isRateLimited, setIsRateLimited] = useState(false);
+
+
+
   const navigate = useNavigate();
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const handleFileChange = (e) => {
-    if (e.target.files.length > 0) {
-      setImageFile(e.target.files[0]);
-    }
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!imageFile) {
-      setError('الرجاء اختيار ملف صورة لرفعه.');
+    console.log(title)
+    console.log(description)
+
+    if (!imageFile || !title.trim() || !description.trim()) {
+      toast.error("يرجى ملئ جميع الحقول, واعادة المحاولة");
       return;
     }
-    setError(null);
-    setUploading(true);
+
+    setLoading(true);
 
     try {
       const uploadResponse = await uploadImage(imageFile);
       const finalImageUrl = uploadResponse.data.url;
 
-      await createArtwork({ ...formData, imageUrl: finalImageUrl });
+      await createArtwork({ title, description, imageUrl: finalImageUrl });
 
-      toast.success('تمت إضافة العمل بنجاح!');
+      toast.success('تمت إضافة العمل الفني بنجاح!');
+      setIsRateLimited(false)
       navigate('/dashboard/my-artworks');
 
-    } catch (err) {
-      const message = err.response?.data?.message || 'فشلت إضافة العمل الفني.';
-      setError(message);
-      toast.error(message);
+    } catch (error) {
+      console.error(error.response?.data?.message || 'فشلت إضافة العمل الفني.');
+      if (error.response.status === 429) {
+        setIsRateLimited(true)
+        toast.error("شوي شوي, انتظر شوي وحاول من جديد", {
+          duration: 4000, // 4 seconds
+          icon: "💀"
+        })
+      } else {
+        toast.error("فشلت إضافة العمل الفني, حاول مجددا لاحقا!");
+      }
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen px-4">
-      <div className="w-full max-w-lg space-y-8 bg-white/90 backdrop-blur-sm p-8 sm:p-10 rounded-2xl shadow-xl border border-neutral-200">
-        <div>
-          <h2 className="text-center text-4xl font-extrabold tracking-tight text-primary-dark">
-            إضافة عمل فني جديد
-          </h2>
-          <p className="mt-2 text-center text-sm text-neutral-700">
-            ارفع تحفتك الفنية ليراها العالم
-          </p>
+    <div className="min-h-screen ">
+      {isRateLimited && <RateLimitedUI />}
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <Link to={"/"} className="btn btn-ghost mb-6 text-primary-dark">
+            <ArrowLeftIcon className="size-5" />
+            العودة للأعمال
+          </Link>
+
+          <div className="card bg-white/90 backdrop-blur-sm border border-neutral-200 shadow-xl">
+            <div className="card-body">
+              <h2 className="card-title text-3xl font-extrabold text-primary-dark mb-2 text-center">
+                إضافة عمل فني جديد
+              </h2>
+              <p className="text-center text-sm text-neutral-700 mb-6">
+                ارفع تحفتك الفنية ليراها العالم
+              </p>
+
+              <form onSubmit={handleSubmit}>
+                <div className="form-control mb-6 space-y-4">
+                  <div>
+                    <label className="label">
+                      <span className="label-text text-neutral-700 font-medium">
+                        عنوان العمل الفني
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="مثال: غروب الصحراء"
+                      className="input input-bordered w-full focus:ring-2 focus:ring-primary"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label">
+                      <span className="label-text text-neutral-700 font-medium">
+                        وصف العمل الفني
+                      </span>
+                    </label>
+                    <textarea
+                      placeholder="صف عملك الفني..."
+                      className="textarea textarea-bordered w-full h-32 focus:ring-2 focus:ring-primary"
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="label">
+                      <span className="label-text text-neutral-700 font-medium">
+                        صورة العمل الفني
+                      </span>
+                    </label>
+                    <input
+                      type="file"
+                      onChange={(e) =>
+                        e.target.files.length > 0
+                          ? setImageFile(e.target.files[0])
+                          : ""
+                      }
+                      accept="image/png, image/jpeg, image/jpg"
+                      className="file-input file-input-bordered w-full text-neutral-700
+                    file:bg-primary/10 file:text-primary-dark hover:file:bg-primary/20"
+                    />
+                  </div>
+                </div>
+
+                <div className="card-actions justify-end">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn btn-primary w-full font-bold text-white shadow-md transition-all duration-200 disabled:bg-gray-400"
+                  >
+                    {loading ? "جاري الرفع..." : "إرسال العمل الفني"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
-
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-neutral-700">عنوان العمل الفني</label>
-              <input
-                name="title" type="text" required
-                className="mt-1 w-full p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-                placeholder="مثال: غروب الصحراء"
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium text-neutral-700">وصف العمل الفني</label>
-              <textarea
-                name="description" required rows="4"
-                className="mt-1 w-full p-3 border border-neutral-200 rounded-lg focus:ring-2 focus:ring-primary focus:outline-none"
-                placeholder="صف عملك الفني..."
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-neutral-700">
-                صورة العمل الفني
-              </label>
-              <input
-                type="file"
-                onChange={handleFileChange}
-                accept="image/png, image/jpeg, image/jpg"
-                required
-                className="mt-1 block w-full text-sm text-neutral-700
-                  file:mr-4 file:py-2 file:px-4
-                  file:rounded-full file:border-0
-                  file:text-sm file:font-semibold
-                  file:bg-primary/10 file:text-primary-dark
-                  hover:file:bg-primary/20"
-              />
-            </div>
-          </div>
-
-          {error && <p className="text-sm text-red-600">{error}</p>}
-
-          <div>
-            <button
-              type="submit"
-              disabled={uploading}
-              className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 px-5 rounded-lg shadow-md transition-all duration-200 disabled:bg-gray-400"
-            >
-              {uploading ? 'جاري الرفع...' : 'إرسال العمل الفني'}
-            </button>
-          </div>
-        </form>
       </div>
     </div>
-  );
+  )
 }
 
 export default CreateArtworkPage;
