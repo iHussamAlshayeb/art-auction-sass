@@ -21,9 +21,6 @@ function CreateArtworkPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(title)
-    console.log(description)
-
     if (!imageFile || !title.trim() || !description.trim()) {
       toast.error("يرجى ملئ جميع الحقول, واعادة المحاولة");
       return;
