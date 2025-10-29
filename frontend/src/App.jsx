@@ -6,13 +6,6 @@ import toast from "react-hot-toast";
 import { useAuth } from "./context/AuthContext";
 import { connectSocket, getSocket } from "./socket";
 
-
-// 🧩 استيراد المكونات والتخطيطات
-// import Sidebar from "./components/layout/Sidebar";
-// import BottomNav from "./components/BottomNav";
-// import FloatingActionButton from "./components/FloatingActionButton";
-// import ProtectedRoute from "./components/ProtectedRoute";
-
 // 🖼️ الصفحات العامة
 import HomePage from "./pages/HomePage";
 import GalleryPage from "./pages/GalleryPage";
@@ -27,11 +20,7 @@ import LoginPage from "./pages/LoginPage";
 // 🎨 الصفحات المحمية (الطالب)
 import DashboardPage from "./pages/DashboardPage";
 import CreateArtworkPage from "./pages/CreateArtworkPage";
-// import ProfileEditor from "./components/ProfileEditor";
-// import PasswordEditor from "./components/PasswordEditor";
-// import MyArtworksList from "./components/MyArtworksList";
-// import WonArtworks from "./components/WonArtworks";
-// import ActiveBids from "./components/ActiveBids";
+
 import NotificationsPage from "./pages/NotificationsPage";
 
 
