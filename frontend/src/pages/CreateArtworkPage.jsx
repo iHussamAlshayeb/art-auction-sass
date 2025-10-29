@@ -58,12 +58,13 @@ function CreateArtworkPage() {
   };
 
   return (
+
     <div className="min-h-screen ">
       {isRateLimited && <RateLimitedUI />}
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
-          <Link to={"/"} className="btn btn-ghost mb-6 text-primary-dark">
+          <Link to={"/gallery"} className="btn btn-ghost mb-6 text-primary-dark">
             <ArrowLeftIcon className="size-5" />
             العودة للأعمال
           </Link>
@@ -142,8 +143,7 @@ function CreateArtworkPage() {
           </div>
         </div>
       </div>
-    </div>
-  )
+    </div>)
 }
 
 export default CreateArtworkPage;
