@@ -22,3 +22,9 @@
     color: black;
     cursor: pointer;
 }
+
+@media (max-width:760px) {
+    .home-page-test {
+        flex-direction: column;
+    }
+}
