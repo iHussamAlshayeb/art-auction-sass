@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'; // 1. استيراد useEffect
 import { useNavigate, Link } from 'react-router-dom';
-import { loginUser } from '../services/api';
-import { useAuth } from '../context/AuthContext';
+import { loginUser } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+
+import './LoginPage.css'
 
 function LoginPage() {
   const [formData, setFormData] = useState({ email: '', password: '' });

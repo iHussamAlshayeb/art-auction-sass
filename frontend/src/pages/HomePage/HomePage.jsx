@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchAllAuctions } from "../services/api";
+import { fetchAllAuctions } from "../../services/api";
 import { Link } from "react-router-dom";
 // import AuctionCardTimer from "../components/auctions/AuctionCardTimer";
 // import Pagination from "../components/ui/Pagination";
@@ -7,7 +7,10 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Search, Heart, TrendingUp, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
-import { Pagination, AuctionCardTimer, Spinner } from "../components";
+import { Pagination, AuctionCardTimer, Spinner } from "../../components";
+
+import './HomePage.css'
+
 
 function HomePage() {
   const [auctions, setAuctions] = useState([]);
@@ -267,6 +270,14 @@ function HomePage() {
           onPageChange={handlePageChange}
         />
       )}
+
+
+      <div className="home-page-test">
+        <p>Test the CSS file</p>
+        <p>Test the CSS file</p>
+        <p>Test the CSS file</p>
+        <p>Test the CSS file</p>
+      </div>
     </div>
   );
 }

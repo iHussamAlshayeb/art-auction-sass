@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { fetchArtworksById } from "../services/api";
-import Spinner from "../components/ui/Spinner";
+import { fetchArtworksById } from "../../services/api";
+import Spinner from "../../components/ui/Spinner";
 import { motion } from "framer-motion";
 import { Clock, ArrowRight, ChevronLeft } from "lucide-react";
+
+import './ArtworkDetailsPage.css'
 
 function ArtworkDetailsPage() {
     const { id } = useParams();

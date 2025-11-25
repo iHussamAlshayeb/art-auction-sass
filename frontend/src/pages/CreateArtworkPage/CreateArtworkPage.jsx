@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createArtwork, uploadImage } from '../services/api.js';
+import { createArtwork, uploadImage } from '../../services/api.js';
 import toast from 'react-hot-toast';
-import RateLimitedUI from '../components/ui/RateLimitedUI'
+import RateLimitedUI from '../../components/ui/RateLimitedUI.jsx'
 import { ArrowLeftIcon } from 'lucide-react';
 
 
-
+import './CreateArtworkPage.css'
 
 function CreateArtworkPage() {
   const [title, setTitle] = useState("");

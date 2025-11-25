@@ -8,10 +8,12 @@ import {
   deleteUser,
   getAdminArtworks,
   deleteArtworkByAdmin,
-} from '../services/api';
-import { useAuth } from '../context/AuthContext';
+} from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-import Spinner from '../components/ui/Spinner';
+import Spinner from '../../components/ui/Spinner';
+
+import './AdminDashboardPage.css'
 
 // ⚡ أنشئ Socket عميل
 const socket = io('https://api.fanan3.com', {

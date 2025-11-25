@@ -7,25 +7,25 @@ import { useAuth } from "./context/AuthContext";
 import { connectSocket, getSocket } from "./socket";
 
 // 🖼️ الصفحات العامة
-import HomePage from "./pages/HomePage";
-import GalleryPage from "./pages/GalleryPage";
-import ArtworkDetailsPage from "./pages/ArtworkDetailsPage";
-import ArtistsPage from "./pages/ArtistsPage";
-import StudentProfilePage from "./pages/StudentProfilePage";
-import AuctionDetailPage from "./pages/AuctionDetailPage";
-import RegisterPage from "./pages/RegisterPage";
-import LoginPage from "./pages/LoginPage";
+import HomePage from "./pages/HomePage/HomePage";
+import GalleryPage from "./pages/GalleryPage/GalleryPage";
+import ArtworkDetailsPage from "./pages/ArtworkDetailsPage/ArtworkDetailsPage";
+import ArtistsPage from "./pages/ArtistsPage/ArtistsPage";
+import StudentProfilePage from "./pages/StudentProfilePage/StudentProfilePage";
+import AuctionDetailPage from "./pages/AuctionDetailPage/AuctionDetailPage";
+import RegisterPage from "./pages/RegisterPage/RegisterPage";
+import LoginPage from "./pages/LoginPage/LoginPage";
 
 
 // 🎨 الصفحات المحمية (الطالب)
-import DashboardPage from "./pages/DashboardPage";
-import CreateArtworkPage from "./pages/CreateArtworkPage";
+import DashboardPage from "./pages/DashboardPage/DashboardPage";
+import CreateArtworkPage from "./pages/CreateArtworkPage/CreateArtworkPage";
 
-import NotificationsPage from "./pages/NotificationsPage";
+import NotificationsPage from "./pages/NotificationsPage/NotificationsPage";
 
 
 // 🧑‍💼 صفحة المسؤول
-import AdminDashboardPage from "./pages/AdminDashboardPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage/AdminDashboardPage";
 
 import { Sidebar, BottomNav, FloatingActionButton, ProtectedRoute, ProfileEditor, PasswordEditor, MyArtworksList, WonArtworks, ActiveBids } from "./components";
 

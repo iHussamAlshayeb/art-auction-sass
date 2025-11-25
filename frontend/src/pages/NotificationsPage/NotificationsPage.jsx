@@ -5,12 +5,14 @@ import {
     markAllNotificationsRead,
     deleteNotificationById,
     deleteAllNotifications,
-} from "../services/api";
+} from "../../services/api";
 import { Link } from "react-router-dom";
-import Spinner from "../components/ui/Spinner";
+import Spinner from "../../components/ui/Spinner";
 import toast from "react-hot-toast";
 import { FiX, FiTrash2 } from "react-icons/fi";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
+
+import './NotificationsPage.css'
 
 function NotificationsPage() {
     const [notifications, setNotifications] = useState([]);

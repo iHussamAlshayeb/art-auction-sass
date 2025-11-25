@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getStudentProfile } from "../services/api";
-import Spinner from "../components/ui/Spinner";
+import { getStudentProfile } from "../../services/api";
+import Spinner from "../../components/ui/Spinner";
 import { motion } from "framer-motion";
+
+import './StudentProfilePage.css'
 
 function StudentProfilePage() {
     const { id } = useParams();

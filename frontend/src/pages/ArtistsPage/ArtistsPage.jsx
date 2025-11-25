@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { fetchAllStudents } from "../services/api";
+import { fetchAllStudents } from "../../services/api";
 import { Link } from "react-router-dom";
-import Spinner from "../components/ui/Spinner";
-import Pagination from "../components/ui/Pagination";
+import Spinner from "../../components/ui/Spinner";
+import Pagination from "../../components/ui/Pagination";
 import { motion } from "framer-motion";
 import { Users, Paintbrush, School, Heart } from "lucide-react";
 import toast from "react-hot-toast";
+
+import './ArtistsPage.css'
 
 function ArtistsPage() {
     const [artists, setArtists] = useState([]);
