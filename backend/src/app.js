@@ -11,6 +11,7 @@ import adminRoutes from "./routes/admin.routes.js";
 import studentRoutes from "./routes/student.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import rateLimiter from "./middleware/rateLimiter.js";
+import paymentRoutes from "./routes/payment.routes.js";
 // import webhookRoutes from "./routes/webhook.routes.js"; // في حال أضفت الدفع لاحقًا
 
 const app = express();
@@ -32,6 +33,7 @@ app.use("/api/v1/upload", uploadRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/students", studentRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/payments", paymentRoutes);
 // app.use("/api/v1/webhooks", webhookRoutes);
 
 // 🌐 نقطة فحص أساسية
